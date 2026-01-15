@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ title || 'My Professor - AI Powered Courses' }}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: [ "Plus Jakarta Sans", "sans-serif" ] },
+            colors: {
+              primary: { 50: '#f5f3ff', 100: '#ede9fe', 200: '#ddd6fe', 300: '#c4b5fd', 400: '#a78bfa', 500: '#8b5cf6', 600: '#7c3aed', 700: '#6d28d9', 800: '#5b21b6', 900: '#4c1d95' },
+              dark: '#0F172A'
+            }
+          }
+        }
+      };
+    </script>
+    <style>
+      .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3); }
+      .gradient-text { background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+      .pointer-events-none { pointer-events: none; }
+    </style>
+    @if($slots.head)
+      {{{ await $slots.head() }}}
+    @end
+  </head>
+  <body class="min-h-screen bg-slate-50 font-sans text-slate-900 overflow-x-hidden flex flex-col">
+    {{-- Navbar --}}
+    <nav class="sticky top-0 z-50 glass px-6 py-4">
+      <div class="max-w-7xl mx-auto flex items-center justify-between">
+        <a href="/" class="flex items-center gap-2 group">
+          <div class="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg group-hover:rotate-12 transition-transform">MyP</div>
+          <span class="text-xl font-extrabold tracking-tight">My Professor</span>
+        </a>
+        
+        <div class="hidden md:flex items-center gap-8 font-medium">
+          <a href="/parcourir" class="hover:text-primary-600 transition-colors">Parcourir</a>
+          @if(auth.isAuthenticated)
+            <a href="/mes-cours" class="hover:text-primary-600 transition-colors">Mes Cours</a>
+            <div class="flex items-center gap-4">
+               <span class="text-sm text-slate-500">Bonjour, {{ auth.user.fullName }}</span>
+               <form action="/logout" method="POST">
+                 {{ csrfField() }}
+                 <button type="submit" class="text-red-500 hover:text-red-700 font-semibold text-sm">Déconnexion</button>
+               </form>
+            </div>
+          @else
+            <a href="/login" class="hover:text-primary-600 transition-colors">Connexion</a>
+            <a href="/register" class="bg-dark text-white px-6 py-2.5 rounded-full font-semibold hover:bg-slate-800 transition-colors shadow-lg">S'inscrire</a>
+          @end
+        </div>
+      </div>
+    </nav>
+
+    <div class="flex-1">
+      @if($slots.main)
+        {{{ await $slots.main() }}}
+      @end
+    </div>
+
+    <footer class="bg-dark text-slate-400 py-12 px-6">
+      <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg">M</div>
+          <span class="text-white font-bold">My Professor</span>
+        </div>
+        <div class="flex gap-8 text-sm">
+          <a href="#" class="hover:text-white">Conditions</a>
+          <a href="#" class="hover:text-white">Confidentialité</a>
+          <a href="#" class="hover:text-white">À propos</a>
+        </div>
+        <p class="text-xs">© 2026 My Professor. Powered by Local AI.</p>
+      </div>
+    </footer>
+  </body>
+</html>

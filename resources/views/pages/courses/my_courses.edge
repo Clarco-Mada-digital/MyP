@@ -1,0 +1,134 @@
+@app({ title: 'Mon Dashboard - My Professor' })
+  @slot('main')
+    <main class="max-w-7xl mx-auto px-6 py-12">
+      
+      {{-- Hero Section: Last Played --}}
+      @if(lastPlayed)
+        <div class="mb-16 relative overflow-hidden rounded-[3rem] bg-slate-900 text-white shadow-2xl">
+          <div class="absolute inset-0">
+            <img src="{{ lastPlayed.content?.image || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1600&auto=format&fit=crop&q=80' }}" alt="Background" class="w-full h-full object-cover opacity-40 blur-sm" />
+            <div class="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/80 to-transparent"></div>
+          </div>
+          <div class="relative p-12 md:p-16 flex flex-col md:flex-row items-center justify-between gap-8">
+            <div class="max-w-2xl">
+              <span class="inline-block px-3 py-1 bg-primary-500/30 border border-primary-500/50 rounded-full text-primary-300 text-sm font-bold mb-4 uppercase tracking-wider backdrop-blur-md">Reprendre l'apprentissage</span>
+              <h1 class="text-4xl md:text-5xl font-extrabold mb-4 leading-tight">{{ lastPlayed.title }}</h1>
+               <p class="text-slate-300 text-lg mb-8 line-clamp-2">{{ lastPlayed.description || 'Continuez votre progression vers l\'excellence.' }}</p>
+               
+               <div class="flex items-center gap-4">
+                 <a href="/courses={{ lastPlayed.slug }}" class="bg-white text-slate-900 px-8 py-3 rounded-full font-bold hover:bg-primary-50 hover:text-primary-700 transition-all shadow-lg flex items-center gap-2">
+                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>
+                   Reprendre le cours
+                 </a>
+                 <div class="text-slate-400 font-medium">
+                   Progression : <span class="text-primary-400 font-bold">{{ lastPlayed.$extras.progress || 0 }}%</span>
+                 </div>
+               </div>
+            </div>
+          </div>
+        </div>
+      @end
+
+      {{-- Stats & Badges Grid --}}
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+        {{-- Stat 1 --}}
+        <div class="bg-white rounded-[2rem] p-8 shadow-lg border border-slate-100 flex flex-col items-center justify-center text-center hover:scale-105 transition-transform">
+          <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-3xl mb-4">⏱️</div>
+          <h3 class="text-4xl font-extrabold text-slate-800 mb-2">{{ stats.learningHours }}h</h3>
+          <p class="text-slate-500 font-medium uppercase tracking-wide text-xs">Temps d'apprentissage</p>
+        </div>
+
+        {{-- Stat 2 --}}
+        <div class="bg-white rounded-[2rem] p-8 shadow-lg border border-slate-100 flex flex-col items-center justify-center text-center hover:scale-105 transition-transform">
+           <div class="w-16 h-16 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center text-3xl mb-4">📚</div>
+           <h3 class="text-4xl font-extrabold text-slate-800 mb-2">{{ stats.completedCourses }} <span class="text-lg text-slate-400 font-medium">/ {{ stats.totalCourses }}</span></h3>
+           <p class="text-slate-500 font-medium uppercase tracking-wide text-xs">Cours complétés</p>
+        </div>
+
+        {{-- Badges --}}
+        <div class="bg-gradient-to-br from-primary-600 to-purple-700 text-white rounded-[2rem] p-8 shadow-lg flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-xl mb-6 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-300" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+              Derniers Succès
+            </h3>
+            <div class="space-y-4">
+              @each(badge in badges)
+                <div class="flex items-center gap-3 bg-white/10 p-2 rounded-xl backdrop-blur-sm">
+                  <span class="text-2xl">{{ badge.icon }}</span>
+                  <div>
+                    <div class="font-bold text-sm">{{ badge.label }}</div>
+                    <div class="text-xs text-primary-200">{{ badge.desc }}</div>
+                  </div>
+                </div>
+              @end
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between mb-8">
+        <h2 class="text-2xl font-bold text-slate-800">Ma Bibliothèque</h2>
+        <a href="/courses/generate" class="text-primary-600 font-bold text-sm hover:underline">Nouveau cours +</a>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        @each(course in courses)
+          <div class="relative bg-white rounded-[2rem] p-4 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-2 group border border-slate-100">
+            <div class="aspect-video w-full bg-slate-100 rounded-[1.5rem] mb-6 overflow-hidden relative">
+               <img src="{{ course.content?.image || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&auto=format&fit=crop&q=60' }}" alt="{{ course.title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+               <div class="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-primary-700">
+                @if(course.status === 'ready')
+                  {{ course.content?.level || 'Tous niveaux' }}
+                @else
+                  Génération...
+                @end
+               </div>
+
+               <form action="/courses/{{ course.id }}/delete" method="POST" class="absolute top-4 right-4 z-10 transition-all opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0">
+                 {{ csrfField() }}
+                 <button type="submit" onclick="return confirm('Supprimer ce cours définitivement ?')" class="bg-white/90 backdrop-blur p-2 rounded-full text-red-500 hover:bg-red-500 hover:text-white transition-colors shadow-lg" title="Supprimer le cours">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                 </button>
+               </form>
+            </div>
+            <div class="px-4 pb-4">
+              <h3 class="text-xl font-bold line-clamp-2 mb-2">{{ course.title }}</h3>
+              
+              @if(course.status === 'ready' && course.$extras.progress !== undefined)
+                <div class="mt-4">
+                  <div class="flex justify-between text-xs font-bold mb-1">
+                    <span class="text-slate-400 uppercase">Progression</span>
+                    <span class="text-primary-600">{{ course.$extras.progress }}%</span>
+                  </div>
+                  <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                    <div class="bg-primary-600 h-full transition-all duration-500" style="width: {{ course.$extras.progress }}%"></div>
+                  </div>
+                </div>
+              @else
+                <p class="text-slate-500 mt-2 text-sm line-clamp-2">{{ course.description || 'Votre cours est en cours de préparation par l\'IA...' }}</p>
+              @end
+              
+              <div class="mt-6 flex items-center justify-between">
+                @if(course.status === 'ready')
+                  <span class="text-xs text-slate-400 font-mono">Dernier accès : {{ course.updatedAt.toRelative() }}</span>
+                @elseif(course.status === 'generating')
+                  <span class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold font-bold uppercase animate-pulse">En cours</span>
+                @else
+                  <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold font-bold uppercase">Erreur</span>
+                @end
+              </div>
+            </div>
+            <a href="/courses/{{ course.slug }}" class="absolute inset-0"></a>
+          </div>
+        @else
+          <div class="col-span-full py-20 text-center glass rounded-[3rem] border-dashed border-2">
+            <h3 class="text-xl font-bold mb-4 text-slate-600">Vous n'avez pas encore demandé de cours !</h3>
+            <p class="text-slate-400 mb-8">Utilisez la barre de recherche sur la page d'accueil pour commencer.</p>
+            <a href="/" class="bg-primary-600 text-white px-8 py-3 rounded-full font-bold shadow-lg">Lancer mon premier cours</a>
+          </div>
+        @end
+      </div>
+    </main>
+  @end
+@end

@@ -1,0 +1,51 @@
+@app({ title: 'Parcourir les cours - My Professor' })
+  @slot('main')
+    <main class="max-w-7xl mx-auto px-6 py-20">
+      <div class="mb-16">
+        <h1 class="text-4xl font-extrabold tracking-tight mb-4">Bibliothèque de savoir</h1>
+        <p class="text-slate-500 text-lg">Explorez tous les cours générés par la communauté.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        @each(course in courses)
+          <div class="relative bg-white rounded-[2rem] p-4 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-2 group border border-slate-100">
+            <div class="aspect-video w-full bg-slate-100 rounded-[1.5rem] mb-6 overflow-hidden relative">
+               <img src="{{ course.content?.image || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&auto=format&fit=crop&q=60' }}" alt="{{ course.title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+               <div class="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-primary-700">{{ course.content?.level || 'Tous niveaux' }}</div>
+            </div>
+            <div class="px-4 pb-4">
+              <h3 class="text-xl font-bold line-clamp-2">{{ course.title }}</h3>
+              
+              @if(course.$extras.progress !== undefined)
+                <div class="mt-4">
+                  <div class="flex justify-between text-xs font-bold mb-1">
+                    <span class="text-slate-400 uppercase">Progression</span>
+                    <span class="text-primary-600">{{ course.$extras.progress }}%</span>
+                  </div>
+                  <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                    <div class="bg-primary-600 h-full transition-all duration-500" style="width: {{ course.$extras.progress }}%"></div>
+                  </div>
+                </div>
+              @else
+                <p class="text-slate-500 mt-2 text-sm line-clamp-2">{{ course.description }}</p>
+              @end
+
+              <div class="mt-6 pt-6 border-t border-slate-50 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                   <div class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-xs font-bold text-primary-700">AI</div>
+                   <span class="text-xs font-semibold">Généré par MyP</span>
+                </div>
+                <span class="text-xs text-slate-400">{{ course.createdAt.toRelative() }}</span>
+              </div>
+            </div>
+            <a href="/courses/{{ course.slug }}" class="absolute inset-0"></a>
+          </div>
+        @else
+          <div class="col-span-full py-20 text-center glass rounded-3xl">
+            <p class="text-slate-400 text-lg">Aucun cours disponible pour le moment.</p>
+          </div>
+        @end
+      </div>
+    </main>
+  @end
+@end

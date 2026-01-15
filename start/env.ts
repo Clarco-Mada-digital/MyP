@@ -24,4 +24,13 @@ export default await Env.create(new URL('../', import.meta.url), {
   |----------------------------------------------------------
   */
   SESSION_DRIVER: Env.schema.enum(['cookie', 'memory'] as const),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for AI (Ollama or Gemini)
+  |----------------------------------------------------------
+  */
+  OLLAMA_URL: Env.schema.string.optional(),
+  OLLAMA_MODEL: Env.schema.string.optional(),
+  GEMINI_API_KEY: Env.schema.string.optional(),
 })

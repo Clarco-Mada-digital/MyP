@@ -126,23 +126,37 @@ export default class CoursesController {
         .first()
     }
 
-    if (course) {
+    if (course && course.status !== 'error') {
       return response.redirect().toPath(`/courses/${course.slug}`)
     }
 
-    course = await Course.create({
-      title: cleanTopic.charAt(0).toUpperCase() + cleanTopic.slice(1),
-      slug,
-      status: 'generating',
-      userId: auth.user?.id || null,
+    if (!auth.user) {
+      console.error('[CoursesController] User not authenticated in generate method')
+      return response.unauthorized('Veuillez vous connecter')
+    }
+
+    if (!course) {
+      course = await Course.create({
+        title: cleanTopic.charAt(0).toUpperCase() + cleanTopic.slice(1),
+        slug,
+        status: 'generating',
+        userId: auth.user.id,
+      })
+    } else {
+      course.status = 'generating'
+      await course.save()
+    }
+
+    const user = auth.user as User
+    this.generateCourseContent(course, user).catch(err => {
+      console.error('[CoursesController] generateCourseContent async failure:', err)
     })
 
-    const user = auth.user! as User
-    this.generateCourseContent(course, user).catch(console.error)
     return response.redirect().toPath(`/courses/${course.slug}`)
   }
 
   private async generateCourseContent(course: Course, user: User) {
+    console.log(`[CoursesController] Starting generation for "${course.title}" for user ${user.email} (Model: ${user.aiModel}, Provider: ${user.aiProvider})`)
     try {
       let content;
       let prompt = '';
@@ -151,16 +165,16 @@ export default class CoursesController {
         // --- PROMPT OLLAMA (ILLIMITÉ & COMPLET) ---
         prompt = `Agis en tant qu'expert pédagogue.
         Sujet: "${course.title}".
-        Génère un cours magistral COMPLET et TRÈS DÉTAILLÉ (JSON).
+        Génère un cours COMPLET et structuré (JSON).
         Objectif: De débutant à expert.
         Structure: 
-          - 4 à 6 Modules.
-          - Plusieurs leçons par module.
+          - 3 à 4 Modules maximum.
+          - 2 à 3 leçons par module.
           - Un Quiz de validation (3 questions) à la fin de chaque module.
         Contenu:
-          - Leçons approfondies (min 500 mots/leçon).
-          - Exemples de code, cas pratiques, explications détaillées.
-        Format JSON STRICT:
+          - Leçons détaillées (environ 300 mots/leçon).
+          - Exemples de code, cas pratiques, explications claires.
+        Format JSON STRICT (Attention: tout guillemet double à l'intérieur d'une chaîne doit être échappé \\", ou utilise des guillemets simples '' pour le code) :
         {
           "description": "Description captivante (min 100 mots)",
           "level": "Expert",
@@ -198,7 +212,7 @@ export default class CoursesController {
         Objectif: Synthétique & Percutant (Format "Flash Course").
         Structure: MAX 3 Modules, MAX 2 Leçons par module. 1 Quiz par module.
         Contenu: Essentiel uniquement (env. 200 mots/leçon).
-        Format JSON STRICT:
+        Format JSON STRICT (Attention: échappe les " par \\" à l'intérieur des textes, ou utilise des ' pour le code) :
         {
           "description": "Description courte",
           "level": "Intermédiaire",
@@ -225,7 +239,7 @@ export default class CoursesController {
           ]
         }`;
 
-        content = await GeminiService.generateJson(prompt, user.aiModel || 'gemini-2.0-flash-lite')
+        content = await GeminiService.generateJson(prompt, user.aiModel || 'gemini-flash-latest')
       }
 
       course.description = content.description || ""
@@ -233,9 +247,15 @@ export default class CoursesController {
       course.status = 'ready'
       await course.save()
     } catch (error) {
-      const fs = await import('node:fs')
-      fs.writeFileSync('generation_error.log', `Topic: ${course.title}\nError: ${error.message}\nStack: ${error.stack}`)
-      console.error('Generation Error:', error)
+      console.error('[CoursesController] GENERATION ERROR:', error)
+      try {
+        const fs = await import('node:fs')
+        const logContent = `Topic: ${course.title}\nUser: ${user.email}\nError: ${error.message}\nStack: ${error.stack}\n`
+        fs.appendFileSync('generation_debug.log', logContent)
+      } catch (e) {
+        console.error('Failed to write debug log:', e)
+      }
+
       course.status = 'error'
       await course.save()
     }

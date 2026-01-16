@@ -1,0 +1,73 @@
+@component('components/app', { title: 'Gestion des Utilisateurs - Admin' })
+  <div class="max-w-7xl mx-auto px-6 py-10">
+    <div class="flex items-center gap-4 mb-8">
+      <a href="/admin" class="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-500 hover:text-primary-600 transition-colors shadow-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      </a>
+      <div>
+        <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Gestion des Utilisateurs</h1>
+        <p class="text-slate-500">Visualisez et gérez les droits d'accès des membres.</p>
+      </div>
+    </div>
+
+    @if(flashMessages.has('notification'))
+      <div class="mb-6 p-4 rounded-2xl border {{ flashMessages.get('notification').type === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-rose-50 border-rose-100 text-rose-700' }} text-sm font-bold flex items-center gap-3">
+        @if(flashMessages.get('notification').type === 'success')
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        @else
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        @end
+        {{ flashMessages.get('notification').message }}
+      </div>
+    @end
+
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
+      <table class="w-full text-left border-collapse">
+        <thead class="bg-slate-50 border-b border-slate-200">
+          <tr>
+            <th class="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-widest">Utilisateur</th>
+            <th class="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-widest">Email</th>
+            <th class="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-widest text-center">Rôle</th>
+            <th class="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-widest">Inscrit le</th>
+            <th class="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          @each(user in users)
+            <tr class="hover:bg-slate-50/50 transition-colors">
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold border border-slate-200 shadow-sm">
+                    {{ user.fullName.charAt(0) }}
+                  </div>
+                  <span class="font-bold text-slate-900">{{ user.fullName }}</span>
+                </div>
+              </td>
+              <td class="px-6 py-4 text-sm text-slate-500 font-medium">
+                {{ user.email }}
+              </td>
+              <td class="px-6 py-4 text-center">
+                <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest
+                  {{ user.isAdmin ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : 'bg-slate-100 text-slate-500 border border-slate-200' }}">
+                  {{ user.isAdmin ? 'Administrateur' : 'Étudiant' }}
+                </span>
+              </td>
+              <td class="px-6 py-4 text-sm text-slate-400 font-medium">
+                {{ user.createdAt.toFormat('dd/MM/yyyy') }}
+              </td>
+              <td class="px-6 py-4 text-right">
+                <form action="{{ route('admin.users.toggle', { id: user.id }) }}" method="POST">
+                  {{ csrfField() }}
+                  <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all
+                    {{ user.isAdmin ? 'bg-rose-50 text-rose-600 hover:bg-rose-100' : 'bg-primary-50 text-primary-600 hover:bg-primary-100' }}">
+                    {{ user.isAdmin ? 'Retirer Admin' : 'Donner Admin' }}
+                  </button>
+                </form>
+              </td>
+            </tr>
+          @end
+        </tbody>
+      </table>
+    </div>
+  </div>
+@end

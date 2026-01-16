@@ -3,31 +3,89 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{{ title || 'My Professor - AI Powered Courses' }}</title>
+    <title>
+      {{ title || 'My Professor - AI Powered Courses' }}
+    </title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
 
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com">
+      
+    </script>
 
     <script>
       tailwind.config = {
         theme: {
           extend: {
-            fontFamily: { sans: [ "Plus Jakarta Sans", "sans-serif" ] },
+            fontFamily: {
+              sans: [ "Plus Jakarta Sans", "sans-serif" ]
+            },
             colors: {
-              primary: { 50: '#f5f3ff', 100: '#ede9fe', 200: '#ddd6fe', 300: '#c4b5fd', 400: '#a78bfa', 500: '#8b5cf6', 600: '#7c3aed', 700: '#6d28d9', 800: '#5b21b6', 900: '#4c1d95' },
-              dark: '#0F172A'
+              primary: {
+                50: "#f5f3ff",
+                100: "#ede9fe",
+                200: "#ddd6fe",
+                300: "#c4b5fd",
+                400: "#a78bfa",
+                500: "#8b5cf6",
+                600: "#7c3aed",
+                700: "#6d28d9",
+                800: "#5b21b6",
+                900: "#4c1d95"
+              },
+              dark: "#0F172A"
             }
           }
         }
       };
     </script>
     <style>
-      .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3); }
-      .gradient-text { background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-      .pointer-events-none { pointer-events: none; }
+      .glass {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+      }
+      
+      .gradient-text {
+        background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      
+      .nav-link {
+        position: relative;
+      }
+      
+      .nav-link::after {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: -4px;
+        left: 0;
+        background: #8b5cf6;
+        transition: width 0.3s ease;
+      }
+      
+      .nav-link:hover::after {
+        width: 100%;
+      }
+      
+      .user-pill {
+        background: rgba(241, 245, 249, 0.8);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        padding: 4px 6px 4px 12px;
+        border-radius: 9999px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
     </style>
     @if($slots.head)
       {{{ await $slots.head() }}}
@@ -35,30 +93,98 @@
   </head>
   <body class="min-h-screen bg-slate-50 font-sans text-slate-900 overflow-x-hidden flex flex-col">
     {{-- Navbar --}}
-    <nav class="sticky top-0 z-50 glass px-6 py-4">
+    <nav class="sticky top-0 z-50 glass px-6 py-3">
       <div class="max-w-7xl mx-auto flex items-center justify-between">
         <a href="/" class="flex items-center gap-2 group">
-          <div class="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg group-hover:rotate-12 transition-transform">MyP</div>
-          <span class="text-xl font-extrabold tracking-tight">My Professor</span>
+          <div
+            class="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg group-hover:rotate-6 transition-all duration-300"
+          >
+            MyP
+          </div>
+          <span
+            class="text-xl font-extrabold tracking-tight bg-slate-900 bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600"
+          >My Professor</span>
         </a>
-        
-        <div class="hidden md:flex items-center gap-8 font-medium">
-          <a href="/parcourir" class="hover:text-primary-600 transition-colors">Parcourir</a>
+
+        <div class="hidden md:flex items-center gap-8">
+          <div class="flex items-center gap-6 font-semibold text-slate-600">
+            <a href="/parcourir" class="nav-link hover:text-primary-600 transition-colors">Parcourir</a>
+            @if(auth.isAuthenticated)
+              <a href="/mes-cours" class="nav-link hover:text-primary-600 transition-colors">Mes Cours</a>
+              @if(auth.user.isAdmin)
+                <a href="{{ route('admin.dashboard') }}" class="nav-link text-primary-600 font-bold hover:text-primary-700 transition-colors">Admin</a>
+              @end
+            @end
+          </div>
+
           @if(auth.isAuthenticated)
-            <a href="/mes-cours" class="hover:text-primary-600 transition-colors">Mes Cours</a>
-            <div class="flex items-center gap-4">
-               <span class="text-sm text-slate-500">Bonjour, {{ auth.user.fullName }}</span>
-               <a href="/settings" class="text-slate-400 hover:text-primary-600 transition-colors" title="Paramètres IA">
-                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.39a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-               </a>
-               <form action="/logout" method="POST">
-                 {{ csrfField() }}
-                 <button type="submit" class="text-red-500 hover:text-red-700 font-semibold text-sm">Déconnexion</button>
-               </form>
+            <div class="flex items-center gap-3">
+              <div class="user-pill">
+                <div class="flex flex-col text-right">
+                  <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ auth.user.isAdmin ? 'Administrateur' : 'Étudiant' }}</span>
+                  <span class="text-sm font-bold text-slate-700 leading-tight">{{ auth.user.fullName }}</span>
+                </div>
+
+                <div class="flex items-center gap-1">
+                  <a
+                    href="/settings"
+                    class="p-2 text-slate-500 hover:text-primary-600 hover:bg-white rounded-full transition-all"
+                    title="Paramètres IA"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.39a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
+                      />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </a>
+
+                  <form action="/logout" method="POST" class="m-0">
+                    {{ csrfField() }}
+                     <button
+                      type="submit"
+                      class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all group/logout"
+                      title="Déconnexion"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="group-hover/logout:translate-x-0.5 transition-transform"
+                      >
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                      </svg>
+                    </button>
+                  </form>
+                </div>
+              </div>
             </div>
           @else
-            <a href="/login" class="hover:text-primary-600 transition-colors">Connexion</a>
-            <a href="/register" class="bg-dark text-white px-6 py-2.5 rounded-full font-semibold hover:bg-slate-800 transition-colors shadow-lg">S'inscrire</a>
+            <div class="flex items-center gap-4">
+              <a href="/login" class="text-slate-600 font-semibold hover:text-primary-600 transition-colors">Connexion</a>
+              <a
+                href="/register"
+                class="bg-primary-600 text-white px-6 py-2.5 rounded-full font-bold hover:bg-primary-700 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+              >S'inscrire</a>
+            </div>
           @end
         </div>
       </div>
@@ -73,7 +199,11 @@
     <footer class="bg-dark text-slate-400 py-12 px-6">
       <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
         <div class="flex items-center gap-2">
-          <div class="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg">M</div>
+          <div
+            class="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg"
+          >
+            M
+          </div>
           <span class="text-white font-bold">My Professor</span>
         </div>
         <div class="flex gap-8 text-sm">
@@ -81,7 +211,9 @@
           <a href="#" class="hover:text-white">Confidentialité</a>
           <a href="#" class="hover:text-white">À propos</a>
         </div>
-        <p class="text-xs">© 2026 My Professor. Powered by Local AI.</p>
+        <p class="text-xs">
+          © 2026 My Professor. Powered by Local AI.
+        </p>
       </div>
     </footer>
   </body>

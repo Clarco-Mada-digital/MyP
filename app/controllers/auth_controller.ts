@@ -9,7 +9,12 @@ export default class AuthController {
 
   async register({ request, response, auth }: HttpContext) {
     const data = await request.validateUsing(registerValidator)
-    const user = await User.create(data)
+
+    // Check if it's the first user
+    const usersCount = await User.query().count('* as total').then(r => r[0].$extras.total)
+    const isAdmin = usersCount === 0
+
+    const user = await User.create({ ...data, isAdmin })
 
     await auth.use('web').login(user)
 

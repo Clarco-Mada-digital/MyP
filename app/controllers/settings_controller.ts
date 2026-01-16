@@ -23,11 +23,11 @@ export default class SettingsController {
     // Fallback if API fails (e.g. Rate Limit 429)
     if (geminiModels.length === 0) {
       geminiModels = [
-        'gemini-2.0-flash-lite',
+        'gemini-flash-latest',
+        'gemini-flash-lite-latest',
         'gemini-2.0-flash',
-        'gemini-1.5-flash',
-        'gemini-1.5-pro',
-        'gemini-pro'
+        'gemini-2.0-flash-lite',
+        'gemini-2.5-flash',
       ]
     }
 

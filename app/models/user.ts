@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import hash from '@adonisjs/core/services/hash'
 import { compose } from '@adonisjs/core/helpers'
-import { BaseModel, column, hasMany } from '@adonisjs/lucid/orm'
+import { BaseModel, beforeSave, column, hasMany } from '@adonisjs/lucid/orm'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
 import type { HasMany } from '@adonisjs/lucid/types/relations'
 import Course from '#models/course'
@@ -31,6 +31,9 @@ export default class User extends compose(BaseModel, AuthFinder) {
   @column()
   declare aiModel: string
 
+  @column()
+  declare isAdmin: boolean
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
@@ -42,4 +45,12 @@ export default class User extends compose(BaseModel, AuthFinder) {
 
   @hasMany(() => CourseProgress)
   declare progress: HasMany<typeof CourseProgress>
+
+  @beforeSave()
+  static async hashPassword(user: any) {
+    if (user.$dirty.password && !user.password.startsWith('$scrypt$')) {
+      const { default: hash } = await import('@adonisjs/core/services/hash')
+      user.password = await hash.make(user.password)
+    }
+  }
 }

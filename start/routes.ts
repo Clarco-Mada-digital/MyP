@@ -15,6 +15,7 @@ const AuthController = () => import('#controllers/auth_controller')
 const CoursesController = () => import('#controllers/courses_controller')
 const ProgressesController = () => import('#controllers/progresses_controller')
 const SettingsController = () => import('#controllers/settings_controller')
+const AdminController = () => import('#controllers/admin_controller')
 
 router.get('/', [HomeController, 'index'])
 
@@ -33,6 +34,11 @@ router.group(() => {
   router.post('/progress/toggle', [ProgressesController, 'toggle'])
   router.get('/settings', [SettingsController, 'index'])
   router.post('/settings', [SettingsController, 'update'])
+  router.get('/admin', [AdminController, 'index']).as('admin.dashboard')
+  router.get('/admin/users', [AdminController, 'users']).as('admin.users')
+  router.post('/admin/users/:id/toggle-admin', [AdminController, 'toggleAdmin']).as('admin.users.toggle')
+  router.get('/admin/courses', [AdminController, 'courses']).as('admin.courses')
+  router.post('/admin/courses/:id/delete', [AdminController, 'deleteCourse']).as('admin.courses.delete')
 }).use(middleware.auth())
 
 router.group(() => {

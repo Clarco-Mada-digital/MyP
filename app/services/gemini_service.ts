@@ -10,7 +10,9 @@ export default class GeminiService {
       throw new Error('GEMINI_API_KEY is not configured')
     }
 
-    const modelName = userModel || 'gemini-2.0-flash-lite'
+    const modelName = userModel || 'gemini-flash-latest'
+    console.log(`[GeminiService] Using model: ${modelName}`)
+
     const model = this.genAI.getGenerativeModel({
       model: modelName,
       generationConfig: {
@@ -27,34 +29,38 @@ export default class GeminiService {
         const response = await result.response
         let text = response.text().trim()
 
-        // Nettoyage robuste des balises markdown
-        text = text.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim()
+        // Nettoyage robuste des balises markdown et extraction du JSON
+        const jsonMatch = text.match(/\{[\s\S]*\}/)
+        if (jsonMatch) {
+          text = jsonMatch[0]
+        }
 
         try {
           return JSON.parse(text)
         } catch (error) {
+          console.error(`JSON Parse Error (Attempt ${retries + 1}/${maxRetries}):`, error.message)
+
+          if (retries < maxRetries - 1) {
+            retries++
+            console.log(`Retrying generation due to JSON error...`)
+            continue
+          }
+
           const fs = await import('node:fs')
           fs.writeFileSync('raw_gemini_response.txt', text)
-          console.error('Failed to parse Gemini response as JSON:', text)
-          throw new Error('Invalid JSON response from Gemini')
+          console.error('Failed to parse Gemini response as JSON (Full Text):', text)
+          throw new Error('Invalid JSON response from Gemini after multiple attempts')
         }
       } catch (error) {
+        // Retry on Rate Limit (429)
         if (error.message && error.message.includes('429') && retries < maxRetries - 1) {
           retries++
-
-          let waitTime = retries * 10000 // Default: 10s, 20s, 30s...
-
-          // Try to extract exact wait time from error message
-          // Example: "Please retry in 15.751173827s."
+          let waitTime = retries * 10000
           const match = error.message.match(/retry in ([0-9.]+)s/)
           if (match && match[1]) {
             const seconds = parseFloat(match[1])
-            waitTime = Math.ceil(seconds * 1000) + 2000 // Add 2s buffer
-            console.log(`Gemini asked to wait ${seconds}s. Waiting ${waitTime / 1000}s...`)
-          } else {
-            console.log(`Gemini Rate Limit hit. Retrying in ${waitTime / 1000} seconds...`)
+            waitTime = Math.ceil(seconds * 1000) + 2000
           }
-
           await new Promise(resolve => setTimeout(resolve, waitTime))
           continue
         }

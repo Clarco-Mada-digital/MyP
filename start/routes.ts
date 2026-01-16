@@ -43,5 +43,5 @@ router.group(() => {
 
 router.group(() => {
   router.get('/parcourir', [CoursesController, 'browse'])
-  router.get('/courses/:slug', [CoursesController, 'show'])
+  router.get('/courses/:slug', [CoursesController, 'show']).as('courses.show')
 })

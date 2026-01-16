@@ -1,0 +1,40 @@
+@component('components/app', { title: 'Attention - My Professor' })
+  <div class="max-w-3xl mx-auto px-6 py-20 min-h-[70vh] flex items-center justify-center">
+    <div class="bg-white rounded-[3rem] shadow-2xl border border-slate-100 p-10 md:p-16 text-center relative overflow-hidden">
+      {{-- Décoration --}}
+      <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-amber-400 via-primary-500 to-amber-400"></div>
+      
+      <div class="w-24 h-24 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-8 text-amber-500">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+
+      <h1 class="text-3xl md:text-4xl font-black text-slate-900 mb-6 leading-tight">
+        Un petit instant ! 🛑
+      </h1>
+
+      <p class="text-lg text-slate-600 mb-10 leading-relaxed">
+        En tant qu'invité, vous avez droit à <span class="font-bold text-slate-900 underline decoration-primary-500 decoration-4">un seul cours complet par mois</span>. 
+        <br><br>
+        Une fois que vous aurez commencé <strong>"{{ course.title }}"</strong>, vous ne pourrez plus accéder à d'autres cours avant le mois prochain.
+      </p>
+
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="{{ route('courses.show', { slug: course.slug }, { qs: { confirm_guest_access: '1' } }) }}" 
+           class="w-full sm:w-auto px-8 py-4 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-2xl transition-all hover:scale-105 shadow-lg shadow-primary-200">
+          Suivre ce cours gratuitement
+        </a>
+        
+        <a href="/parcourir" class="w-full sm:w-auto px-8 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-2xl transition-all">
+          Choisir un autre cours
+        </a>
+      </div>
+
+      <div class="mt-12 pt-8 border-t border-slate-100">
+        <p class="text-slate-400 text-sm mb-4">Vous voulez débloquer tous les cours instantanément ?</p>
+        <a href="/register" class="text-primary-600 font-black hover:underline tracking-tight uppercase text-xs">
+          S'inscrire gratuitement maintenant →
+        </a>
+      </div>
+    </div>
+  </div>
+@end

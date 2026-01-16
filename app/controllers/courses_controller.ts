@@ -4,6 +4,7 @@ import GeminiService from '#services/gemini_service'
 import OllamaService from '#services/ollama_service'
 import string from '@adonisjs/core/helpers/string'
 import User from '#models/user'
+import GuestAccess from '#models/guest_access'
 import { DateTime } from 'luxon'
 
 export default class CoursesController {
@@ -24,9 +25,46 @@ export default class CoursesController {
   /**
    * Show a course
    */
-  async show({ params, view, auth }: HttpContext) {
+  async show({ params, view, auth, request, response, session }: HttpContext) {
     await auth.check()
     const course = await Course.findByOrFail('slug', params.slug)
+
+    // Logique de restriction pour les invités (non connectés)
+    if (!auth.user) {
+      const ip = request.ip()
+      const startOfMonth = DateTime.now().startOf('month')
+
+      // Vérifier si l'invité a déjà un accès ce mois-ci
+      const access = await GuestAccess.query()
+        .where('ipAddress', ip)
+        .where('createdAt', '>=', startOfMonth.toSQL())
+        .first()
+
+      if (access) {
+        // S'il a déjà un accès, il ne peut voir QUE ce cours là
+        if (access.courseId !== course.id) {
+          session.flash('notification', {
+            type: 'error',
+            message: "Accès limité ! Vous suivez déjà un cours gratuit ce mois-ci. Inscrivez-vous gratuitement pour débloquer tous les cours !"
+          })
+          return response.redirect().toPath('/parcourir')
+        }
+      } else {
+        // Pas encore d'accès ce mois-ci : Vérifier la confirmation
+        const confirmed = request.input('confirm_guest_access') === '1'
+
+        if (!confirmed) {
+          // Afficher la page d'avertissement / confirmation
+          return view.render('pages/courses/guest_warning', { course })
+        }
+
+        // Créer l'accès
+        await GuestAccess.create({
+          ipAddress: ip,
+          courseId: course.id
+        })
+      }
+    }
 
     let completedLessons: string[] = []
     if (auth.user) {

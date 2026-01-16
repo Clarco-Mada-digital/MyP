@@ -217,6 +217,7 @@ export default class CoursesController {
           "description": "Description captivante (min 100 mots)",
           "level": "Expert",
           "image": "URL Unsplash",
+          "sources": ["Source 1 (ex: MDN Web Docs)", "Source 2"],
           "modules": [
             {
               "title": "Titre Module",
@@ -255,6 +256,7 @@ export default class CoursesController {
           "description": "Description courte",
           "level": "Intermédiaire",
           "image": "URL Unsplash",
+          "sources": ["Source fiable 1", "Source fiable 2"],
           "modules": [
             {
               "title": "Titre Module",

@@ -280,11 +280,31 @@
 
               </div>
             @end
-                </div>
-              @end
             </div>
-          </div>
-        </article>
+          @end
+      </div>
+
+       {{-- Sources Section --}}
+      @if(course.content.sources && course.content.sources.length > 0)
+        <div class="mt-16 pt-8 border-t border-slate-200">
+           <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+             <span>📚</span> Sources & Références
+           </h3>
+           <p class="text-sm text-slate-500 mb-4 italic">Ce cours a été généré par une IA en se basant sur les connaissances générales provenant des sources suivantes :</p>
+           <ul class="grid grid-cols-1 md:grid-cols-2 gap-4">
+             @each(source in course.content.sources)
+               <li class="flex items-center gap-3 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                 <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                 </div>
+                 <span class="font-medium text-slate-700">{{ source }}</span>
+               </li>
+             @end
+           </ul>
+        </div>
+      @end
+    </div>
+  </article>
       @else
         <div class="text-center py-20 bg-white rounded-[3rem] shadow-xl border border-slate-100 text-red-600">
           <h1 class="text-3xl font-extrabold mb-4">Oops! Erreur de génération</h1>

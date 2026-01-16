@@ -14,6 +14,7 @@ const HomeController = () => import('#controllers/home_controller')
 const AuthController = () => import('#controllers/auth_controller')
 const CoursesController = () => import('#controllers/courses_controller')
 const ProgressesController = () => import('#controllers/progresses_controller')
+const SettingsController = () => import('#controllers/settings_controller')
 
 router.get('/', [HomeController, 'index'])
 
@@ -30,6 +31,8 @@ router.group(() => {
   router.get('/courses/generate', [CoursesController, 'generate'])
   router.post('/courses/:id/delete', [CoursesController, 'destroy'])
   router.post('/progress/toggle', [ProgressesController, 'toggle'])
+  router.get('/settings', [SettingsController, 'index'])
+  router.post('/settings', [SettingsController, 'update'])
 }).use(middleware.auth())
 
 router.group(() => {

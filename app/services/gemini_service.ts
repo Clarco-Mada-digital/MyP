@@ -5,13 +5,14 @@ export default class GeminiService {
   private static apiKey = env.get('GEMINI_API_KEY')
   private static genAI = this.apiKey ? new GoogleGenerativeAI(this.apiKey) : null
 
-  static async generateJson(prompt: string) {
+  static async generateJson(prompt: string, userModel?: string) {
     if (!this.genAI) {
       throw new Error('GEMINI_API_KEY is not configured')
     }
 
+    const modelName = userModel || 'gemini-2.0-flash-lite'
     const model = this.genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash-lite',
+      model: modelName,
       generationConfig: {
         responseMimeType: 'application/json',
       }
@@ -40,12 +41,40 @@ export default class GeminiService {
       } catch (error) {
         if (error.message && error.message.includes('429') && retries < maxRetries - 1) {
           retries++
-          console.log(`Gemini Rate Limit hit. Retrying in ${retries * 10} seconds...`)
-          await new Promise(resolve => setTimeout(resolve, retries * 10000))
+
+          let waitTime = retries * 10000 // Default: 10s, 20s, 30s...
+
+          // Try to extract exact wait time from error message
+          // Example: "Please retry in 15.751173827s."
+          const match = error.message.match(/retry in ([0-9.]+)s/)
+          if (match && match[1]) {
+            const seconds = parseFloat(match[1])
+            waitTime = Math.ceil(seconds * 1000) + 2000 // Add 2s buffer
+            console.log(`Gemini asked to wait ${seconds}s. Waiting ${waitTime / 1000}s...`)
+          } else {
+            console.log(`Gemini Rate Limit hit. Retrying in ${waitTime / 1000} seconds...`)
+          }
+
+          await new Promise(resolve => setTimeout(resolve, waitTime))
           continue
         }
         throw error
       }
+    }
+  }
+
+  static async getModels(): Promise<string[]> {
+    if (!this.apiKey) return []
+    try {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${this.apiKey}`)
+      if (!response.ok) return []
+      const data = await response.json() as any
+      return data.models
+        ?.filter((m: any) => m.supportedGenerationMethods?.includes('generateContent'))
+        .map((m: any) => m.name.replace('models/', '')) || []
+    } catch (error) {
+      console.warn('Failed to fetch Gemini models list:', error)
+      return []
     }
   }
 }

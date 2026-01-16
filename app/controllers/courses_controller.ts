@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Course from '#models/course'
 import GeminiService from '#services/gemini_service'
+import OllamaService from '#services/ollama_service'
 import string from '@adonisjs/core/helpers/string'
 import User from '#models/user'
 import { DateTime } from 'luxon'
@@ -136,41 +137,97 @@ export default class CoursesController {
       userId: auth.user?.id || null,
     })
 
-    this.generateCourseContent(course).catch(console.error)
+    const user = auth.user! as User
+    this.generateCourseContent(course, user).catch(console.error)
     return response.redirect().toPath(`/courses/${course.slug}`)
   }
 
-  private async generateCourseContent(course: Course) {
+  private async generateCourseContent(course: Course, user: User) {
     try {
-      const prompt = `Agis en tant qu'expert pédagogue et professeur d'université.
-      Génère un cours magistral, complet et extrêmement détaillé pour le sujet suivant : "${course.title}".
-      Le cours doit :
-      1. Être structuré pour amener l'étudiant du niveau débutant au niveau expert.
-      2. Chaque leçon doit être longue (min 500 mots par leçon), pédagogique et inclure des exemples concrets ou du code si applicable.
-      3. Inclure des URLs de médias si pertinent (utilise des URLs Unsplash pour les images et des URLs d'exemple .mp4 ou .mp3 pour les vidéos/audios).
-      Format de sortie : JSON STRICT.
-      Structure attendue :
-      {
-        "description": "Une description longue et captivante du cours (min 100 mots)",
-        "level": "Débutant, Intermédiaire ou Expert",
-        "image": "URL d'une image Unsplash en rapport avec le sujet",
-        "modules": [
-          {
-            "title": "Titre du Module",
-            "lessons": [
-              {
-                "title": "Titre de la leçon",
-                "content": "Contenu très détaillé de la leçon au format Markdown ou texte riche",
-                "video_url": "URL optionnelle d'une vidéo .mp4",
-                "audio_url": "URL optionnelle d'un transcript audio .mp3"
-              }
-            ],
-            "exercises": ["Liste de travaux pratiques"]
-          }
-        ]
-      }`
+      let content;
+      let prompt = '';
 
-      const content = await GeminiService.generateJson(prompt)
+      if (user.aiProvider === 'ollama') {
+        // --- PROMPT OLLAMA (ILLIMITÉ & COMPLET) ---
+        prompt = `Agis en tant qu'expert pédagogue.
+        Sujet: "${course.title}".
+        Génère un cours magistral COMPLET et TRÈS DÉTAILLÉ (JSON).
+        Objectif: De débutant à expert.
+        Structure: 
+          - 4 à 6 Modules.
+          - Plusieurs leçons par module.
+          - Un Quiz de validation (3 questions) à la fin de chaque module.
+        Contenu:
+          - Leçons approfondies (min 500 mots/leçon).
+          - Exemples de code, cas pratiques, explications détaillées.
+        Format JSON STRICT:
+        {
+          "description": "Description captivante (min 100 mots)",
+          "level": "Expert",
+          "image": "URL Unsplash",
+          "modules": [
+            {
+              "title": "Titre Module",
+              "lessons": [
+                {
+                  "title": "Titre Leçon",
+                  "content": "Contenu riche en Markdown (titres, listes, code blocks)...",
+                  "video_url": "URL .mp4 (optionnel)",
+                  "audio_url": "URL .mp3 (optionnel)"
+                }
+              ],
+              "exercises": ["Exercice 1", "Exercice 2"],
+              "quiz": [
+                {
+                  "question": "Question sur ce module ?",
+                  "options": ["Choix A", "Choix B", "Choix C", "Choix D"],
+                  "answer": "Choix A",
+                  "explanation": "Explication de la réponse."
+                }
+              ]
+            }
+          ]
+        }`;
+
+        content = await OllamaService.generateJson(prompt, user.aiModel || 'llama3')
+
+      } else {
+        // --- PROMPT GEMINI (OPTIMISÉ QUOTA GRATUIT) ---
+        prompt = `Sujet: "${course.title}".
+        Génère un cours structuré (JSON).
+        Objectif: Synthétique & Percutant (Format "Flash Course").
+        Structure: MAX 3 Modules, MAX 2 Leçons par module. 1 Quiz par module.
+        Contenu: Essentiel uniquement (env. 200 mots/leçon).
+        Format JSON STRICT:
+        {
+          "description": "Description courte",
+          "level": "Intermédiaire",
+          "image": "URL Unsplash",
+          "modules": [
+            {
+              "title": "Titre Module",
+              "lessons": [
+                {
+                  "title": "Titre Leçon",
+                  "content": "Contenu Markdown concis. (min 200 mots)."
+                }
+              ],
+              "exercises": ["Exercice 1"],
+              "quiz": [
+                {
+                  "question": "Question simple ?",
+                  "options": ["A", "B", "C"],
+                  "answer": "A",
+                  "explanation": "Explication courte."
+                }
+              ]
+            }
+          ]
+        }`;
+
+        content = await GeminiService.generateJson(prompt, user.aiModel || 'gemini-2.0-flash-lite')
+      }
+
       course.description = content.description || ""
       course.content = content
       course.status = 'ready'
@@ -178,7 +235,7 @@ export default class CoursesController {
     } catch (error) {
       const fs = await import('node:fs')
       fs.writeFileSync('generation_error.log', `Topic: ${course.title}\nError: ${error.message}\nStack: ${error.stack}`)
-      console.error('Gemini Generation Error:', error)
+      console.error('Generation Error:', error)
       course.status = 'error'
       await course.save()
     }

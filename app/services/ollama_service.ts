@@ -1,51 +1,66 @@
-import env from '#start/env'
-
 export default class OllamaService {
-  private static baseUrl = env.get('OLLAMA_URL', 'http://localhost:11434')
-  private static model = env.get('OLLAMA_MODEL', 'llama3')
+  private static baseUrl = 'http://127.0.0.1:11434'
 
   /**
-   * Send a prompt to Ollama and get a response
+   * List available Ollama models
    */
-  public static async generate(prompt: string, systemPrompt?: string): Promise<string> {
+  static async getModels(): Promise<string[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/generate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: this.model,
-          prompt,
-          system: systemPrompt,
-          stream: false,
-        }),
-      })
+      const response = await fetch(`${this.baseUrl}/api/tags`)
+      if (!response.ok) return []
 
-      if (!response.ok) {
-        throw new Error(`Ollama error: ${response.statusText}`)
-      }
-
-      const data = (await response.json()) as any
-      return data.response
+      const data = await response.json() as any
+      return data.models?.map((m: any) => m.name) || []
     } catch (error) {
-      console.error('Ollama Generation Error:', error)
-      throw error
+      console.error('Ollama connection failed:', error)
+      return []
     }
   }
 
   /**
-   * Generate structured JSON
+   * Generate JSON using Ollama
    */
-  public static async generateJson<T>(prompt: string, schema: string): Promise<T> {
-    const fullPrompt = `${prompt}\n\nReturn ONLY a valid JSON object matching this structure: ${schema}. No extra text.`
-    const response = await this.generate(fullPrompt)
+  static async generateJson(prompt: string, model: string) {
+    console.log(`Generating with Ollama model: ${model}`)
+
+    // Ensure the prompt explicitly asks for JSON if not already (Ollama's format: 'json' enforces syntax but valid JSON structure instructions help)
+    const finalPrompt = prompt + "\n\nRespond ONLY with valid JSON."
 
     try {
-      // Basic cleanup in case of extra markdown
-      const jsonStr = response.replace(/```json/g, '').replace(/```/g, '').trim()
-      return JSON.parse(jsonStr) as T
-    } catch (e) {
-      console.error('JSON Parsing Error:', e, response)
-      throw new Error('Failed to parse AI response as JSON')
+      const response = await fetch(`${this.baseUrl}/api/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: model,
+          prompt: finalPrompt,
+          format: 'json',
+          stream: false,
+          options: {
+            temperature: 0.7,
+            num_ctx: 4096 // Increase context window for long courses
+          }
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Ollama API Error: ${response.statusText}`)
+      }
+
+      const data = await response.json() as any
+      // Ollama returns { response: "stringified json", ... }
+
+      try {
+        return JSON.parse(data.response)
+      } catch (e) {
+        console.error('Failed to parse Ollama JSON:', data.response)
+        throw new Error('Invalid JSON received from Ollama')
+      }
+
+    } catch (error) {
+      console.error('Ollama Service Error:', error)
+      throw error
     }
   }
 }

@@ -27,7 +27,12 @@ export default class CoursesController {
    */
   async show({ params, view, auth, request, response, session }: HttpContext) {
     await auth.check()
-    const course = await Course.findByOrFail('slug', params.slug)
+    const course = await Course.findBy('slug', params.slug)
+
+    if (!course) {
+      session.flash('notification', { type: 'error', message: 'Ce cours n\'existe pas ou a été supprimé.' })
+      return response.redirect('/')
+    }
 
     // Logique de restriction pour les invités (non connectés)
     if (!auth.user) {
@@ -138,12 +143,19 @@ export default class CoursesController {
   }
 
   /**
-   * Generate or Redirect to a course
+   * Generate or Redirect to a course (with smart duplicate detection)
    */
-  async generate({ request, response, auth }: HttpContext) {
+  async generate({ request, response, auth, session }: HttpContext) {
     const topic = request.input('topic')
+    const forceCreate = request.input('force_create') === 'true'
+
     if (!topic) {
       return response.redirect().back()
+    }
+
+    if (!auth.user) {
+      console.error('[CoursesController] User not authenticated in generate method')
+      return response.unauthorized('Veuillez vous connecter')
     }
 
     // 1. Normalisation du sujet
@@ -153,37 +165,62 @@ export default class CoursesController {
 
     const slug = string.slug(cleanTopic).toLowerCase()
 
-    // 2. Recherche par slug exact
-    let course = await Course.findBy('slug', slug)
+    // 2. Recherche EXACTE par slug
+    let exactCourse = await Course.findBy('slug', slug)
 
-    // 3. Recherche souple
-    if (!course) {
-      course = await Course.query()
-        .where('title', 'like', `%${cleanTopic}%`)
-        .orWhere('slug', 'like', `%${slug}%`)
-        .first()
+    if (exactCourse && exactCourse.status !== 'error') {
+      return response.redirect().toPath(`/courses/${exactCourse.slug}`)
     }
 
-    if (course && course.status !== 'error') {
-      return response.redirect().toPath(`/courses/${course.slug}`)
+    // 3. Recherche INTELLIGENTE de cours similaires (si pas de forçage)
+    if (!forceCreate) {
+      // Mots génériques à ignorer (stopwords)
+      const stopwords = [
+        'cours', 'formation', 'apprendre', 'apprentissage', 'sur', 'en', 'de', 'le', 'la', 'les',
+        'un', 'une', 'des', 'du', 'pour', 'avec', 'par', 'dans', 'tout', 'savoir', 'guide',
+        'complet', 'débutant', 'expert', 'niveau', 'initiation', 'introduction', 'bases'
+      ]
+
+      // Extraire les VRAIS mots-clés (techniques)
+      const keywords = cleanTopic
+        .split(/\s+/)
+        .filter((w: string) => w.length > 2)
+        .filter((w: string) => !stopwords.includes(w.toLowerCase()))
+        .map((w: string) => w.toLowerCase())
+
+      // Si aucun mot-clé pertinent, ne pas chercher de similaires
+      if (keywords.length === 0) {
+        // Pas de mots-clés techniques, on crée directement
+      } else {
+        const similarCourses = await Course.query()
+          .where('status', 'ready')
+          .andWhere((query) => {
+            // Chercher les cours qui contiennent TOUS les mots-clés (ET logique)
+            keywords.forEach((keyword: string) => {
+              query.andWhere((subQuery) => {
+                subQuery.where('title', 'like', `%${keyword}%`)
+                  .orWhere('slug', 'like', `%${keyword}%`)
+              })
+            })
+          })
+          .limit(5)
+
+        if (similarCourses.length > 0) {
+          // Stocker dans la session (pas flash car on redirige)
+          session.put('pendingTopic', cleanTopic)
+          session.put('similarCourses', similarCourses.map(c => ({ id: c.id, title: c.title, slug: c.slug, description: c.description })))
+          return response.redirect().toRoute('courses.confirm')
+        }
+      }
     }
 
-    if (!auth.user) {
-      console.error('[CoursesController] User not authenticated in generate method')
-      return response.unauthorized('Veuillez vous connecter')
-    }
-
-    if (!course) {
-      course = await Course.create({
-        title: cleanTopic.charAt(0).toUpperCase() + cleanTopic.slice(1),
-        slug,
-        status: 'generating',
-        userId: auth.user.id,
-      })
-    } else {
-      course.status = 'generating'
-      await course.save()
-    }
+    // 4. Créer le cours (aucun similaire trouvé OU création forcée)
+    const course = await Course.create({
+      title: cleanTopic.charAt(0).toUpperCase() + cleanTopic.slice(1),
+      slug,
+      status: 'generating',
+      userId: auth.user.id,
+    })
 
     const user = auth.user as User
     this.generateCourseContent(course, user).catch(err => {
@@ -191,6 +228,27 @@ export default class CoursesController {
     })
 
     return response.redirect().toPath(`/courses/${course.slug}`)
+  }
+
+  /**
+   * Show confirmation page when similar courses are found
+   */
+  async confirm({ view, session, response }: HttpContext) {
+    const pendingTopic = session.get('pendingTopic')
+    const similarCourses = session.get('similarCourses') || []
+
+    if (!pendingTopic) {
+      return response.redirect('/')
+    }
+
+    // Nettoyer la session après lecture
+    session.forget('pendingTopic')
+    session.forget('similarCourses')
+
+    return view.render('pages/courses/confirm', {
+      pendingTopic,
+      similarCourses
+    })
   }
 
   private async generateCourseContent(course: Course, user: User) {

@@ -29,7 +29,8 @@ router.group(() => {
 
 router.group(() => {
   router.get('/mes-cours', [CoursesController, 'myCourses'])
-  router.get('/courses/generate', [CoursesController, 'generate'])
+  router.post('/courses/generate', [CoursesController, 'generate'])
+  router.get('/courses/confirm', [CoursesController, 'confirm']).as('courses.confirm')
   router.post('/courses/:id/delete', [CoursesController, 'destroy'])
   router.post('/progress/toggle', [ProgressesController, 'toggle'])
   router.get('/settings', [SettingsController, 'index'])

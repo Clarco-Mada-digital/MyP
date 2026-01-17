@@ -17,7 +17,8 @@
         </p>
 
         <div class="mt-12 max-w-2xl mx-auto relative group z-10">
-          <form action="/courses/generate" method="GET" class="relative">
+          <form action="/courses/generate" method="POST" class="relative">
+            {{ csrfField() }}
             <input 
               type="text" 
               name="topic"

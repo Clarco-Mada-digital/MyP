@@ -6,12 +6,89 @@
         <p class="text-slate-500 text-lg">Explorez tous les cours générés par la communauté.</p>
       </div>
 
+      {{-- Search and Filters --}}
+      <div class="mb-12 space-y-6">
+        {{-- Search Bar --}}
+        <div class="max-w-2xl mx-auto">
+          <form action="/parcourir" method="GET" class="relative">
+            <input 
+              type="text" 
+              name="search" 
+              value="{{ searchQuery || '' }}"
+              placeholder="Rechercher un cours par titre ou description..."
+              class="w-full px-6 py-4 pr-12 bg-white border border-slate-200 rounded-2xl shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all text-slate-900 placeholder-slate-400"
+            />
+            <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-primary-600 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </button>
+            @if(searchQuery)
+              <a href="/parcourir" class="absolute right-14 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-slate-600 transition-colors" title="Effacer la recherche">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </a>
+            @end
+          </form>
+        </div>
+
+        {{-- Category Filter --}}
+        @if(categories && categories.length > 0)
+          <div class="flex flex-col items-center gap-4">
+            <span class="text-sm font-bold text-slate-700">Filtrer par catégorie :</span>
+            <div class="flex flex-wrap justify-center gap-2 max-w-4xl">
+              <a href="/parcourir{{ searchQuery ? '?search=' + searchQuery : '' }}" class="px-4 py-2 rounded-full text-sm font-medium transition-colors
+                {{ !selectedCategory ? 'bg-primary-600 text-white shadow-lg' : 'bg-slate-100 text-slate-700 hover:bg-slate-200' }}">
+                Tous les cours
+              </a>
+              @each(category in categories)
+                <a href="/parcourir?category={{ category.id }}{{ searchQuery ? '&search=' + searchQuery : '' }}" class="px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2
+                  {{ selectedCategory == category.id ? 'bg-primary-600 text-white shadow-lg' : 'bg-slate-100 text-slate-700 hover:bg-slate-200' }}">
+                  <span>{{ category.icon }}</span>
+                  {{ category.name }}
+                  <span class="opacity-60 text-xs">({{ category.course_count || 0 }})</span>
+                </a>
+              @end
+            </div>
+          </div>
+        @end
+
+        {{-- Active Filters Display --}}
+        @if(searchQuery || selectedCategory)
+          <div class="flex flex-wrap justify-center gap-2">
+            @if(searchQuery)
+              <div class="inline-flex items-center gap-2 px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm font-medium">
+                <span>Recherche: "{{ searchQuery }}"</span>
+                <a href="/parcourir{{ selectedCategory ? '?category=' + selectedCategory : '' }}" class="hover:text-primary-900">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </a>
+              </div>
+            @end
+            @if(selectedCategory)
+              @each(category in categories)
+                @if(category.id == selectedCategory)
+                  <div class="inline-flex items-center gap-2 px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm font-medium">
+                    <span>{{ category.icon }} {{ category.name }}</span>
+                    <a href="/parcourir{{ searchQuery ? '?search=' + searchQuery : '' }}" class="hover:text-primary-900">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </a>
+                  </div>
+                @end
+              @end
+            @end
+          </div>
+        @end
+      </div>
+
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         @each(course in courses)
           <div class="relative bg-white rounded-[2rem] p-4 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-2 group border border-slate-100">
             <div class="aspect-video w-full bg-slate-100 rounded-[1.5rem] mb-6 overflow-hidden relative">
                <img src="{{ course.content?.image || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&auto=format&fit=crop&q=60' }}" alt="{{ course.title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                <div class="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-primary-700">{{ course.content?.level || 'Tous niveaux' }}</div>
+               @if(course.category)
+                 <div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1" style="color: {{ course.category.color }}; background: {{ course.category.color }}20;">
+                   <span>{{ course.category.icon }}</span>
+                   {{ course.category.name }}
+                 </div>
+               @end
             </div>
             <div class="px-4 pb-4">
               <h3 class="text-xl font-bold line-clamp-2">{{ course.title }}</h3>
@@ -42,7 +119,20 @@
           </div>
         @else
           <div class="col-span-full py-20 text-center glass rounded-3xl">
-            <p class="text-slate-400 text-lg">Aucun cours disponible pour le moment.</p>
+            <div class="text-6xl mb-6 opacity-20">🔍</div>
+            <p class="text-slate-400 text-lg mb-4">
+              @if(searchQuery || selectedCategory)
+                Aucun cours trouvé pour cette recherche.
+              @else
+                Aucun cours disponible pour le moment.
+              @end
+            </p>
+            @if(searchQuery || selectedCategory)
+              <a href="/parcourir" class="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 text-white font-medium rounded-2xl hover:bg-primary-700 transition-colors shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                Effacer les filtres
+              </a>
+            @end
           </div>
         @end
       </div>

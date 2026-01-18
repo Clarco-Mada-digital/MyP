@@ -1,0 +1,76 @@
+@app({ title: '{{ category.name }} - My Professor' })
+  @slot('main')
+    <main class="max-w-7xl mx-auto px-6 py-20">
+      <div class="mb-16">
+        <div class="flex items-center gap-4 mb-6">
+          <a href="/categories" class="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Retour aux catégories
+          </a>
+        </div>
+        
+        <div class="flex items-center gap-6">
+          <div class="text-5xl">{{ category.icon }}</div>
+          <div>
+            <h1 class="text-4xl font-extrabold tracking-tight mb-2">{{ category.name }}</h1>
+            <p class="text-slate-500 text-lg">{{ courses.length }} cours dans cette catégorie</p>
+          </div>
+          <div class="w-8 h-8 rounded-full shadow-lg" style="background-color: {{ category.color }}"></div>
+        </div>
+      </div>
+
+      @if(courses.length > 0)
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          @each(course in courses)
+            <div class="relative bg-white rounded-[2rem] p-4 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-2 group border border-slate-100">
+              <div class="aspect-video w-full bg-slate-100 rounded-[1.5rem] mb-6 overflow-hidden relative">
+                 <img src="{{ course.content?.image || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&auto=format&fit=crop&q=60' }}" alt="{{ course.title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                 <div class="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-primary-700">{{ course.content?.level || 'Tous niveaux' }}</div>
+                 <div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1" style="color: {{ category.color }}; background: {{ category.color }}20;">
+                   <span>{{ category.icon }}</span>
+                   {{ category.name }}
+                 </div>
+              </div>
+              <div class="px-4 pb-4">
+                <h3 class="text-xl font-bold line-clamp-2">{{ course.title }}</h3>
+                
+                @if(course.$extras.progress !== undefined)
+                  <div class="mt-4">
+                    <div class="flex justify-between text-xs font-bold mb-1">
+                      <span class="text-slate-400 uppercase">Progression</span>
+                      <span class="text-primary-600">{{ course.$extras.progress }}%</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                      <div class="bg-primary-600 h-full transition-all duration-500" style="width: {{ course.$extras.progress }}%"></div>
+                    </div>
+                  </div>
+                @else
+                  <p class="text-slate-500 mt-2 text-sm line-clamp-2">{{ course.description }}</p>
+                @end
+
+                <div class="mt-6 pt-6 border-t border-slate-50 flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                     <div class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-xs font-bold text-primary-700">AI</div>
+                     <span class="text-xs font-semibold">Généré par MyP</span>
+                  </div>
+                  <span class="text-xs text-slate-400">{{ course.createdAt.toRelative() }}</span>
+                </div>
+              </div>
+              <a href="/courses/{{ course.slug }}" class="absolute inset-0"></a>
+            </div>
+          @end
+        </div>
+      @else
+        <div class="text-center py-20 bg-white rounded-3xl border border-slate-200">
+          <div class="text-6xl mb-6 opacity-20">{{ category.icon }}</div>
+          <h3 class="text-xl font-bold text-slate-900 mb-2">Aucun cours dans cette catégorie</h3>
+          <p class="text-slate-500 mb-8">Soyez le premier à créer un cours dans la catégorie "{{ category.name }}" !</p>
+          <a href="/mes-cours" class="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 text-white font-medium rounded-2xl hover:bg-primary-700 transition-colors shadow-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Créer un cours
+          </a>
+        </div>
+      @end
+    </main>
+  @end
+@end

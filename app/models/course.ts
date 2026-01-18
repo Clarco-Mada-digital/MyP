@@ -2,6 +2,7 @@ import { DateTime } from 'luxon'
 import { BaseModel, belongsTo, column } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import User from '#models/user'
+import Category from '#models/category'
 
 export default class Course extends BaseModel {
   @column({ isPrimary: true })
@@ -9,6 +10,9 @@ export default class Course extends BaseModel {
 
   @column()
   declare userId: number | null
+
+  @column()
+  declare categoryId: number | null
 
   @column()
   declare title: string
@@ -39,4 +43,7 @@ export default class Course extends BaseModel {
 
   @belongsTo(() => User)
   declare owner: BelongsTo<typeof User>
+
+  @belongsTo(() => Category)
+  declare category: BelongsTo<typeof Category>
 }

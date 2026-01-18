@@ -1,10 +1,12 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Course from '#models/course'
+import Category from '#models/category'
 import GeminiService from '#services/gemini_service'
 import OllamaService from '#services/ollama_service'
 import string from '@adonisjs/core/helpers/string'
 import User from '#models/user'
 import GuestAccess from '#models/guest_access'
+import db from '@adonisjs/lucid/services/db'
 import { DateTime } from 'luxon'
 
 export default class CoursesController {
@@ -87,13 +89,47 @@ export default class CoursesController {
   }
 
   /**
-   * Browse all courses
+   * Browse all courses with category filtering and search
    */
-  async browse({ view, auth }: HttpContext) {
+  async browse({ view, auth, request }: HttpContext) {
     await auth.check()
-    const courses = await Course.query().where('status', 'ready').orderBy('createdAt', 'desc')
+    
+    const categoryId = request.input('category')
+    const searchQuery = request.input('search', '').trim()
+    
+    let coursesQuery = Course.query().where('status', 'ready').preload('category')
+    
+    // Apply category filter
+    if (categoryId) {
+      coursesQuery = coursesQuery.where('categoryId', categoryId)
+    }
+    
+    // Apply search filter
+    if (searchQuery) {
+      coursesQuery = coursesQuery.andWhere((query) => {
+        query.where('title', 'like', `%${searchQuery}%`)
+          .orWhere('description', 'like', `%${searchQuery}%`)
+      })
+    }
+    
+    const courses = await coursesQuery.orderBy('createdAt', 'desc')
+    
     if (auth.user) await this.attachProgress(courses, auth.user as User)
-    return view.render('pages/courses/browse', { courses })
+    
+    // Get all categories for the filter with course counts
+    const categories = await db.from('categories')
+      .leftJoin('courses', 'categories.id', 'courses.category_id')
+      .select('categories.*')
+      .select(db.raw('COUNT(CASE WHEN courses.status = ? THEN courses.id END) as course_count', ['ready']))
+      .groupBy('categories.id')
+      .orderBy('categories.name', 'asc')
+    
+    return view.render('pages/courses/browse', { 
+      courses, 
+      categories,
+      selectedCategory: categoryId,
+      searchQuery
+    })
   }
 
   /**
@@ -147,6 +183,7 @@ export default class CoursesController {
    */
   async generate({ request, response, auth, session }: HttpContext) {
     const topic = request.input('topic')
+    const categoryId = request.input('category_id')
     const forceCreate = request.input('force_create') === 'true'
 
     if (!topic) {
@@ -208,6 +245,7 @@ export default class CoursesController {
         if (similarCourses.length > 0) {
           // Stocker dans la session (pas flash car on redirige)
           session.put('pendingTopic', cleanTopic)
+          session.put('pendingCategoryId', categoryId)
           session.put('similarCourses', similarCourses.map(c => ({ id: c.id, title: c.title, slug: c.slug, description: c.description })))
           return response.redirect().toRoute('courses.confirm')
         }
@@ -220,7 +258,22 @@ export default class CoursesController {
       slug,
       status: 'generating',
       userId: auth.user.id,
+      categoryId: categoryId || null
     })
+
+    // Auto-categorize if no category was selected
+    if (!categoryId) {
+      try {
+        const suggestedCategory = await this.categorizeCourseWithAI(course.title)
+        if (suggestedCategory) {
+          course.categoryId = suggestedCategory.id
+          await course.save()
+          console.log(`[CoursesController] Auto-categorized "${course.title}" to "${suggestedCategory.name}"`)
+        }
+      } catch (error) {
+        console.error('[CoursesController] Auto-categorization failed:', error)
+      }
+    }
 
     const user = auth.user as User
     this.generateCourseContent(course, user).catch(err => {
@@ -235,6 +288,7 @@ export default class CoursesController {
    */
   async confirm({ view, session, response }: HttpContext) {
     const pendingTopic = session.get('pendingTopic')
+    const pendingCategoryId = session.get('pendingCategoryId')
     const similarCourses = session.get('similarCourses') || []
 
     if (!pendingTopic) {
@@ -243,12 +297,128 @@ export default class CoursesController {
 
     // Nettoyer la session après lecture
     session.forget('pendingTopic')
+    session.forget('pendingCategoryId')
     session.forget('similarCourses')
 
     return view.render('pages/courses/confirm', {
       pendingTopic,
+      pendingCategoryId,
       similarCourses
     })
+  }
+
+  /**
+   * Automatic categorization using AI
+   */
+  private async categorizeCourseWithAI(courseTitle: string): Promise<Category | null> {
+    try {
+      // Get existing categories for context
+      const existingCategories = await Category.query().orderBy('name', 'asc')
+      
+      if (existingCategories.length === 0) {
+        // Create default categories if none exist
+        await this.createDefaultCategories()
+        const categories = await Category.query().orderBy('name', 'asc')
+        return await this.selectBestCategory(courseTitle, categories)
+      }
+
+      return await this.selectBestCategory(courseTitle, existingCategories)
+    } catch (error) {
+      console.error('[CoursesController] Error in categorizeCourseWithAI:', error)
+      return null
+    }
+  }
+
+  /**
+   * Create default categories for the platform
+   */
+  private async createDefaultCategories(): Promise<void> {
+    const defaultCategories = [
+      { name: 'Développement Web', icon: '💻', color: '#3b82f6' },
+      { name: 'Design & Créativité', icon: '🎨', color: '#ec4899' },
+      { name: 'Marketing & Business', icon: '📈', color: '#10b981' },
+      { name: 'Science & Technologie', icon: '🔬', color: '#8b5cf6' },
+      { name: 'Langues & Communication', icon: '🗣️', color: '#f59e0b' },
+      { name: 'Mathématiques & Logique', icon: '🧮', color: '#ef4444' },
+      { name: 'Art & Culture', icon: '🎭', color: '#06b6d4' },
+      { name: 'Santé & Bien-être', icon: '🏥', color: '#84cc16' }
+    ]
+
+    for (const cat of defaultCategories) {
+      const slug = string.slug(cat.name).toLowerCase()
+      await Category.create({
+        name: cat.name,
+        slug,
+        icon: cat.icon,
+        color: cat.color
+      })
+    }
+  }
+
+  /**
+   * Select the best category for a course title using AI
+   */
+  private async selectBestCategory(courseTitle: string, categories: Category[]): Promise<Category | null> {
+    if (categories.length === 0) return null
+
+    try {
+      // Simple keyword-based categorization as fallback
+      const title = courseTitle.toLowerCase()
+      
+      // Web development keywords
+      if (title.match(/javascript|react|vue|angular|html|css|php|python|node|web|site|application|code|programming|développement|programmation/)) {
+        const webCat = categories.find(c => c.name.toLowerCase().includes('web') || c.name.toLowerCase().includes('développement'))
+        if (webCat) return webCat
+      }
+
+      // Design keywords
+      if (title.match(/design|ui|ux|figma|photoshop|illustrator|créatif|graphique|visuel/)) {
+        const designCat = categories.find(c => c.name.toLowerCase().includes('design') || c.name.toLowerCase().includes('créativ'))
+        if (designCat) return designCat
+      }
+
+      // Marketing keywords
+      if (title.match(/marketing|business|vente|commerce|stratégie|entrepreneur|seo|social|réseaux/)) {
+        const marketingCat = categories.find(c => c.name.toLowerCase().includes('marketing') || c.name.toLowerCase().includes('business'))
+        if (marketingCat) return marketingCat
+      }
+
+      // Science keywords
+      if (title.match(/science|physique|chimie|biologie|technologie|ia|intelligence|robot|data|analyse/)) {
+        const scienceCat = categories.find(c => c.name.toLowerCase().includes('science') || c.name.toLowerCase().includes('technologie'))
+        if (scienceCat) return scienceCat
+      }
+
+      // Language keywords
+      if (title.match(/langue|anglais|français|espagnol|communication|parler|apprendre.*langue|traduction/)) {
+        const langCat = categories.find(c => c.name.toLowerCase().includes('langue') || c.name.toLowerCase().includes('communication'))
+        if (langCat) return langCat
+      }
+
+      // Math keywords
+      if (title.match(/math|mathématique|calcul|algèbre|géométrie|statistique|logique|probabilité/)) {
+        const mathCat = categories.find(c => c.name.toLowerCase().includes('math') || c.name.toLowerCase().includes('logique'))
+        if (mathCat) return mathCat
+      }
+
+      // Art keywords
+      if (title.match(/art|musique|peinture|dessin|culture|histoire|littérature|cinéma/)) {
+        const artCat = categories.find(c => c.name.toLowerCase().includes('art') || c.name.toLowerCase().includes('culture'))
+        if (artCat) return artCat
+      }
+
+      // Health keywords
+      if (title.match(/santé|médecine|sport|fitness|bien-être|nutrition|psychologie|thérapie/)) {
+        const healthCat = categories.find(c => c.name.toLowerCase().includes('santé') || c.name.toLowerCase().includes('bien'))
+        if (healthCat) return healthCat
+      }
+
+      // If no match, return the first category or create a new one
+      return categories[0]
+    } catch (error) {
+      console.error('[CoursesController] Error in selectBestCategory:', error)
+      return categories[0] || null
+    }
   }
 
   private async generateCourseContent(course: Course, user: User) {

@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import User from '#models/user'
 import Course from '#models/course'
+import Category from '#models/category'
 import GuestAccess from '#models/guest_access'
 import db from '@adonisjs/lucid/services/db'
 import { DateTime } from 'luxon'
@@ -25,6 +26,15 @@ export default class AdminController {
           return acc
         }, {} as Record<string, number>)
       })
+
+    // Statistics by category
+    const categoriesWithStats = await Category.query()
+      .leftJoin('courses', 'categories.id', 'courses.category_id')
+      .select('categories.*')
+      .select(db.raw('COUNT(courses.id) as total_courses'))
+      .select(db.raw('SUM(CASE WHEN courses.status = \'ready\' THEN 1 ELSE 0 END) as ready_courses'))
+      .groupBy('categories.id')
+      .orderBy('categories.name', 'asc')
 
     // Trends (last 7 days)
     const sevenDaysAgo = DateTime.now().minus({ days: 7 }).toSQLDate()!
@@ -69,7 +79,8 @@ export default class AdminController {
         totalGuestAccess,
         coursesByStatus,
         userTrends,
-        courseTrends
+        courseTrends,
+        categoriesWithStats
       },
       recentUsers,
       recentCourses,
@@ -128,8 +139,90 @@ export default class AdminController {
       return response.unauthorized('Accès réservé aux administrateurs')
     }
 
-    const courses = await Course.query().preload('owner').orderBy('createdAt', 'desc')
-    return view.render('pages/admin/courses', { courses })
+    const courses = await Course.query()
+      .preload('owner')
+      .preload('category')
+      .orderBy('createdAt', 'desc')
+
+    // Get all categories for the dropdown
+    const categories = await Category.query().orderBy('name', 'asc')
+
+    return view.render('pages/admin/courses', { courses, categories })
+  }
+
+  /**
+   * Assign default categories to courses without categories
+   */
+  async assignDefaultCategories({ auth, response, session }: HttpContext) {
+    if (!auth.user?.isAdmin) {
+      return response.unauthorized('Accès réservé aux administrateurs')
+    }
+
+    try {
+      // Get courses without categories
+      const coursesWithoutCategory = await Course.query().where('categoryId', null)
+      
+      // Get or create default category
+      let defaultCategory = await Category.query().where('name', 'General').first()
+      
+      if (!defaultCategory) {
+        defaultCategory = await Category.create({
+          name: 'General',
+          slug: 'general',
+          icon: '📚',
+          color: '#6366f1'
+        })
+      }
+
+      // Assign default category to all courses without one
+      let updatedCount = 0
+      for (const course of coursesWithoutCategory) {
+        course.categoryId = defaultCategory.id
+        await course.save()
+        updatedCount++
+      }
+
+      session.flash('notification', { 
+        type: 'success', 
+        message: `${updatedCount} cours ont été assignés à la catégorie "General" avec succès !` 
+      })
+      return response.redirect().back()
+    } catch (error) {
+      session.flash('notification', { 
+        type: 'error', 
+        message: 'Erreur lors de l\'assignation des catégories par défaut.' 
+      })
+      return response.redirect().back()
+    }
+  }
+
+  /**
+   * Update course category (admin)
+   */
+  async updateCourseCategory({ params, request, response, auth, session }: HttpContext) {
+    if (!auth.user?.isAdmin) {
+      return response.unauthorized('Accès réservé aux administrateurs')
+    }
+
+    const course = await Course.findOrFail(params.id)
+    const categoryId = request.input('category_id')
+
+    try {
+      course.categoryId = categoryId || null
+      await course.save()
+
+      session.flash('notification', { 
+        type: 'success', 
+        message: `Catégorie du cours "${course.title}" mise à jour avec succès !` 
+      })
+      return response.redirect().back()
+    } catch (error) {
+      session.flash('notification', { 
+        type: 'error', 
+        message: 'Erreur lors de la mise à jour de la catégorie.' 
+      })
+      return response.redirect().back()
+    }
   }
 
   /**

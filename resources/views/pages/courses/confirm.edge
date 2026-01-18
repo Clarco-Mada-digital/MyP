@@ -51,6 +51,9 @@
     <form action="/courses/generate" method="POST" class="inline-block">
       {{ csrfField() }}
       <input type="hidden" name="topic" value="{{ pendingTopic }}">
+      @if(pendingCategoryId)
+        <input type="hidden" name="category_id" value="{{ pendingCategoryId }}">
+      @end
       <input type="hidden" name="force_create" value="true">
       <button type="submit"
         class="px-8 py-3 rounded-full bg-primary-600 text-white font-bold hover:bg-primary-700 shadow-lg hover:shadow-xl transition-all flex items-center gap-2">

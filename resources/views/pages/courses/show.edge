@@ -83,19 +83,82 @@
           </div>
 
           <div class="p-8 md:p-16">
-            <div class="flex flex-wrap gap-4 mb-12 border-b border-slate-100 pb-8">
-               <div class="px-4 py-2 bg-slate-50 rounded-2xl">
-                 <span class="text-xs text-slate-400 block uppercase font-bold tracking-widest">Niveau</span>
-                 <span class="font-bold text-slate-700">{{ course.content?.level || 'Tous niveaux' }}</span>
-               </div>
-               <div class="px-4 py-2 bg-slate-50 rounded-2xl">
-                 <span class="text-xs text-slate-400 block uppercase font-bold tracking-widest">Progression</span>
-                 <span class="font-bold text-primary-600" id="global-progress">0%</span>
-               </div>
-               <div class="px-4 py-2 bg-slate-50 rounded-2xl">
-                 <span class="text-xs text-slate-400 block uppercase font-bold tracking-widest">Certifié par</span>
-                 <span class="font-bold text-primary-600">My Professor IA</span>
-               </div>
+            <div class="flex flex-col md:flex-row gap-6 mb-12 border-b border-slate-100 pb-8 justify-between">
+              <div class="flex flex-wrap gap-4">
+                 <div class="px-4 py-2 bg-slate-50 rounded-2xl">
+                   <span class="text-xs text-slate-400 block uppercase font-bold tracking-widest">Niveau</span>
+                   <span class="font-bold text-slate-700">{{ course.content?.level || 'Tous niveaux' }}</span>
+                 </div>
+                 <div class="px-4 py-2 bg-slate-50 rounded-2xl">
+                   <span class="text-xs text-slate-400 block uppercase font-bold tracking-widest">Progression</span>
+                   <span class="font-bold text-primary-600" id="global-progress">0%</span>
+                 </div>
+                 <div class="px-4 py-2 bg-slate-50 rounded-2xl">
+                   <span class="text-xs text-slate-400 block uppercase font-bold tracking-widest">Certifié par</span>
+                   <span class="font-bold text-primary-600">My Professor IA</span>
+                 </div>
+              </div>
+
+              <div class="flex gap-3">
+                @if(auth.user)
+                  <button 
+                    onclick="toggleBookmark(this)"
+                    data-course-id="{{ course.id }}"
+                    class="flex items-center gap-2 px-4 py-2 rounded-xl font-bold transition-all whitespace-nowrap text-sm h-fit {{ isBookmarked ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}"
+                    id="bookmark-btn"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 {{ isBookmarked ? 'fill-current' : 'fill-none' }}" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                    </svg>
+                    <span>{{ isBookmarked ? 'Sauvegardé' : 'Sauvegarder' }}</span>
+                  </button>
+                @end
+
+                <div x-data="{ open: false }" class="relative">
+                  <button @click="open = !open" @click.outside="open = false" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-50 text-indigo-700 font-bold hover:bg-indigo-100 transition-all whitespace-nowrap text-sm h-fit">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                    </svg>
+                    Partager
+                  </button>
+
+                  <div x-show="open" 
+                       x-transition:enter="transition ease-out duration-200"
+                       x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+                       x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                       class="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-indigo-50 p-2 z-20 divide-y divide-slate-100">
+                    
+                    <div class="pb-2">
+                      <button @click="navigator.clipboard.writeText(window.location.href); open = false; alert('Lien copié !')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-50 flex items-center gap-3 transition-colors text-slate-600 font-medium">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                        Copier le lien
+                      </button>
+                      
+                      <a href="https://twitter.com/intent/tweet?text=Je%20viens%20de%20d%C3%A9couvrir%20ce%20cours%20incroyable%20sur%20{{ course.title }}%20!%20%F0%9F%9A%80&url={{ request.url() }}" target="_blank" class="w-full text-left px-4 py-3 rounded-xl hover:bg-sky-50 flex items-center gap-3 transition-colors text-slate-600 font-medium hover:text-sky-600">
+                        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
+                        Twitter
+                      </a>
+                      
+                      <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.url() }}" target="_blank" class="w-full text-left px-4 py-3 rounded-xl hover:bg-blue-50 flex items-center gap-3 transition-colors text-slate-600 font-medium hover:text-blue-700">
+                        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                        LinkedIn
+                      </a>
+                    </div>
+                    
+                    <div class="pt-2">
+                       <p class="px-4 py-2 text-[10px] uppercase font-bold text-slate-400 tracking-widest">Télécharger</p>
+                       <button onclick="downloadCourse('html')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-orange-50 flex items-center gap-3 transition-colors text-slate-600 font-bold hover:text-orange-600">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                          Format HTML
+                       </button>
+                       <button onclick="downloadCourse('txt')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-50 flex items-center gap-3 transition-colors text-slate-600 font-bold hover:text-slate-800">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                          Format Texte
+                       </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div class="course-content prose max-w-none">
@@ -374,6 +437,140 @@
         updateProgressBar();
         renderMarkdown();
       });
+
+      async function toggleBookmark(btn) {
+        const courseId = btn.dataset.courseId;
+        
+        try {
+          const response = await fetch(`/courses/${courseId}/bookmark`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': '{{ csrfToken }}'
+            }
+          });
+          
+          if (!response.ok) throw new Error('Erreur serveur');
+          
+          const result = await response.json();
+          const span = btn.querySelector('span');
+          const svog = btn.querySelector('svg');
+          
+          if (result.status === 'added') {
+            btn.classList.remove('bg-slate-100', 'text-slate-600', 'hover:bg-slate-200');
+            btn.classList.add('bg-amber-100', 'text-amber-700');
+            span.innerText = 'Sauvegardé';
+            svog.classList.remove('fill-none');
+            svog.classList.add('fill-current');
+          } else {
+            btn.classList.add('bg-slate-100', 'text-slate-600', 'hover:bg-slate-200');
+            btn.classList.remove('bg-amber-100', 'text-amber-700');
+            span.innerText = 'Sauvegarder';
+            svog.classList.add('fill-none');
+            svog.classList.remove('fill-current');
+          }
+          
+        } catch (err) {
+          console.error('Erreur:', err);
+          alert('Impossible de modifier les favoris.');
+        }
+      }
+
+      @if(course.status === 'ready')
+      function downloadCourse(format) {
+         const title = "{{ course.title }}";
+         const description = "{{ course.description }}";
+         // We construct the content based on the page structure
+         let content = "";
+         const filename = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+         if (format === 'html') {
+            const css = `
+               body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
+               h1 { color: #2563eb; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+               h2 { color: #1e293b; margin-top: 30px; }
+               h3 { color: #475569; }
+               code { background: #f1f5f9; padding: 2px 5px; rounded: 4px; font-family: monospace; }
+               pre { background: #1e293b; color: #fff; padding: 15px; border-radius: 8px; overflow-x: auto; }
+               .quiz { background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 20px; }
+               .source { font-size: 0.9em; color: #64748b; font-style: italic; }
+            `;
+            
+            content += `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title><style>${css}</style></head><body>`;
+            content += `<h1>${title}</h1>`;
+            content += `<p><strong>Description:</strong> ${description}</p>`;
+            content += `<hr>`;
+            
+            // Modules loop
+            @each(module in course.content.modules)
+               content += `<h2>{{ module.title }}</h2>`;
+               @each(lesson in module.lessons)
+                  content += `<h3>{{ lesson.title }}</h3>`;
+                  // We use marked.parse for the body, assuming the user wants rendered HTML
+                  content += marked.parse(`{{{ lesson.content.replace(/`/g, '\\`').replace(/\$/g, '\\$') }}}`);
+               @end
+               
+               @if(module.quiz && module.quiz.length > 0)
+                  content += `<div class="quiz"><h4>Quiz de révision</h4><ul>`;
+                  @each(q in module.quiz)
+                     content += `<li><strong>{{ q.question }}</strong><ul>`;
+                     @each(opt in q.options)
+                        content += `<li>{{ opt }}</li>`;
+                     @end
+                     content += `</ul></li><br>`;
+                  @end
+                  content += `</ul></div>`;
+               @end
+            @end
+            
+            content += `<br><hr><p class="source">Généré par My Professor IA</p></body></html>`;
+            
+            downloadFile(filename + '.html', content, 'text/html');
+
+         } else if (format === 'txt') {
+            content += `TITRE: ${title}\n`;
+            content += `DESCRIPTION: ${description}\n`;
+            content += `----------------------------------------\n\n`;
+            
+            @each(module in course.content.modules)
+               content += `MODULE: {{ module.title }}\n`;
+               content += `========================================\n\n`;
+               @each(lesson in module.lessons)
+                  content += `LEÇON: {{ lesson.title }}\n`;
+                  content += `--------------------\n`;
+                  // Raw markdown content
+                  content += `{{{ lesson.content.replace(/`/g, '\\`').replace(/\$/g, '\\$') }}}\n\n`;
+               @end
+               
+               @if(module.quiz && module.quiz.length > 0)
+                  content += `QUIZ:\n`;
+                  @each(q in module.quiz)
+                     content += `Q: {{ q.question }}\n`;
+                     @each(opt in q.options)
+                        content += `   - {{ opt }}\n`;
+                     @end
+                     content += `\n`;
+                  @end
+               @end
+               content += `\n`;
+            @end
+            
+            downloadFile(filename + '.txt', content, 'text/plain');
+         }
+      }
+      @end
+
+      function downloadFile(filename, content, mimeType) {
+         const blob = new Blob([content], { type: mimeType });
+         const url = window.URL.createObjectURL(blob);
+         const a = document.createElement('a');
+         a.href = url;
+         a.download = filename;
+         document.body.appendChild(a);
+         a.click();
+         window.URL.revokeObjectURL(url);
+         document.body.removeChild(a);
+      }
     </script>
   @end
 @end

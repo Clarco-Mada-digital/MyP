@@ -3,6 +3,7 @@ import User from '#models/user'
 import Course from '#models/course'
 import Category from '#models/category'
 import GuestAccess from '#models/guest_access'
+import app from '@adonisjs/core/services/app'
 import db from '@adonisjs/lucid/services/db'
 import { DateTime } from 'luxon'
 
@@ -161,10 +162,10 @@ export default class AdminController {
     try {
       // Get courses without categories
       const coursesWithoutCategory = await Course.query().where('categoryId', null)
-      
+
       // Get or create default category
       let defaultCategory = await Category.query().where('name', 'General').first()
-      
+
       if (!defaultCategory) {
         defaultCategory = await Category.create({
           name: 'General',
@@ -182,15 +183,15 @@ export default class AdminController {
         updatedCount++
       }
 
-      session.flash('notification', { 
-        type: 'success', 
-        message: `${updatedCount} cours ont été assignés à la catégorie "General" avec succès !` 
+      session.flash('notification', {
+        type: 'success',
+        message: `${updatedCount} cours ont été assignés à la catégorie "General" avec succès !`
       })
       return response.redirect().back()
     } catch (error) {
-      session.flash('notification', { 
-        type: 'error', 
-        message: 'Erreur lors de l\'assignation des catégories par défaut.' 
+      session.flash('notification', {
+        type: 'error',
+        message: 'Erreur lors de l\'assignation des catégories par défaut.'
       })
       return response.redirect().back()
     }
@@ -211,15 +212,49 @@ export default class AdminController {
       course.categoryId = categoryId || null
       await course.save()
 
-      session.flash('notification', { 
-        type: 'success', 
-        message: `Catégorie du cours "${course.title}" mise à jour avec succès !` 
+      session.flash('notification', {
+        type: 'success',
+        message: `Catégorie du cours "${course.title}" mise à jour avec succès !`
       })
       return response.redirect().back()
     } catch (error) {
-      session.flash('notification', { 
-        type: 'error', 
-        message: 'Erreur lors de la mise à jour de la catégorie.' 
+      session.flash('notification', {
+        type: 'error',
+        message: 'Erreur lors de la mise à jour de la catégorie.'
+      })
+      return response.redirect().back()
+    }
+  }
+
+  /**
+   * Update course cover image (admin)
+   */
+  async updateCourseImage({ params, request, response, auth, session }: HttpContext) {
+    if (!auth.user?.isAdmin) {
+      return response.unauthorized('Accès réservé aux administrateurs')
+    }
+
+    const course = await Course.findOrFail(params.id)
+    const imageUrl = request.input('image_url')
+
+    try {
+      // Ensure content is an object
+      const content = typeof course.content === 'object' ? { ...course.content } : {}
+      content.image = imageUrl
+
+      course.content = content
+      await course.save()
+
+      session.flash('notification', {
+        type: 'success',
+        message: `Image du cours "${course.title}" mise à jour avec succès !`
+      })
+      return response.redirect().back()
+    } catch (error) {
+      console.error(error)
+      session.flash('notification', {
+        type: 'error',
+        message: 'Erreur lors de la mise à jour de l\'image.'
       })
       return response.redirect().back()
     }
@@ -238,5 +273,48 @@ export default class AdminController {
 
     session.flash('notification', { type: 'success', message: `Cours "${course.title}" supprimé avec succès.` })
     return response.redirect().back()
+  }
+  /**
+   * Download the database backup
+   */
+  async downloadBackup({ response }: HttpContext) {
+    const dbPath = app.tmpPath('db.sqlite3')
+    const date = DateTime.now().toFormat('yyyy-MM-dd_HH-mm')
+    return response.download(dbPath, `backup_myp_${date}.sqlite3`)
+  }
+
+  /**
+   * Restore the database from a backup
+   */
+  async restoreBackup({ request, response, session }: HttpContext) {
+    const backupFile = request.file('backup', {
+      size: '100mb',
+      extnames: ['sqlite3', 'sqlite', 'db']
+    })
+
+    if (!backupFile) {
+      session.flash('notification', { type: 'error', message: 'Veuillez sélectionner un fichier valide.' })
+      return response.redirect().back()
+    }
+
+    if (!backupFile.isValid) {
+      session.flash('notification', { type: 'error', message: 'Fichier invalide ou trop volumineux.' })
+      return response.redirect().back()
+    }
+
+    try {
+      // We overwrite the existing database
+      await backupFile.move(app.tmpPath(), {
+        name: 'db.sqlite3',
+        overwrite: true
+      })
+
+      session.flash('notification', { type: 'success', message: 'Base de données restaurée avec succès !' })
+      return response.redirect().back()
+    } catch (error) {
+      console.error('Restore error:', error)
+      session.flash('notification', { type: 'error', message: 'Erreur lors de la restauration.' })
+      return response.redirect().back()
+    }
   }
 }

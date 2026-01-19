@@ -34,8 +34,11 @@ router.group(() => {
   router.get('/courses/confirm', [CoursesController, 'confirm']).as('courses.confirm')
   router.post('/courses/:id/delete', [CoursesController, 'destroy'])
   router.post('/progress/toggle', [ProgressesController, 'toggle'])
+  router.post('/courses/:id/bookmark', [CoursesController, 'toggleBookmark']).as('courses.bookmark')
   router.get('/settings', [SettingsController, 'index'])
   router.post('/settings', [SettingsController, 'update'])
+  router.post('/settings/profile', [SettingsController, 'updateProfile'])
+  router.post('/settings/password', [SettingsController, 'updatePassword'])
   router.get('/admin', [AdminController, 'index']).as('admin.dashboard')
   router.get('/admin/users', [AdminController, 'users']).as('admin.users')
   router.post('/admin/users/:id/toggle-admin', [AdminController, 'toggleAdmin']).as('admin.users.toggle')
@@ -43,11 +46,17 @@ router.group(() => {
   router.post('/admin/courses/assign-default', [AdminController, 'assignDefaultCategories']).as('admin.courses.assign-default')
   router.post('/admin/courses/:id/category', [AdminController, 'updateCourseCategory']).as('admin.courses.category')
   router.post('/admin/courses/:id/delete', [AdminController, 'deleteCourse']).as('admin.courses.delete')
+  router.post('/admin/courses/:id/image', [AdminController, 'updateCourseImage']).as('admin.courses.image')
   router.get('/admin/categories', [CategoriesController, 'adminIndex']).as('admin.categories')
   router.get('/admin/categories/create', [CategoriesController, 'create']).as('admin.categories.create')
   router.post('/admin/categories', [CategoriesController, 'store'])
   router.get('/admin/categories/:id/edit', [CategoriesController, 'edit']).as('admin.categories.edit')
+  router.post('/admin/categories/:id', [CategoriesController, 'update']).as('admin.categories.update')
   router.post('/admin/categories/:id/delete', [CategoriesController, 'destroy']).as('admin.categories.delete')
+
+  // Backups
+  router.get('/admin/backup/download', [AdminController, 'downloadBackup']).as('admin.backup.download')
+  router.post('/admin/backup/restore', [AdminController, 'restoreBackup']).as('admin.backup.restore')
 }).use(middleware.auth())
 
 router.group(() => {

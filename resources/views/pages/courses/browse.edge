@@ -84,10 +84,10 @@
                <img src="{{ course.content?.image || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&auto=format&fit=crop&q=60' }}" alt="{{ course.title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                <div class="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-primary-700">{{ course.content?.level || 'Tous niveaux' }}</div>
                @if(course.category)
-                 <div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1" style="color: {{ course.category.color }}; background: {{ course.category.color }}20;">
-                   <span>{{ course.category.icon }}</span>
-                   {{ course.category.name }}
-                 </div>
+                  <div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1" style="color: {{ course.category.color }}; background: {{ course.category.color }}20;">
+                    <span>{{ course.category.icon }}</span>
+                    {{ truncate(course.category.name, 15, { completeWords: false, suffix: '...' }) }}
+                  </div>
                @end
             </div>
             <div class="px-4 pb-4">

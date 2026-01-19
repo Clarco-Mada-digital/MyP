@@ -72,7 +72,7 @@
         <a href="/" class="text-primary-600 font-bold text-sm hover:underline">Nouveau cours +</a>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
         @each(course in courses)
           <div class="relative bg-white rounded-[2rem] p-4 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-2 group border border-slate-100">
             <div class="aspect-video w-full bg-slate-100 rounded-[1.5rem] mb-6 overflow-hidden relative">
@@ -129,6 +129,53 @@
           </div>
         @end
       </div>
+
+      @if(bookmarkedCourses && bookmarkedCourses.length > 0)
+        <div class="flex items-center justify-between mb-8 pt-8 border-t border-slate-200">
+          <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
+            <span class="text-amber-500">★</span> Mes Favoris
+          </h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          @each(course in bookmarkedCourses)
+            <div class="relative bg-white rounded-[2rem] p-4 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-2 group border-2 border-amber-100">
+              <div class="absolute -top-3 -right-3 w-8 h-8 bg-amber-500 text-white flex items-center justify-center rounded-full shadow-lg z-20">
+                ★
+              </div>
+              <div class="aspect-video w-full bg-slate-100 rounded-[1.5rem] mb-6 overflow-hidden relative">
+                 <img src="{{ course.content?.image || 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&auto=format&fit=crop&q=60' }}" alt="{{ course.title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                 <div class="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-primary-700">
+                  {{ course.content?.level || 'Expert' }}
+                 </div>
+              </div>
+              <div class="px-4 pb-4">
+                <h3 class="text-xl font-bold line-clamp-2 mb-2">{{ course.title }}</h3>
+                
+                @if(course.status === 'ready' && course.$extras.progress !== undefined)
+                  <div class="mt-4">
+                    <div class="flex justify-between text-xs font-bold mb-1">
+                      <span class="text-slate-400 uppercase">Progression</span>
+                      <span class="text-primary-600">{{ course.$extras.progress }}%</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                      <div class="bg-primary-600 h-full transition-all duration-500" style="width: {{ course.$extras.progress }}%"></div>
+                    </div>
+                  </div>
+                @end
+                
+                <div class="mt-6 flex items-center justify-between">
+                   <div class="flex items-center gap-2">
+                     <span class="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500">IA</span>
+                     <span class="text-xs text-slate-500 font-medium">Par My Professor</span>
+                   </div>
+                </div>
+              </div>
+              <a href="/courses/{{ course.slug }}" class="absolute inset-0"></a>
+            </div>
+          @end
+        </div>
+      @end
     </main>
   @end
 @end

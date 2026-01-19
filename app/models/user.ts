@@ -6,6 +6,7 @@ import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
 import type { HasMany } from '@adonisjs/lucid/types/relations'
 import Course from '#models/course'
 import CourseProgress from '#models/course_progress'
+import Bookmark from '#models/bookmark'
 
 const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
   uids: ['email'],
@@ -45,6 +46,9 @@ export default class User extends compose(BaseModel, AuthFinder) {
 
   @hasMany(() => CourseProgress)
   declare progress: HasMany<typeof CourseProgress>
+
+  @hasMany(() => Bookmark)
+  declare bookmarks: HasMany<typeof Bookmark>
 
   @beforeSave()
   static async hashPassword(user: any) {

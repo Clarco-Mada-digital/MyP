@@ -4,9 +4,11 @@ export default class extends BaseSchema {
   protected tableName = 'users'
 
   async up() {
-    this.schema.alterTable(this.tableName, (table) => {
-      table.boolean('is_admin').defaultTo(false)
-    })
+    if (!await this.schema.hasColumn(this.tableName, 'is_admin')) {
+      this.schema.alterTable(this.tableName, (table) => {
+        table.boolean('is_admin').defaultTo(false)
+      })
+    }
   }
 
   async down() {

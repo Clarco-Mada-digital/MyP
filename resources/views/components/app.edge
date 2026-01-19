@@ -106,11 +106,20 @@
 
         <div class="hidden md:flex items-center gap-8">
           <div class="flex items-center gap-6 font-semibold text-slate-600">
-            <a href="/parcourir" class="nav-link hover:text-primary-600 transition-colors">Parcourir</a>
+            <a href="/parcourir" 
+               class="nav-link hover:text-primary-600 transition-colors {{ request.url().startsWith('/parcourir') ? 'text-primary-600 font-bold' : '' }}">
+               Parcourir
+            </a>
             @if(auth.isAuthenticated)
-              <a href="/mes-cours" class="nav-link hover:text-primary-600 transition-colors">Mes Cours</a>
+              <a href="/mes-cours" 
+                 class="nav-link hover:text-primary-600 transition-colors {{ request.url().startsWith('/mes-cours') ? 'text-primary-600 font-bold' : '' }}">
+                 Mes Cours
+              </a>
               @if(auth.user.isAdmin)
-                <a href="{{ route('admin.dashboard') }}" class="nav-link text-primary-600 font-bold hover:text-primary-700 transition-colors">Admin</a>
+                <a href="{{ route('admin.dashboard') }}" 
+                   class="nav-link hover:text-primary-600 transition-colors {{ request.url().startsWith('/admin') ? 'text-primary-600 font-bold' : '' }}">
+                   Admin
+                </a>
               @end
             @end
           </div>

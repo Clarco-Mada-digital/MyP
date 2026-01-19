@@ -8,7 +8,7 @@ import User from '#models/user'
 import GuestAccess from '#models/guest_access'
 import db from '@adonisjs/lucid/services/db'
 import { DateTime } from 'luxon'
-
+import Bookmark from '#models/bookmark'
 export default class CoursesController {
   private async attachProgress(courses: Course[], user: User) {
     for (const course of courses) {
@@ -74,6 +74,8 @@ export default class CoursesController {
     }
 
     let completedLessons: string[] = []
+    let isBookmarked = false
+
     if (auth.user) {
       // Update last reviewed date if owner
       if (course.userId === auth.user.id) {
@@ -83,9 +85,16 @@ export default class CoursesController {
 
       const progress = await auth.user.related('progress').query().where('courseId', course.id)
       completedLessons = progress.map(p => `${p.moduleTitle}|${p.lessonTitle}`)
+
+      // Check for bookmark
+      const bookmark = await Bookmark.query()
+        .where('userId', auth.user.id)
+        .where('courseId', course.id)
+        .first()
+      isBookmarked = !!bookmark
     }
 
-    return view.render('pages/courses/show', { course, completedLessons })
+    return view.render('pages/courses/show', { course, completedLessons, isBookmarked })
   }
 
   /**
@@ -93,17 +102,17 @@ export default class CoursesController {
    */
   async browse({ view, auth, request }: HttpContext) {
     await auth.check()
-    
+
     const categoryId = request.input('category')
     const searchQuery = request.input('search', '').trim()
-    
+
     let coursesQuery = Course.query().where('status', 'ready').preload('category')
-    
+
     // Apply category filter
     if (categoryId) {
       coursesQuery = coursesQuery.where('categoryId', categoryId)
     }
-    
+
     // Apply search filter
     if (searchQuery) {
       coursesQuery = coursesQuery.andWhere((query) => {
@@ -111,11 +120,11 @@ export default class CoursesController {
           .orWhere('description', 'like', `%${searchQuery}%`)
       })
     }
-    
+
     const courses = await coursesQuery.orderBy('createdAt', 'desc')
-    
+
     if (auth.user) await this.attachProgress(courses, auth.user as User)
-    
+
     // Get all categories for the filter with course counts
     const categories = await db.from('categories')
       .leftJoin('courses', 'categories.id', 'courses.category_id')
@@ -123,9 +132,9 @@ export default class CoursesController {
       .select(db.raw('COUNT(CASE WHEN courses.status = ? THEN courses.id END) as course_count', ['ready']))
       .groupBy('categories.id')
       .orderBy('categories.name', 'asc')
-    
-    return view.render('pages/courses/browse', { 
-      courses, 
+
+    return view.render('pages/courses/browse', {
+      courses,
       categories,
       selectedCategory: categoryId,
       searchQuery
@@ -170,11 +179,17 @@ export default class CoursesController {
     if (learningHours >= 10) badges.push({ icon: '⏳', label: 'Assidu', desc: '10 heures d\'apprentissage' })
     if (badges.length === 0) badges.push({ icon: '👋', label: 'Bienvenue', desc: 'Commencez votre voyage !' })
 
+    // 4. Bookmarks
+    const bookmarks = await user.related('bookmarks').query().preload('course')
+    const bookmarkedCourses = bookmarks.map(b => b.course).filter(c => c) // c is defined
+    await this.attachProgress(bookmarkedCourses, user)
+
     return view.render('pages/courses/my_courses', {
       courses,
       stats: { totalCourses, completedCourses, learningHours, totalLessons: totalCompletedLessons },
       lastPlayed,
-      badges
+      badges,
+      bookmarkedCourses
     })
   }
 
@@ -200,13 +215,20 @@ export default class CoursesController {
       .replace(/^(donne moi un cours sur|je veux apprendre|apprendre|tout savoir sur|cours sur)\s+/i, '')
       .trim()
 
-    const slug = string.slug(cleanTopic).toLowerCase()
+    const baseSlug = string.slug(cleanTopic).toLowerCase()
 
-    // 2. Recherche EXACTE par slug
-    let exactCourse = await Course.findBy('slug', slug)
-
+    // 2. Recherche EXACTE par slug (pour redirection intelligente)
+    let exactCourse = await Course.findBy('slug', baseSlug)
     if (exactCourse && exactCourse.status !== 'error') {
       return response.redirect().toPath(`/courses/${exactCourse.slug}`)
+    }
+
+    // 3. Gestion de l'unicité du slug pour la CRÉATION
+    let slug = baseSlug
+    let counter = 1
+    while (await Course.findBy('slug', slug)) {
+      slug = `${baseSlug}-${counter}`
+      counter++
     }
 
     // 3. Recherche INTELLIGENTE de cours similaires (si pas de forçage)
@@ -314,7 +336,7 @@ export default class CoursesController {
     try {
       // Get existing categories for context
       const existingCategories = await Category.query().orderBy('name', 'asc')
-      
+
       if (existingCategories.length === 0) {
         // Create default categories if none exist
         await this.createDefaultCategories()
@@ -364,7 +386,7 @@ export default class CoursesController {
     try {
       // Simple keyword-based categorization as fallback
       const title = courseTitle.toLowerCase()
-      
+
       // Web development keywords
       if (title.match(/javascript|react|vue|angular|html|css|php|python|node|web|site|application|code|programming|développement|programmation/)) {
         const webCat = categories.find(c => c.name.toLowerCase().includes('web') || c.name.toLowerCase().includes('développement'))
@@ -511,6 +533,11 @@ export default class CoursesController {
       }
 
       course.description = content.description || ""
+
+      // --- Image Validation & Recovery Verification ---
+      console.log(`[CoursesController] Verifying image: ${content.image}`)
+      content.image = await this.verifyAndFixImage(content.image, course.title)
+
       course.content = content
       course.status = 'ready'
       await course.save()
@@ -526,6 +553,86 @@ export default class CoursesController {
 
       course.status = 'error'
       await course.save()
+    }
+  }
+
+  /**
+   * Verify image URL and try to fix it if broken
+   */
+  private async verifyAndFixImage(url: string, topic: string): Promise<string> {
+    const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1600&auto=format&fit=crop&q=80'
+
+    // Helper to check if a URL is a valid image
+    const isImageAccessible = async (testUrl: string) => {
+      try {
+        if (!testUrl || testUrl.length < 5) return false
+        // Fetch with a short timeout to avoid hanging
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 5000)
+
+        const response = await fetch(testUrl, {
+          method: 'GET',
+          signal: controller.signal,
+          headers: { 'User-Agent': 'MyProfessorApp/1.0' } // Useful for some CDNs
+        })
+
+        clearTimeout(timeoutId)
+
+        if (!response.ok) return false
+        const contentType = response.headers.get('content-type')
+        return contentType && contentType.startsWith('image/')
+      } catch (e) {
+        return false
+      }
+    }
+
+    // 1. Test original URL
+    if (await isImageAccessible(url)) {
+      return url
+    }
+    console.log('[CoursesController] Original image invalid, regenerating...')
+
+    // 2. Try Pollinations
+    try {
+      const cleanTopic = topic.replace(/[^a-zA-Z0-9\s]/g, '').substring(0, 100)
+      const newUrl = `https://image.pollinations.ai/prompt/minimalist%20educational%20illustration%20for%20${encodeURIComponent(cleanTopic)}?nologo=true`
+
+      if (await isImageAccessible(newUrl)) {
+        console.log(`[CoursesController] New image generated: ${newUrl}`)
+        return newUrl
+      }
+    } catch (e) {
+      console.error('[CoursesController] Regeneration check failed')
+    }
+
+    // 3. Fallback
+    console.log('[CoursesController] Using default fallback image')
+    return DEFAULT_IMAGE
+  }
+
+  /**
+   * Toggle bookmark for a course
+   */
+  async toggleBookmark({ params, auth, response, session }: HttpContext) {
+    await auth.check()
+    const user = auth.user!
+    const courseId = params.id
+
+    const existingBookmark = await Bookmark.query()
+      .where('userId', user.id)
+      .where('courseId', courseId)
+      .first()
+
+    if (existingBookmark) {
+      await existingBookmark.delete()
+      // Return JSON if it's an AJAX request, otherwise redirect
+      return response.json({ status: 'removed', message: 'Retiré des favoris' })
+    } else {
+      await Bookmark.create({
+        userId: user.id,
+        courseId
+      })
+      return response.json({ status: 'added', message: 'Ajouté aux favoris' })
     }
   }
 

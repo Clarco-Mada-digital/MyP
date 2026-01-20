@@ -70,7 +70,7 @@
               <span class="text-3xl">📊</span>
               Activité Hebdomadaire
             </h2>
-            <canvas id="weeklyChart" class="max-h-64"></canvas>
+            <canvas id="weeklyChart" data-weekly-progress="{{ JSON.stringify(weeklyProgress) }}" class="max-h-64"></canvas>
           </div>
 
           {{-- Activité récente --}}
@@ -163,7 +163,19 @@
 
     <script>
       // Graphique de progression hebdomadaire
-      const weeklyData = {{{ JSON.stringify(weeklyProgress) }}};
+      const ctx = document.getElementById('weeklyChart');
+      const weeklyProgressData = JSON.parse(ctx.getAttribute('data-weekly-progress') || '[]');
+      
+      let weeklyData = weeklyProgressData;
+      
+      if (!weeklyData || weeklyData.length === 0) {
+        // Données par défaut pour le débogage
+        weeklyData = [
+          { week: '2026-01', courses_count: 0 },
+          { week: '2026-02', courses_count: 0 },
+          { week: '2026-03', courses_count: 0 }
+        ];
+      }
       
       const labels = weeklyData.map(w => {
         const [year, week] = w.week.split('-');
@@ -172,7 +184,6 @@
       
       const data = weeklyData.map(w => w.courses_count);
 
-      const ctx = document.getElementById('weeklyChart');
       new Chart(ctx, {
         type: 'line',
         data: {

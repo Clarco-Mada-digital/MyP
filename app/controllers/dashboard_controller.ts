@@ -81,7 +81,7 @@ export default class DashboardController {
         COUNT(DISTINCT course_id) as courses_count
       FROM course_progresses
       WHERE user_id = ?
-        AND updated_at >= datetime('now', '-8 weeks')
+        AND updated_at >= date('now', '-56 days')
       GROUP BY week
       ORDER BY week ASC
     `, [userId])
@@ -102,7 +102,7 @@ export default class DashboardController {
       },
       recentCourses,
       topics,
-      weeklyProgress: weeklyProgress.rows || [],
+      weeklyProgress: weeklyProgress || [],
       badges
     })
   }

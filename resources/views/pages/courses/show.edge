@@ -14,6 +14,8 @@
       .btn-complete.active .check-icon { display: block; }
       .btn-complete .check-icon { display: none; }
 
+      [x-cloak] { display: none !important; }
+
       @media (max-width: 640px) {
         .course-content h1 { font-size: 1.75rem; }
         .course-content h2 { font-size: 1.5rem; }
@@ -421,6 +423,7 @@
           x-transition:leave-start="opacity-100 scale-100 translate-y-0"
           x-transition:leave-end="opacity-0 scale-90 translate-y-10"
           class="absolute bottom-20 right-0 w-[calc(100vw-2rem)] sm:w-[380px] md:w-[450px] h-[70vh] sm:h-[600px] bg-white rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl border border-slate-100 flex flex-col overflow-hidden chat-window-mobile"
+          x-cloak
         >
           {{-- Header --}}
           <div class="p-6 bg-slate-900 text-white flex items-center gap-4">

@@ -155,7 +155,7 @@
               </a>
               <a href="/dashboard" 
                  class="nav-link hover:text-primary-600 transition-colors {{ request.url().startsWith('/dashboard') ? 'text-primary-600 font-bold' : '' }}">
-                 📊 Dashboard
+                 Dashboard
               </a>
               @if(auth.user.isAdmin)
                 <a href="{{ route('admin.dashboard') }}" 

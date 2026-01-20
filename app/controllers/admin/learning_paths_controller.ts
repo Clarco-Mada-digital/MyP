@@ -7,11 +7,12 @@ export default class LearningPathsController {
   /**
    * Liste des parcours (Admin)
    */
-  async index({ view }: HttpContext) {
+  async index({ view, response }: HttpContext) {
     const paths = await LearningPath.query()
       .preload('courses')
       .orderBy('createdAt', 'desc')
 
+    response.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
     return view.render('pages/admin/learning_paths/index', { paths })
   }
 
@@ -58,18 +59,33 @@ export default class LearningPathsController {
   /**
    * Formulaire d'édition
    */
-  async edit({ params, view }: HttpContext) {
+  async edit({ params, view, response }: HttpContext) {
     const path = await LearningPath.query()
       .where('id', params.id)
       .preload('courses', (query) => {
-        query.orderBy('learning_path_courses.order', 'asc')
+        query.orderBy('learning_path_courses.order', 'asc').preload('category')
       })
       .firstOrFail()
+
+    // Detect if we need to normalize orders (duplicates or all zeros)
+    const orders = path.courses.map(c => c.$extras.pivot_order)
+    const needsNormalization = orders.length > 0 && (
+      new Set(orders).size !== orders.length ||
+      orders.every(o => o === 0)
+    )
+
+    if (needsNormalization) {
+      await this.normalizeOrders(path)
+      await path.load('courses', (query) => {
+        query.orderBy('learning_path_courses.order', 'asc').preload('category')
+      })
+    }
 
     const availableCourses = await Course.query()
       .where('status', 'ready')
       .orderBy('title', 'asc')
 
+    response.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
     return view.render('pages/admin/learning_paths/edit', { path, availableCourses })
   }
 
@@ -108,51 +124,87 @@ export default class LearningPathsController {
    * Ajouter un cours au parcours
    */
   async addCourse({ params, request, response, session }: HttpContext) {
-    const path = await LearningPath.findOrFail(params.id)
+    const path = await LearningPath.query().where('id', params.id).preload('courses').firstOrFail()
     const courseId = request.input('course_id')
+
+    if (!courseId) {
+      session.flash('error', 'Veuillez sélectionner un cours.')
+      return response.redirect().back()
+    }
+
+    // Avoid duplicates
+    const alreadyExists = path.courses.some(c => c.id === parseInt(courseId))
+    if (alreadyExists) {
+      session.flash('error', 'Ce cours est déjà présent dans ce parcours.')
+      return response.redirect().back()
+    }
+
+    // Get max order currently in the path
+    const maxOrder = path.courses.reduce((max, c) => Math.max(max, c.$extras.pivot_order || 0), 0)
 
     await path.related('courses').attach({
       [courseId]: {
-        order: path.courses.length + 1,
+        order: maxOrder + 1,
         is_required: true
       }
     })
 
     session.flash('success', 'Cours ajouté au parcours !')
-    return response.redirect().back()
+    // Using a timestamp to bypass possible browser/PWA cache
+    return response.redirect().toPath(request.header('referer') + '?t=' + Date.now())
   }
 
   /**
    * Réorganiser les cours
    */
   async reorder({ params, request, response, session }: HttpContext) {
-    const path = await LearningPath.query().where('id', params.id).preload('courses', (q) => q.orderBy('learning_path_courses.order', 'asc')).firstOrFail()
+    const path = await LearningPath.query()
+      .where('id', params.id)
+      .preload('courses', (q) => q.orderBy('learning_path_courses.order', 'asc'))
+      .firstOrFail()
+
     const courseId = parseInt(request.input('course_id'))
-    const direction = request.input('direction') // 'up' or 'down'
+    const direction = request.input('direction')
 
-    const courses = path.courses
-    const index = courses.findIndex(c => c.id === courseId)
-
+    const index = path.courses.findIndex(c => c.id === courseId)
     if (index === -1) return response.redirect().back()
 
+    // Swap logic
     if (direction === 'up' && index > 0) {
-      // Swap with previous
-      const currentOrder = courses[index].$extras.pivot_order
-      const prevOrder = courses[index - 1].$extras.pivot_order
+      const current = path.courses[index]
+      const prev = path.courses[index - 1]
 
-      await path.related('courses').pivotQuery().where('course_id', courses[index].id).update({ order: prevOrder })
-      await path.related('courses').pivotQuery().where('course_id', courses[index - 1].id).update({ order: currentOrder })
-    } else if (direction === 'down' && index < courses.length - 1) {
-      // Swap with next
-      const currentOrder = courses[index].$extras.pivot_order
-      const nextOrder = courses[index + 1].$extras.pivot_order
+      const currentOrder = current.$extras.pivot_order
+      const prevOrder = prev.$extras.pivot_order
 
-      await path.related('courses').pivotQuery().where('course_id', courses[index].id).update({ order: nextOrder })
-      await path.related('courses').pivotQuery().where('course_id', courses[index + 1].id).update({ order: currentOrder })
+      await path.related('courses').pivotQuery().where('course_id', current.id).update({ order: prevOrder })
+      await path.related('courses').pivotQuery().where('course_id', prev.id).update({ order: currentOrder })
+    } else if (direction === 'down' && index < path.courses.length - 1) {
+      const current = path.courses[index]
+      const next = path.courses[index + 1]
+
+      const currentOrder = current.$extras.pivot_order
+      const nextOrder = next.$extras.pivot_order
+
+      await path.related('courses').pivotQuery().where('course_id', current.id).update({ order: nextOrder })
+      await path.related('courses').pivotQuery().where('course_id', next.id).update({ order: currentOrder })
     }
 
     session.flash('success', 'Ordre mis à jour !')
-    return response.redirect().back()
+    return response.redirect().toPath(request.header('referer') + '?t=' + Date.now())
+  }
+
+  /**
+   * Normaliser les ordres (1, 2, 3...)
+   */
+  private async normalizeOrders(path: LearningPath) {
+    // Sort by order then by created date as fallback
+    const courses = await path.related('courses').query().orderBy('learning_path_courses.order', 'asc').orderBy('learning_path_courses.created_at', 'asc')
+
+    let i = 1
+    for (const course of courses) {
+      await path.related('courses').pivotQuery().where('course_id', course.id).update({ order: i++ })
+    }
   }
 
   /**
@@ -164,8 +216,11 @@ export default class LearningPathsController {
 
     await path.related('courses').detach([courseId])
 
+    // Cleanup orders to avoid gaps
+    await this.normalizeOrders(path)
+
     session.flash('success', 'Cours retiré du parcours !')
-    return response.redirect().back()
+    return response.redirect().toPath(request.header('referer') + '?t=' + Date.now())
   }
 
   /**

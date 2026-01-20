@@ -3,6 +3,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    
+    {{-- Anti-cache for Firefox and aggressive browsers --}}
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
     <title>
       {{ title || 'My Professor - AI Powered Courses' }}
     </title>
@@ -27,6 +33,13 @@
           navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_CACHE' });
         }
       }
+
+      // Firefox BFcache fix: Force reload if page is loaded from cache
+      window.onpageshow = function(event) {
+        if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+          window.location.reload();
+        }
+      };
 
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {

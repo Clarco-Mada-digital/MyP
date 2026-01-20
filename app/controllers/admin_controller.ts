@@ -280,11 +280,62 @@ export default class AdminController {
     return response.redirect().back()
   }
   /**
-   * Download the database backup
+   * Download the database backup or export data
    */
-  async downloadBackup({ response }: HttpContext) {
-    const dbPath = app.tmpPath('db.sqlite3')
+  async downloadBackup({ request, response }: HttpContext) {
+    const format = request.input('format', 'sqlite')
     const date = DateTime.now().toFormat('yyyy-MM-dd_HH-mm')
+
+    if (format === 'json') {
+      const users = await User.all()
+      const courses = await Course.all()
+      const categories = await Category.all()
+      const paths = await LearningPath.all()
+
+      const exportData = {
+        exportedAt: DateTime.now().toISO(),
+        users,
+        courses,
+        categories,
+        paths
+      }
+
+      return response
+        .header('Content-Type', 'application/json')
+        .header('Content-Disposition', `attachment; filename="export_myp_${date}.json"`)
+        .send(JSON.stringify(exportData, null, 2))
+    }
+
+    if (format === 'csv') {
+      const users = await User.all()
+      const courses = await Course.query().preload('category')
+
+      let csvContent = '\uFEFF' // UTF-8 BOM for Excel
+
+      // Users Section
+      csvContent += '--- UTILISATEURS ---\n'
+      csvContent += 'ID,Nom Complet,Email,Admin,Date Inscription\n'
+      users.forEach(u => {
+        csvContent += `${u.id},"${u.fullName}",${u.email},${u.isAdmin ? 'Oui' : 'Non'},${u.createdAt.toFormat('dd/MM/yyyy HH:mm')}\n`
+      })
+
+      csvContent += '\n\n'
+
+      // Courses Section
+      csvContent += '--- COURS ---\n'
+      csvContent += 'ID,Titre,Statut,Catégorie,Propriétaire,Date Création\n'
+      for (const c of courses) {
+        csvContent += `${c.id},"${c.title}",${c.status},"${c.category?.name || 'N/A'}",${c.userId},${c.createdAt.toFormat('dd/MM/yyyy HH:mm')}\n`
+      }
+
+      return response
+        .header('Content-Type', 'text/csv; charset=utf-8')
+        .header('Content-Disposition', `attachment; filename="export_myp_${date}.csv"`)
+        .send(csvContent)
+    }
+
+    // Default: SQLite backup
+    const dbPath = app.tmpPath('db.sqlite3')
     return response.attachment(dbPath, `backup_myp_${date}.sqlite3`)
   }
 

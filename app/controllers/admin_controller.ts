@@ -2,6 +2,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import User from '#models/user'
 import Course from '#models/course'
 import Category from '#models/category'
+import LearningPath from '#models/learning_path'
 import GuestAccess from '#models/guest_access'
 import app from '@adonisjs/core/services/app'
 import db from '@adonisjs/lucid/services/db'
@@ -15,6 +16,7 @@ export default class AdminController {
 
     const totalUsers = await User.query().count('* as total').then(r => r[0].$extras.total)
     const totalCourses = await Course.query().count('* as total').then(r => r[0].$extras.total)
+    const totalPaths = await LearningPath.query().count('* as total').then(r => r[0].$extras.total)
     const totalGuestAccess = await GuestAccess.query().count('* as total').then(r => r[0].$extras.total)
 
     const coursesByStatus = await Course.query()
@@ -56,6 +58,7 @@ export default class AdminController {
 
     const recentUsers = await User.query().orderBy('createdAt', 'desc').limit(5)
     const recentCourses = await Course.query().preload('owner').orderBy('createdAt', 'desc').limit(5)
+    const recentPaths = await LearningPath.query().preload('courses').orderBy('createdAt', 'desc').limit(5)
 
     const recentGuestAccess = await GuestAccess.query()
       .orderBy('createdAt', 'desc')
@@ -77,6 +80,7 @@ export default class AdminController {
       stats: {
         totalUsers,
         totalCourses,
+        totalPaths,
         totalGuestAccess,
         coursesByStatus,
         userTrends,
@@ -85,6 +89,7 @@ export default class AdminController {
       },
       recentUsers,
       recentCourses,
+      recentPaths,
       recentGuestAccess
     })
   }
@@ -161,7 +166,7 @@ export default class AdminController {
 
     try {
       // Get courses without categories
-      const coursesWithoutCategory = await Course.query().where('categoryId', null)
+      const coursesWithoutCategory = await Course.query().whereNull('categoryId')
 
       // Get or create default category
       let defaultCategory = await Category.query().where('name', 'General').first()
@@ -280,7 +285,7 @@ export default class AdminController {
   async downloadBackup({ response }: HttpContext) {
     const dbPath = app.tmpPath('db.sqlite3')
     const date = DateTime.now().toFormat('yyyy-MM-dd_HH-mm')
-    return response.download(dbPath, `backup_myp_${date}.sqlite3`)
+    return response.attachment(dbPath, `backup_myp_${date}.sqlite3`)
   }
 
   /**

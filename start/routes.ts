@@ -57,6 +57,21 @@ router.group(() => {
   // Backups
   router.get('/admin/backup/download', [AdminController, 'downloadBackup']).as('admin.backup.download')
   router.post('/admin/backup/restore', [AdminController, 'restoreBackup']).as('admin.backup.restore')
+
+  // Learning Paths Admin
+  router.get('/admin/learning-paths', '#controllers/admin/learning_paths_controller.index').as('admin.learning_paths.index')
+  router.get('/admin/learning-paths/create', '#controllers/admin/learning_paths_controller.create').as('admin.learning_paths.create')
+  router.post('/admin/learning-paths', '#controllers/admin/learning_paths_controller.store').as('admin.learning_paths.store')
+  router.get('/admin/learning-paths/:id/edit', '#controllers/admin/learning_paths_controller.edit').as('admin.learning_paths.edit')
+  router.post('/admin/learning-paths/:id', '#controllers/admin/learning_paths_controller.update').as('admin.learning_paths.update')
+  router.post('/admin/learning-paths/:id/add-course', '#controllers/admin/learning_paths_controller.addCourse').as('admin.learning_paths.add_course')
+  router.post('/admin/learning-paths/:id/reorder', '#controllers/admin/learning_paths_controller.reorder').as('admin.learning_paths.reorder')
+  router.post('/admin/learning-paths/:id/remove-course', '#controllers/admin/learning_paths_controller.removeCourse').as('admin.learning_paths.remove_course')
+  router.post('/admin/learning-paths/:id/delete', '#controllers/admin/learning_paths_controller.destroy').as('admin.learning_paths.delete')
+
+  // Course Chat
+  router.post('/courses/chat', '#controllers/course_chats_controller.sendMessage').as('courses.chat.send')
+  router.get('/courses/:id/chat/history', '#controllers/course_chats_controller.getHistory').as('courses.chat.history')
 }).use(middleware.auth())
 
 router.group(() => {
@@ -64,4 +79,11 @@ router.group(() => {
   router.get('/categories', [CategoriesController, 'index'])
   router.get('/categories/:slug', [CategoriesController, 'show'])
   router.get('/courses/:slug', [CoursesController, 'show']).as('courses.show')
+  router.get('/courses/:slug/flashcards', [CoursesController, 'flashcards']).as('courses.flashcards')
+  router.get('/dashboard', '#controllers/dashboard_controller.index').as('dashboard').use(middleware.auth())
+  router.get('/parcours', '#controllers/learning_paths_controller.index').as('learning_paths.index')
+  router.get('/parcours/:slug', '#controllers/learning_paths_controller.show').as('learning_paths.show')
+  router.on('/conditions').render('pages/legal/terms')
+  router.on('/confidentialite').render('pages/legal/privacy')
+  router.on('/a-propos').render('pages/legal/about')
 })

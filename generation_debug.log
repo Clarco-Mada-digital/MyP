@@ -136,3 +136,13 @@ Stack: Error: [GoogleGenerativeAI Error]: Error fetching from https://generative
     at async generateContent (file:///home/programmeur/Bureau/Workspace/MyP/node_modules/@google/generative-ai/dist/index.mjs:865:22)
     at async GeminiService.generateJson (/home/programmeur/Bureau/Workspace/MyP/app/services/gemini_service.ts:28:24)
     at async CoursesController.generateCourseContent (/home/programmeur/Bureau/Workspace/MyP/app/controllers/courses_controller.ts:532:19)
+Topic: Base du gestion de projet
+User: admin@myp.com
+Error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent: [503 Service Unavailable] The model is overloaded. Please try again later.
+Stack: Error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent: [503 Service Unavailable] The model is overloaded. Please try again later.
+    at handleResponseNotOk (file:///home/programmeur/Bureau/Workspace/MyP/node_modules/@google/generative-ai/dist/index.mjs:432:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async makeRequest (file:///home/programmeur/Bureau/Workspace/MyP/node_modules/@google/generative-ai/dist/index.mjs:401:9)
+    at async generateContent (file:///home/programmeur/Bureau/Workspace/MyP/node_modules/@google/generative-ai/dist/index.mjs:865:22)
+    at async GeminiService.generateJson (/home/programmeur/Bureau/Workspace/MyP/app/services/gemini_service.ts:28:24)
+    at async CoursesController.generateCourseContent (/home/programmeur/Bureau/Workspace/MyP/app/controllers/courses_controller.ts:563:19)

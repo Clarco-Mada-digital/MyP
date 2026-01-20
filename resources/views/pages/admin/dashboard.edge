@@ -3,20 +3,24 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   @end
 
-  <div class="max-w-7xl mx-auto px-6 py-10">
-    <div class="flex items-center justify-between mb-10">
+  <div class="max-w-7xl mx-auto px-6 py-6 md:py-10">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
       <div>
-        <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Vue d'ensemble Admin</h1>
-        <p class="text-slate-500 font-medium">Analyse des performances et de l'activité du système.</p>
+        <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">Vue d'ensemble Admin</h1>
+        <p class="text-slate-500 font-medium text-sm md:text-base">Analyse des performances et de l'activité du système.</p>
       </div>
-      <div class="flex gap-4">
-        <div class="px-5 py-3 bg-white border border-slate-200 rounded-2xl shadow-sm">
-          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Membres</p>
-          <p class="text-xl font-black text-slate-800 leading-none">{{ stats.totalUsers }}</p>
+      <div class="grid grid-cols-3 md:flex gap-2 min-w-0">
+        <div class="px-3 md:px-5 py-2 md:py-3 bg-white border border-slate-200 rounded-xl md:rounded-2xl shadow-sm text-center md:text-left flex-1 min-w-0">
+          <p class="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 truncate">Membres</p>
+          <p class="text-base md:text-xl font-black text-slate-800 leading-none">{{ stats.totalUsers }}</p>
         </div>
-        <div class="px-5 py-3 bg-white border border-slate-200 rounded-2xl shadow-sm">
-          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Cours</p>
-          <p class="text-xl font-black text-slate-800 leading-none">{{ stats.totalCourses }}</p>
+        <div class="px-3 md:px-5 py-2 md:py-3 bg-white border border-slate-200 rounded-xl md:rounded-2xl shadow-sm text-center md:text-left flex-1 min-w-0">
+          <p class="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 truncate">Cours</p>
+          <p class="text-base md:text-xl font-black text-slate-800 leading-none">{{ stats.totalCourses }}</p>
+        </div>
+        <div class="px-3 md:px-5 py-2 md:py-3 bg-white border border-slate-200 rounded-xl md:rounded-2xl shadow-sm text-center md:text-left flex-1 min-w-0">
+          <p class="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 truncate">Parcours</p>
+          <p class="text-base md:text-xl font-black text-slate-800 leading-none">{{ stats.totalPaths }}</p>
         </div>
       </div>
     </div>
@@ -190,6 +194,43 @@
           @end
         </div>
       </div>
+    </div>
+
+    {{-- Recent Learning Paths --}}
+    <div class="mt-10 bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-8 py-6 border-bottom border-slate-100 bg-slate-50/50 flex items-center justify-between">
+          <h2 class="font-bold text-slate-800 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            Derniers Parcours
+          </h2>
+          <a href="{{ route('admin.learning_paths.index') }}" class="text-xs font-black text-primary-600 hover:text-primary-800 flex items-center gap-1">
+            GÉRER TOUT
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-8">
+          @each(path in recentPaths)
+            <div class="p-5 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-md transition-all group">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-sm" style="background: {{ path.color }}20; color: {{ path.color }};">
+                  {{ path.icon }}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h4 class="font-bold text-slate-900 truncate">{{ path.title }}</h4>
+                  <p class="text-[10px] font-bold text-slate-400 uppercase">{{ path.difficulty }}</p>
+                </div>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-500">{{ path.courses.length }} cours</span>
+                <a href="{{ route('admin.learning_paths.edit', [path.id]) }}" class="text-[10px] font-black text-primary-600 hover:underline">MODIFIER</a>
+              </div>
+            </div>
+          @else
+             <div class="col-span-full text-center py-6 text-slate-400 italic">
+                Aucun parcours pour le moment.
+             </div>
+          @end
+        </div>
     </div>
 
     {{-- Guest Activity Report --}}

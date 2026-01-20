@@ -1,0 +1,160 @@
+@app({ title: 'Modifier ' + path.title + ' - Admin' })
+  @slot('main')
+    <main class="max-w-6xl mx-auto px-6 py-12">
+      
+      <div class="mb-8">
+        <a href="{{ route('admin.learning_paths.index') }}" class="text-primary-600 hover:text-primary-700 font-semibold">
+          ← Retour à la liste
+        </a>
+        <h1 class="text-3xl font-black text-slate-900 mt-4">Modifier le Parcours</h1>
+      </div>
+
+      @if(flashMessages.has('success'))
+        <div class="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 font-semibold">
+          {{ flashMessages.get('success') }}
+        </div>
+      @end
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        {{-- Formulaire d'édition --}}
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 p-8">
+          <h2 class="text-xl font-black text-slate-900 mb-6">Informations du Parcours</h2>
+          
+          <form action="{{ route('admin.learning_paths.update', [path.id]) }}" method="POST" class="space-y-6">
+            {{ csrfField() }}
+
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">Titre *</label>
+              <input type="text" name="title" value="{{ path.title }}" required class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500">
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2">Description</label>
+              <textarea name="description" rows="3" class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500">{{ path.description }}</textarea>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">Icône</label>
+                <input type="text" name="icon" value="{{ path.icon }}" class="w-full px-4 py-3 border border-slate-200 rounded-xl">
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">Couleur</label>
+                <input type="color" name="color" value="{{ path.color }}" class="w-full h-12 border border-slate-200 rounded-xl">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">Difficulté</label>
+                <select name="difficulty" class="w-full px-4 py-3 border border-slate-200 rounded-xl">
+                  <option value="Débutant" {{ path.difficulty === 'Débutant' ? 'selected' : '' }}>Débutant</option>
+                  <option value="Intermédiaire" {{ path.difficulty === 'Intermédiaire' ? 'selected' : '' }}>Intermédiaire</option>
+                  <option value="Avancé" {{ path.difficulty === 'Avancé' ? 'selected' : '' }}>Avancé</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2">Durée (h)</label>
+                <input type="number" name="estimated_hours" value="{{ path.estimatedHours }}" class="w-full px-4 py-3 border border-slate-200 rounded-xl">
+              </div>
+            </div>
+
+            <div class="space-y-3 pt-4 border-t border-slate-200">
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" name="is_sequential" {{ path.isSequential ? 'checked' : '' }} class="w-5 h-5 text-primary-600 rounded">
+                <span class="text-sm font-semibold text-slate-700">Parcours séquentiel</span>
+              </label>
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" name="is_published" {{ path.isPublished ? 'checked' : '' }} class="w-5 h-5 text-primary-600 rounded">
+                <span class="text-sm font-semibold text-slate-700">Publié</span>
+              </label>
+            </div>
+
+            <button type="submit" class="w-full px-6 py-3 bg-primary-600 text-white rounded-xl font-bold hover:bg-primary-700 transition-colors shadow-lg">
+              Enregistrer les modifications
+            </button>
+          </form>
+        </div>
+
+        {{-- Gestion des cours --}}
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 p-8">
+          <h2 class="text-xl font-black text-slate-900 mb-6">Cours du Parcours ({{ path.courses.length }})</h2>
+          
+          {{-- Liste des cours actuels --}}
+          <div class="space-y-3 mb-6">
+            @each((course, index) in path.courses)
+              <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
+                <div class="flex items-center gap-3">
+                  <div class="flex flex-col gap-1 mr-2">
+                    @if(index > 0)
+                      <form action="{{ route('admin.learning_paths.reorder', [path.id]) }}" method="POST">
+                        {{ csrfField() }}
+                        <input type="hidden" name="course_id" value="{{ course.id }}">
+                        <input type="hidden" name="direction" value="up">
+                        <button type="submit" class="p-1 hover:bg-slate-200 rounded transition-colors" title="Monter">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+                        </button>
+                      </form>
+                    @end
+                    @if(index < path.courses.length - 1)
+                      <form action="{{ route('admin.learning_paths.reorder', [path.id]) }}" method="POST">
+                        {{ csrfField() }}
+                        <input type="hidden" name="course_id" value="{{ course.id }}">
+                        <input type="hidden" name="direction" value="down">
+                        <button type="submit" class="p-1 hover:bg-slate-200 rounded transition-colors" title="Descendre">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                        </button>
+                      </form>
+                    @end
+                  </div>
+                  <span class="w-8 h-8 bg-slate-200 rounded-lg flex items-center justify-center text-sm font-bold text-slate-600">
+                    {{ index + 1 }}
+                  </span>
+                  <div>
+                    <div class="font-bold text-slate-900 text-sm">{{ course.title }}</div>
+                    <div class="text-xs text-slate-500">{{ course.category?.name || 'Sans catégorie' }}</div>
+                  </div>
+                </div>
+                <form action="{{ route('admin.learning_paths.remove_course', [path.id]) }}" method="POST">
+                  {{ csrfField() }}
+                  <input type="hidden" name="course_id" value="{{ course.id }}">
+                  <button type="submit" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Retirer">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                  </button>
+                </form>
+              </div>
+            @else
+              <div class="text-center py-8 text-slate-400 text-sm">
+                Aucun cours ajouté
+              </div>
+            @end
+          </div>
+
+          {{-- Ajouter un cours --}}
+          <div class="pt-6 border-t border-slate-200">
+            <h3 class="text-sm font-bold text-slate-700 mb-3">Ajouter un cours</h3>
+            <form action="{{ route('admin.learning_paths.add_course', [path.id]) }}" method="POST" class="flex flex-col sm:flex-row gap-3">
+              {{ csrfField() }}
+              <div class="flex-1 min-w-0">
+                <select name="course_id" required class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none">
+                  <option value="">Sélectionner un cours...</option>
+                  @each(course in availableCourses)
+                    @if(!path.courses.find(c => c.id === course.id))
+                      <option value="{{ course.id }}">{{ course.title }}</option>
+                    @end
+                  @end
+                </select>
+              </div>
+              <button type="submit" class="whitespace-nowrap px-6 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-md active:scale-95 text-sm">
+                Ajouter
+              </button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+  @end
+@end

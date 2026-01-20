@@ -1,9 +1,9 @@
 @app({ title: 'Parcourir les cours - My Professor' })
   @slot('main')
-    <main class="max-w-7xl mx-auto px-6 py-20">
-      <div class="mb-16">
-        <h1 class="text-4xl font-extrabold tracking-tight mb-4">Bibliothèque de savoir</h1>
-        <p class="text-slate-500 text-lg">Explorez tous les cours générés par la communauté.</p>
+    <main class="max-w-7xl mx-auto px-6 py-10 md:py-20">
+      <div class="mb-10 md:mb-16">
+        <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Bibliothèque de savoir</h1>
+        <p class="text-slate-500 text-base md:text-lg">Explorez tous les cours générés par la communauté.</p>
       </div>
 
       {{-- Search and Filters --}}
@@ -136,6 +136,32 @@
           </div>
         @end
       </div>
+
+      @if(courses.hasPages)
+        <div class="mt-12 flex justify-center">
+          <div class="flex items-center gap-2 bg-white p-2 rounded-full shadow-lg border border-slate-100">
+            {{-- Previous Page --}}
+            <a href="{{ courses.getUrl(courses.currentPage - 1) }}" 
+               class="p-2 rounded-full hover:bg-slate-100 text-slate-600 transition-colors {{ courses.currentPage <= 1 ? 'pointer-events-none opacity-50' : '' }}">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            </a>
+
+            {{-- Pages --}}
+            @each(anchor in courses.getUrlsForRange(1, courses.lastPage))
+              <a href="{{ anchor.url }}" 
+                 class="w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold transition-all {{ anchor.isActive ? 'bg-primary-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-100' }}">
+                {{ anchor.page }}
+              </a>
+            @end
+
+            {{-- Next Page --}}
+            <a href="{{ courses.getUrl(courses.currentPage + 1) }}" 
+               class="p-2 rounded-full hover:bg-slate-100 text-slate-600 transition-colors {{ !courses.hasMorePages ? 'pointer-events-none opacity-50' : '' }}">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </a>
+          </div>
+        </div>
+      @end
     </main>
   @end
 @end

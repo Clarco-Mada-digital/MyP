@@ -1,0 +1,92 @@
+@app({ title: 'Gestion des Parcours - Admin' })
+  @slot('main')
+    <main class="max-w-7xl mx-auto px-6 py-12">
+      
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h1 class="text-3xl font-black text-slate-900">🎯 Gestion des Parcours</h1>
+          <p class="text-slate-500 mt-1">Créez et organisez des parcours d'apprentissage</p>
+        </div>
+        <a href="{{ route('admin.learning_paths.create') }}" class="px-6 py-3 bg-primary-600 text-white rounded-xl font-bold hover:bg-primary-700 transition-all shadow-lg">
+          + Nouveau Parcours
+        </a>
+      </div>
+
+      @if(flashMessages.has('success'))
+        <div class="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 font-semibold">
+          {{ flashMessages.get('success') }}
+        </div>
+      @end
+
+      <div class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
+        <table class="w-full">
+          <thead class="bg-slate-50 border-b border-slate-200">
+            <tr>
+              <th class="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase">Parcours</th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase">Cours</th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase">Difficulté</th>
+              <th class="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase">Statut</th>
+              <th class="px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            @each(path in paths)
+              <tr class="hover:bg-slate-50 transition-colors">
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background: {{ path.color }}20;">
+                      {{ path.icon }}
+                    </div>
+                    <div>
+                      <div class="font-bold text-slate-900">{{ path.title }}</div>
+                      <div class="text-sm text-slate-500">{{ path.slug }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  <span class="text-sm font-semibold text-slate-700">{{ path.courses.length }} cours</span>
+                </td>
+                <td class="px-6 py-4">
+                  <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700">
+                    {{ path.difficulty }}
+                  </span>
+                </td>
+                <td class="px-6 py-4">
+                  @if(path.isPublished)
+                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">
+                      ✓ Publié
+                    </span>
+                  @else
+                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700">
+                      ⏸ Brouillon
+                    </span>
+                  @end
+                </td>
+                <td class="px-6 py-4">
+                  <div class="flex items-center justify-end gap-2">
+                    <a href="{{ route('admin.learning_paths.edit', [path.id]) }}" class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm font-bold hover:bg-blue-200 transition-colors">
+                      Modifier
+                    </a>
+                    <form action="{{ route('admin.learning_paths.delete', [path.id]) }}" method="POST" onsubmit="return confirm('Supprimer ce parcours ?')">
+                      {{ csrfField() }}
+                      <button type="submit" class="px-4 py-2 bg-red-100 text-red-700 rounded-lg text-sm font-bold hover:bg-red-200 transition-colors">
+                        Supprimer
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            @else
+              <tr>
+                <td colspan="5" class="px-6 py-12 text-center text-slate-400">
+                  Aucun parcours créé. Cliquez sur "Nouveau Parcours" pour commencer.
+                </td>
+              </tr>
+            @end
+          </tbody>
+        </table>
+      </div>
+
+    </main>
+  @end
+@end

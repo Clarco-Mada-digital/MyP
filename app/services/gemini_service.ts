@@ -69,6 +69,24 @@ export default class GeminiService {
     }
   }
 
+  static async generateText(prompt: string, userModel?: string) {
+    if (!this.genAI) {
+      throw new Error('GEMINI_API_KEY is not configured')
+    }
+
+    const modelName = userModel || 'gemini-flash-latest'
+    const model = this.genAI.getGenerativeModel({ model: modelName })
+
+    try {
+      const result = await model.generateContent(prompt)
+      const response = await result.response
+      return response.text()
+    } catch (error) {
+      console.error('Gemini generateText error:', error)
+      throw error
+    }
+  }
+
   static async getModels(): Promise<string[]> {
     if (!this.apiKey) return []
     try {

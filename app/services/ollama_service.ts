@@ -73,4 +73,36 @@ export default class OllamaService {
       throw error
     }
   }
+
+  /**
+   * Generate simple text using Ollama
+   */
+  static async generateText(prompt: string, model: string) {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 120000) // 2 minutes max for simple text
+
+    try {
+      const response = await fetch(`${this.baseUrl}/api/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model: model,
+          prompt: prompt,
+          stream: false,
+          options: { temperature: 0.7 }
+        }),
+      })
+
+      clearTimeout(timeout)
+      if (!response.ok) throw new Error(`Ollama API Error: ${response.statusText}`)
+
+      const data = (await response.json()) as any
+      return data.response
+    } catch (error) {
+      clearTimeout(timeout)
+      console.error('Ollama generateText Error:', error)
+      throw error
+    }
+  }
 }

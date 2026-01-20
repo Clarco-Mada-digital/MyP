@@ -121,9 +121,13 @@ export default class CoursesController {
       })
     }
 
-    const courses = await coursesQuery.orderBy('createdAt', 'desc')
+    const page = request.input('page', 1)
+    const courses = await coursesQuery.orderBy('createdAt', 'desc').paginate(page, 12)
 
-    if (auth.user) await this.attachProgress(courses, auth.user as User)
+    courses.baseUrl('/parcourir')
+    courses.queryString(request.qs())
+
+    if (auth.user) await this.attachProgress(courses.all(), auth.user as User)
 
     // Get all categories for the filter with course counts
     const categories = await db.from('categories')
@@ -210,20 +214,48 @@ export default class CoursesController {
       return response.unauthorized('Veuillez vous connecter')
     }
 
-    // 1. Normalisation du sujet
-    const cleanTopic = topic.toLowerCase()
-      .replace(/^(donne moi un cours sur|je veux apprendre|apprendre|tout savoir sur|cours sur)\s+/i, '')
-      .trim()
+    // 1. Extraction Intelligente du Sujet (Tag Canonical)
+    // Cela permet de regrouper "Base de python", "Cours Python", "Python facile" sous le tag "Python"
+    const topicTag = await this.extractTopicWithAI(topic, auth.user as User)
+    console.log(`[CoursesController] Extracted Topic Tag: "${topicTag}" for request "${topic}"`)
 
-    const baseSlug = string.slug(cleanTopic).toLowerCase()
+    const baseSlug = string.slug(topicTag).toLowerCase()
 
-    // 2. Recherche EXACTE par slug (pour redirection intelligente)
+    // 2. Recherche EXACTE par slug (pour ceux qui ont le meme tag/titre)
     let exactCourse = await Course.findBy('slug', baseSlug)
-    if (exactCourse && exactCourse.status !== 'error') {
-      return response.redirect().toPath(`/courses/${exactCourse.slug}`)
+
+    // 3. Recherche INTELLIGENTE par TAG
+    let similarCourses: Course[] = []
+
+    if (!forceCreate) {
+      similarCourses = await Course.query()
+        .where('status', 'ready')
+        .andWhere((query) => {
+          query.where('topicTag', topicTag)
+            .orWhere('topicTag', 'LIKE', `%${topicTag}%`)
+            .orWhere('title', 'LIKE', `%${topicTag}%`)
+        })
+        .limit(5)
     }
 
-    // 3. Gestion de l'unicité du slug pour la CRÉATION
+    // SI on a trouvé des cours similaires (par tag ou exact), on propose le choix
+    if ((exactCourse || similarCourses.length > 0) && !forceCreate) {
+      if (exactCourse && !similarCourses.find(c => c.id === exactCourse!.id)) {
+        similarCourses.unshift(exactCourse)
+      }
+
+      session.put('pendingTopic', topic)
+      session.put('pendingCategoryId', categoryId)
+      session.put('similarCourses', similarCourses.map(c => ({
+        id: c.id,
+        title: c.title,
+        slug: c.slug,
+        description: c.description
+      })))
+      return response.redirect().toRoute('courses.confirm')
+    }
+
+    // 4. Gestion de l'unicité du slug pour la CRÉATION
     let slug = baseSlug
     let counter = 1
     while (await Course.findBy('slug', slug)) {
@@ -231,59 +263,16 @@ export default class CoursesController {
       counter++
     }
 
-    // 3. Recherche INTELLIGENTE de cours similaires (si pas de forçage)
-    if (!forceCreate) {
-      // Mots génériques à ignorer (stopwords)
-      const stopwords = [
-        'cours', 'formation', 'apprendre', 'apprentissage', 'sur', 'en', 'de', 'le', 'la', 'les',
-        'un', 'une', 'des', 'du', 'pour', 'avec', 'par', 'dans', 'tout', 'savoir', 'guide',
-        'complet', 'débutant', 'expert', 'niveau', 'initiation', 'introduction', 'bases'
-      ]
-
-      // Extraire les VRAIS mots-clés (techniques)
-      const keywords = cleanTopic
-        .split(/\s+/)
-        .filter((w: string) => w.length > 2)
-        .filter((w: string) => !stopwords.includes(w.toLowerCase()))
-        .map((w: string) => w.toLowerCase())
-
-      // Si aucun mot-clé pertinent, ne pas chercher de similaires
-      if (keywords.length === 0) {
-        // Pas de mots-clés techniques, on crée directement
-      } else {
-        const similarCourses = await Course.query()
-          .where('status', 'ready')
-          .andWhere((query) => {
-            // Chercher les cours qui contiennent TOUS les mots-clés (ET logique)
-            keywords.forEach((keyword: string) => {
-              query.andWhere((subQuery) => {
-                subQuery.where('title', 'like', `%${keyword}%`)
-                  .orWhere('slug', 'like', `%${keyword}%`)
-              })
-            })
-          })
-          .limit(5)
-
-        if (similarCourses.length > 0) {
-          // Stocker dans la session (pas flash car on redirige)
-          session.put('pendingTopic', cleanTopic)
-          session.put('pendingCategoryId', categoryId)
-          session.put('similarCourses', similarCourses.map(c => ({ id: c.id, title: c.title, slug: c.slug, description: c.description })))
-          return response.redirect().toRoute('courses.confirm')
-        }
-      }
-    }
-
-    // 4. Créer le cours (aucun similaire trouvé OU création forcée)
+    // 5. Créer le cours
     const course = await Course.create({
-      title: cleanTopic.charAt(0).toUpperCase() + cleanTopic.slice(1),
+      title: topic.charAt(0).toUpperCase() + topic.slice(1),
       slug,
       status: 'generating',
       userId: auth.user.id,
-      categoryId: categoryId || null
+      categoryId: categoryId || null,
+      topicTag: topicTag
     })
 
-    // Auto-categorize if no category was selected
     if (!categoryId) {
       try {
         const suggestedCategory = await this.categorizeCourseWithAI(course.title)
@@ -332,6 +321,36 @@ export default class CoursesController {
   /**
    * Automatic categorization using AI
    */
+  /**
+   * Extract the main topic tag from user prompt using AI
+   */
+  private async extractTopicWithAI(userPrompt: string, user: User): Promise<string> {
+    const prompt = `Analyze the following user request for a course: "${userPrompt}".
+    Identify the single main SUBJECT/TOPIC (in French if the request is French, English otherwise).
+    Output ONLY the subject (noun). No sentence. No "The topic is".
+    Examples:
+    "Apprendre le Python" -> "Python"
+    "Cours sur la Révolution Française" -> "Révolution Française"
+    "Calcul intégral pour débutant" -> "Calcul Intégral"
+    "Base de la guitare" -> "Guitare"
+    `;
+
+    try {
+      let tag = '';
+      if (user.aiProvider === 'ollama') {
+        tag = await OllamaService.generateText(prompt, user.aiModel || 'llama3');
+      } else {
+        // Gemini is usually faster/better for short instruction following
+        tag = await GeminiService.generateText(prompt, user.aiModel || 'gemini-flash-latest');
+      }
+      // Clean tag (remove quotes, trim, etc.)
+      return tag.trim().replace(/^['"]|['"]$/g, '').replace(/\.$/, '') || string.slug(userPrompt);
+    } catch (e) {
+      console.error('AI Topic Extraction Failed:', e);
+      return string.slug(userPrompt); // Fallback
+    }
+  }
+
   private async categorizeCourseWithAI(courseTitle: string): Promise<Category | null> {
     try {
       // Get existing categories for context
@@ -480,6 +499,12 @@ export default class CoursesController {
                 }
               ],
               "exercises": ["Exercice 1", "Exercice 2"],
+              "flashcards": [
+                {
+                  "question": "Question de mémorisation ?",
+                  "answer": "Réponse courte et précise."
+                }
+              ],
               "quiz": [
                 {
                   "question": "Question sur ce module ?",
@@ -517,6 +542,12 @@ export default class CoursesController {
                 }
               ],
               "exercises": ["Exercice 1"],
+              "flashcards": [
+                {
+                  "question": "Concept clé ?",
+                  "answer": "Définition courte."
+                }
+              ],
               "quiz": [
                 {
                   "question": "Question simple ?",
@@ -634,6 +665,29 @@ export default class CoursesController {
       })
       return response.json({ status: 'added', message: 'Ajouté aux favoris' })
     }
+  }
+
+  /**
+   * Show flashcards for revision
+   */
+  async flashcards({ params, view, auth, response, session }: HttpContext) {
+    await auth.check()
+    const course = await Course.findByOrFail('slug', params.slug)
+
+    // Check access rights if needed
+
+    let flashcards = course.content?.flashcards || []
+
+    // Si pas de flashcards à la racine, on regarde dans les modules (cas le plus fréquent avec le prompt actuel)
+    if (flashcards.length === 0 && course.content?.modules) {
+      course.content.modules.forEach((module: any) => {
+        if (module.flashcards && Array.isArray(module.flashcards)) {
+          flashcards = [...flashcards, ...module.flashcards]
+        }
+      })
+    }
+
+    return view.render('pages/courses/flashcards', { course, flashcards })
   }
 
   /**

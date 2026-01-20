@@ -4,23 +4,23 @@
       
       {{-- Hero Section: Last Played --}}
       @if(lastPlayed)
-        <div class="mb-16 relative overflow-hidden rounded-[3rem] bg-slate-900 text-white shadow-2xl">
+        <div class="mb-12 md:mb-16 relative overflow-hidden rounded-[2rem] md:rounded-[3rem] bg-slate-900 text-white shadow-2xl mx-1 md:mx-0">
           <div class="absolute inset-0">
             <img src="{{ lastPlayed.content?.image || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1600&auto=format&fit=crop&q=80' }}" alt="Background" class="w-full h-full object-cover opacity-40 blur-sm" />
-            <div class="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/80 to-transparent"></div>
+            <div class="absolute inset-0 bg-gradient-to-b md:bg-gradient-to-r from-slate-900 via-slate-900/80 to-transparent"></div>
           </div>
-          <div class="relative p-12 md:p-16 flex flex-col md:flex-row items-center justify-between gap-8">
+          <div class="relative p-8 md:p-16 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
             <div class="max-w-2xl">
-              <span class="inline-block px-3 py-1 bg-primary-500/30 border border-primary-500/50 rounded-full text-primary-300 text-sm font-bold mb-4 uppercase tracking-wider backdrop-blur-md">Reprendre l'apprentissage</span>
-              <h1 class="text-4xl md:text-5xl font-extrabold mb-4 leading-tight">{{ lastPlayed.title }}</h1>
-               <p class="text-slate-300 text-lg mb-8 line-clamp-2">{{ lastPlayed.description || 'Continuez votre progression vers l\'excellence.' }}</p>
+              <span class="inline-block px-3 py-1 bg-primary-500/30 border border-primary-500/50 rounded-full text-primary-300 text-[10px] md:text-sm font-bold mb-4 uppercase tracking-wider backdrop-blur-md">Reprendre l'apprentissage</span>
+              <h1 class="text-3xl md:text-5xl font-extrabold mb-4 leading-tight">{{ lastPlayed.title }}</h1>
+               <p class="text-slate-300 text-base md:text-lg mb-8 line-clamp-2">{{ lastPlayed.description || 'Continuez votre progression vers l\'excellence.' }}</p>
                
-               <div class="flex items-center gap-4">
-                 <a href="/courses/{{ lastPlayed.slug }}" class="bg-white text-slate-900 px-8 py-3 rounded-full font-bold hover:bg-primary-50 hover:text-primary-700 transition-all shadow-lg flex items-center gap-2">
+               <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+                 <a href="/courses/{{ lastPlayed.slug }}" class="w-full sm:w-auto bg-white text-slate-900 px-8 py-3.5 rounded-full font-bold hover:bg-primary-50 hover:text-primary-700 transition-all shadow-lg flex items-center justify-center gap-2">
                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>
                    Reprendre le cours
                  </a>
-                 <div class="text-slate-400 font-medium">
+                 <div class="text-slate-400 font-medium text-sm">
                    Progression : <span class="text-primary-400 font-bold">{{ lastPlayed.$extras.progress || 0 }}%</span>
                  </div>
                </div>

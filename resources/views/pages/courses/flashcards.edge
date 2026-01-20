@@ -1,0 +1,167 @@
+@component('components/app', { title: 'Révision Flashcards - ' + course.title })
+  @slot('head')
+    <style>
+      .perspective-1000 { perspective: 1000px; }
+      .transform-style-3d { transform-style: preserve-3d; }
+      .backface-hidden { backface-visibility: hidden; }
+      .rotate-y-180 { transform: rotateY(180deg); }
+    </style>
+    <script>
+      function initFlashcards(cards) {
+        return {
+          cards: cards,
+          currentIndex: 0,
+          flipped: false,
+          finished: false,
+          
+          get currentCard() {
+            return this.cards[this.currentIndex];
+          },
+          
+          get progress() {
+            return Math.round(((this.currentIndex + 1) / this.cards.length) * 100);
+          },
+
+          flip() {
+            this.flipped = !this.flipped;
+          },
+
+          next() {
+            this.flipped = false;
+            setTimeout(() => {
+              if (this.currentIndex < this.cards.length - 1) {
+                this.currentIndex++;
+              } else {
+                this.finished = true;
+              }
+            }, 300); // Wait for flip back
+          },
+
+          prev() {
+            this.flipped = false;
+            setTimeout(() => {
+              if (this.currentIndex > 0) {
+                this.currentIndex--;
+                this.finished = false;
+              }
+            }, 300);
+          },
+
+          restart() {
+            this.currentIndex = 0;
+            this.finished = false;
+            this.flipped = false;
+          }
+        }
+      }
+    </script>
+  @end
+
+  @slot('main')
+    <main class="min-h-[calc(100vh-80px)] bg-slate-50 relative overflow-hidden flex flex-col"
+          x-data="initFlashcards({{ JSON.stringify(flashcards) }})">
+      
+      {{-- Background Elements --}}
+      <div class="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-violet-100 to-transparent -z-10"></div>
+      <div class="absolute -top-20 -right-20 w-96 h-96 bg-primary-200/30 rounded-full blur-3xl"></div>
+      <div class="absolute top-40 -left-20 w-72 h-72 bg-pink-200/30 rounded-full blur-3xl"></div>
+
+      <div class="max-w-4xl mx-auto w-full px-6 py-8 flex-1 flex flex-col">
+        {{-- Header --}}
+        <div class="flex items-center justify-between mb-12">
+          <a href="/courses/{{ course.slug }}" class="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            Retour au cours
+          </a>
+          <h1 class="text-lg font-bold text-slate-700 hidden md:block">{{ course.title }}</h1>
+          <div class="bg-white px-4 py-1.5 rounded-full shadow-sm text-sm font-bold text-primary-600 border border-slate-100">
+            <span x-text="currentIndex + 1"></span> / <span x-text="cards.length"></span>
+          </div>
+        </div>
+
+        @if(flashcards.length === 0)
+          <div class="flex-1 flex items-center justify-center">
+            <div class="text-center bg-white p-12 rounded-[2.5rem] shadow-xl border border-slate-100 max-w-md mx-auto">
+              <div class="text-6xl mb-6 opacity-50">📭</div>
+              <h2 class="text-xl font-bold text-slate-800 mb-2">Aucune carte disponible</h2>
+              <p class="text-slate-500 mb-8">Ce cours n'a pas encore de flashcards générées. Essayez de régénérer le cours ou choisissez un cours plus récent.</p>
+              <a href="/courses/{{ course.slug }}" class="inline-block bg-primary-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-primary-700 transition-colors">
+                Retour au cours
+              </a>
+            </div>
+          </div>
+        @else
+        
+          <div class="flex-1 flex flex-col items-center justify-center relative min-h-[500px]" x-show="!finished">
+            
+            {{-- Progress Bar --}}
+            <div class="w-full max-w-md bg-white h-2 rounded-full mb-8 overflow-hidden shadow-sm">
+               <div class="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 transition-all duration-500" :style="'width: ' + progress + '%'"></div>
+            </div>
+
+            {{-- The Card Container --}}
+            <div class="relative w-full max-w-2xl aspect-[3/2] cursor-pointer perspective-1000 group" @click="flip()">
+              
+              {{-- Card Inner --}}
+              <div class="relative w-full h-full duration-700 transform-style-3d transition-transform"
+                   :class="{ 'rotate-y-180': flipped }">
+                
+                {{-- Front (Question) --}}
+                <div class="absolute w-full h-full backface-hidden bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 p-8 md:p-16 flex flex-col items-center justify-center text-center">
+                   <div class="text-sm font-bold text-violet-500 uppercase tracking-widest mb-6">Question</div>
+                   <p class="text-2xl md:text-4xl font-black text-slate-800 leading-tight" x-text="currentCard.question"></p>
+                   <div class="mt-8 text-slate-400 text-sm flex items-center gap-2 animate-pulse">
+                     <span>Cliquer pour retourner</span>
+                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12l-10 5V7l10 5z"/></svg>
+                   </div>
+                </div>
+
+                {{-- Back (Answer) --}}
+                <div class="absolute w-full h-full backface-hidden rotate-y-180 bg-gradient-to-br from-violet-600 to-indigo-700 rounded-[2.5rem] shadow-2xl p-8 md:p-16 flex flex-col items-center justify-center text-center text-white">
+                   <div class="text-sm font-bold text-violet-200 uppercase tracking-widest mb-6">Réponse</div>
+                   <p class="text-xl md:text-3xl font-medium leading-relaxed" x-text="currentCard.answer"></p>
+                </div>
+
+              </div>
+            </div>
+
+            {{-- Controls --}}
+            <div class="flex items-center gap-6 mt-12">
+              <button @click.stop="prev()" 
+                      class="p-4 rounded-full bg-white text-slate-400 hover:text-primary-600 hover:scale-110 transition-all shadow-md disabled:opacity-50 disabled:hover:scale-100"
+                      :disabled="currentIndex === 0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+              </button>
+              
+              <button @click.stop="flip()" class="px-8 py-3 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all shadow-lg hover:-translate-y-1 flex items-center gap-2">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+                 <span x-text="flipped ? 'Voir la question' : 'Voir la réponse'"></span>
+              </button>
+
+              <button @click.stop="next()" 
+                      class="p-4 rounded-full bg-white text-primary-600 hover:bg-primary-50 hover:scale-110 transition-all shadow-md border border-primary-100">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+            </div>
+          </div>
+
+          {{-- Finished State --}}
+          <div class="flex-1 flex flex-col items-center justify-center animate-in zoom-in duration-300" x-show="finished" style="display: none;">
+             <div class="text-8xl mb-6">🎉</div>
+             <h2 class="text-4xl font-black text-slate-900 mb-4">Révision terminée !</h2>
+             <p class="text-slate-500 text-lg mb-12 max-w-md text-center">Vous avez passé en revue toutes les cartes de ce cours. N'hésitez pas à recommencer pour ancrer vos connaissances.</p>
+             
+             <div class="flex gap-4">
+               <button @click="restart()" class="px-8 py-4 rounded-2xl bg-white text-slate-700 font-bold shadow-lg border border-slate-100 hover:scale-105 transition-all">
+                 Recommencer
+               </button>
+               <a href="/courses/{{ course.slug }}" class="px-8 py-4 rounded-2xl bg-primary-600 text-white font-bold shadow-lg shadow-primary-200 hover:bg-primary-700 hover:scale-105 transition-all">
+                 Retour au cours
+               </a>
+             </div>
+          </div>
+        @end
+      </div>
+    </main>
+  @end
+@end

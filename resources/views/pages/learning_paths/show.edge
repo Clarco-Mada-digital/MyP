@@ -1,0 +1,127 @@
+@app({ title: path.title + ' - Parcours - My Professor' })
+  @slot('main')
+    <main class="max-w-5xl mx-auto px-6 py-12">
+      
+      {{-- Header du parcours --}}
+      <div class="bg-gradient-to-br from-white to-slate-50 rounded-[3rem] p-12 shadow-xl border border-slate-100 mb-12">
+        <div class="flex items-start gap-6 mb-6">
+          <div class="w-20 h-20 rounded-3xl flex items-center justify-center text-5xl shadow-lg flex-shrink-0" style="background: {{ path.color }}20; border: 3px solid {{ path.color }}40;">
+            {{ path.icon }}
+          </div>
+          <div class="flex-1">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="px-4 py-1.5 rounded-full text-sm font-bold" style="background: {{ path.color }}20; color: {{ path.color }};">
+                {{ path.difficulty }}
+              </span>
+              @if(path.isSequential)
+                <span class="px-4 py-1.5 rounded-full text-sm font-bold bg-amber-100 text-amber-700 border border-amber-200">
+                  🔒 Séquentiel
+                </span>
+              @end
+            </div>
+            <h1 class="text-4xl font-black text-slate-900 mb-3">{{ path.title }}</h1>
+            <p class="text-lg text-slate-600">{{ path.description }}</p>
+          </div>
+        </div>
+
+        {{-- Stats du parcours --}}
+        <div class="grid grid-cols-3 gap-6 mt-8 pt-8 border-t border-slate-200">
+          <div class="text-center">
+            <div class="text-3xl font-black text-slate-900 mb-1">{{ path.courses.length }}</div>
+            <div class="text-sm font-bold text-slate-500 uppercase tracking-wider">Cours</div>
+          </div>
+          @if(path.estimatedHours)
+            <div class="text-center">
+              <div class="text-3xl font-black text-slate-900 mb-1">~{{ path.estimatedHours }}h</div>
+              <div class="text-sm font-bold text-slate-500 uppercase tracking-wider">Durée</div>
+            </div>
+          @end
+          @if(auth.user)
+            <div class="text-center">
+              <div class="text-3xl font-black mb-1" style="color: {{ path.color }};">{{ Math.round((completedCount / path.courses.length) * 100) }}%</div>
+              <div class="text-sm font-bold text-slate-500 uppercase tracking-wider">Complété</div>
+            </div>
+          @end
+        </div>
+      </div>
+
+      {{-- Liste des cours --}}
+      <div class="space-y-4">
+        <h2 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3">
+          <span class="text-3xl">📚</span>
+          Cours du Parcours
+        </h2>
+
+        @each((course, index) in path.courses)
+          @let(isCompleted = course.isCompleted || false)
+          @let(previousCourse = index > 0 ? path.courses[index - 1] : null)
+          @let(isLocked = path.isSequential && previousCourse && !previousCourse.isCompleted)
+          
+          <div class="bg-white rounded-3xl p-6 shadow-lg border-2 transition-all {{ isLocked ? 'border-slate-200 opacity-60' : 'border-slate-100 hover:border-primary-300 hover:shadow-xl' }}">
+            <div class="flex items-center gap-6">
+              
+              {{-- Numéro d'ordre --}}
+              <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black flex-shrink-0 {{ isCompleted ? 'bg-emerald-100 text-emerald-600 border-2 border-emerald-300' : 'bg-slate-100 text-slate-400 border-2 border-slate-200' }}">
+                @if(isCompleted)
+                  ✓
+                @elseif(isLocked)
+                  🔒
+                @else
+                  {{ index + 1 }}
+                @end
+              </div>
+
+              {{-- Contenu --}}
+              <div class="flex-1">
+                <div class="flex items-start justify-between gap-4">
+                  <div class="flex-1">
+                    <h3 class="text-xl font-bold text-slate-900 mb-1 {{ isLocked ? '' : 'group-hover:text-primary-600' }}">
+                      {{ course.title }}
+                    </h3>
+                    <p class="text-sm text-slate-500">
+                      {{ course.category?.name || 'Sans catégorie' }}
+                      @if(course.lessonsCompleted > 0)
+                        • {{ course.lessonsCompleted }} leçon(s) terminée(s)
+                      @end
+                    </p>
+                  </div>
+
+                  {{-- Statut --}}
+                  <div class="flex items-center gap-3">
+                    @if(isCompleted)
+                      <span class="px-4 py-2 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold border border-emerald-200">
+                        ✅ Terminé
+                      </span>
+                    @elseif(isLocked)
+                      <span class="px-4 py-2 rounded-full bg-slate-100 text-slate-500 text-sm font-bold border border-slate-200">
+                        🔒 Verrouillé
+                      </span>
+                    @else
+                      <a href="/courses/{{ course.slug }}" class="px-6 py-2 rounded-full font-bold text-white transition-all hover:scale-105 shadow-md" style="background: {{ path.color }};">
+                        {{ course.lessonsCompleted > 0 ? 'Continuer' : 'Commencer' }}
+                      </a>
+                    @end
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        @end
+      </div>
+
+      {{-- Message de félicitations si tout est terminé --}}
+      @if(auth.user && completedCount === path.courses.length)
+        <div class="mt-12 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-3xl p-12 text-center border-2 border-emerald-200 shadow-xl">
+          <div class="text-6xl mb-4">🎉</div>
+          <h2 class="text-3xl font-black text-slate-900 mb-3">Félicitations !</h2>
+          <p class="text-lg text-slate-600 mb-6">Vous avez terminé le parcours <strong>{{ path.title }}</strong> !</p>
+          <div class="inline-block px-8 py-3 bg-emerald-500 text-white rounded-full font-bold text-lg shadow-lg">
+            🏆 Badge de Maîtrise Débloqué
+          </div>
+        </div>
+      @end
+
+    </main>
+  @end
+@end

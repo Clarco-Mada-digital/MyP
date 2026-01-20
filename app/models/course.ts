@@ -21,6 +21,9 @@ export default class Course extends BaseModel {
   declare slug: string
 
   @column()
+  declare topicTag: string | null
+
+  @column()
   declare description: string | null
 
   @column({
@@ -46,4 +49,8 @@ export default class Course extends BaseModel {
 
   @belongsTo(() => Category)
   declare category: BelongsTo<typeof Category>
+
+  // Transient properties for progression tracking
+  public lessonsCompleted?: number
+  public isCompleted?: boolean
 }

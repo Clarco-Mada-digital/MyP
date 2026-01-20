@@ -1,0 +1,87 @@
+@component('components/app', { title: 'Conditions d\'utilisation - MyP' })
+  <div class="max-w-4xl mx-auto px-6 py-12">
+    <div class="mb-8">
+      <a href="/" class="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Retour à l'accueil
+      </a>
+      <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight mb-4">Conditions d'utilisation</h1>
+      <p class="text-slate-600 text-lg">Dernière mise à jour : {{ new Date().toLocaleDateString('fr-FR') }}</p>
+    </div>
+
+    <div class="prose prose-slate max-w-none">
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 space-y-8">
+        
+        <section>
+          <h2 class="text-2xl font-bold text-slate-900 mb-4">1. Acceptation des conditions</h2>
+          <p class="text-slate-600 leading-relaxed">
+            En accédant et en utilisant MyP, vous acceptez d'être lié par ces conditions d'utilisation. 
+            Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser notre service.
+          </p>
+        </section>
+
+        <section>
+          <h2 class="text-2xl font-bold text-slate-900 mb-4">2. Description du service</h2>
+          <p class="text-slate-600 leading-relaxed">
+            MyP est une plateforme d'apprentissage en ligne qui utilise l'intelligence artificielle 
+            pour générer des cours personnalisés. Notre service inclut :
+          </p>
+          <ul class="list-disc list-inside text-slate-600 mt-4 space-y-2">
+            <li>Génération de cours par IA</li>
+            <li>Organisation des cours par catégories</li>
+            <li>Suivi de progression</li>
+            <li>Interface d'administration</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 class="text-2xl font-bold text-slate-900 mb-4">3. Responsabilités de l'utilisateur</h2>
+          <p class="text-slate-600 leading-relaxed">
+            En tant qu'utilisateur, vous vous engagez à :
+          </p>
+          <ul class="list-disc list-inside text-slate-600 mt-4 space-y-2">
+            <li>Fournir des informations exactes lors de l'inscription</li>
+            <li>Utiliser le service à des fins éducatives uniquement</li>
+            <li>Ne pas tenter de reproduire ou redistribuer le contenu généré</li>
+            <li>Respecter les droits de propriété intellectuelle</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 class="text-2xl font-bold text-slate-900 mb-4">4. Propriété intellectuelle</h2>
+          <p class="text-slate-600 leading-relaxed">
+            Le contenu généré par MyP est protégé par les lois sur la propriété intellectuelle. 
+            Vous disposez d'un droit d'usage personnel sur les cours que vous générez, mais ne pouvez 
+            pas les redistribuer ou les commercialiser sans autorisation expresse.
+          </p>
+        </section>
+
+        <section>
+          <h2 class="text-2xl font-bold text-slate-900 mb-4">5. Limitation de responsabilité</h2>
+          <p class="text-slate-600 leading-relaxed">
+            MyP s'efforce de fournir un contenu de qualité, mais ne garantit pas l'exactitude 
+            ou l'exhaustivité des informations générées par l'IA. L'utilisateur est responsable 
+            de vérifier les informations importantes.
+          </p>
+        </section>
+
+        <section>
+          <h2 class="text-2xl font-bold text-slate-900 mb-4">6. Modification des conditions</h2>
+          <p class="text-slate-600 leading-relaxed">
+            MyP se réserve le droit de modifier ces conditions d'utilisation à tout moment. 
+            Les modifications seront effectives dès leur publication sur cette page.
+          </p>
+        </section>
+
+        <section>
+          <h2 class="text-2xl font-bold text-slate-900 mb-4">7. Contact</h2>
+          <p class="text-slate-600 leading-relaxed">
+            Pour toute question concernant ces conditions d'utilisation, veuillez nous contacter 
+            à l'adresse : support@myp.com
+          </p>
+        </section>
+
+      </div>
+    </div>
+  </div>
+@end

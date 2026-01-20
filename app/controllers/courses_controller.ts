@@ -105,10 +105,8 @@ export default class CoursesController {
 
     const categoryId = request.input('category')
     const searchQuery = request.input('search', '').trim()
-    const page = request.input('page', 1)
-    const limit = 12
 
-    let coursesQuery = Course.query().where('status', 'ready')
+    let coursesQuery = Course.query().where('status', 'ready').preload('category')
 
     // Apply category filter
     if (categoryId) {
@@ -123,18 +121,7 @@ export default class CoursesController {
       })
     }
 
-    // Get total count for pagination
-    const totalCount = await coursesQuery.clone().count('* as total').then(result => result[0].$extras.total)
-
-    // Apply pagination and preload category safely
-    const courses = await coursesQuery
-      .orderBy('createdAt', 'desc')
-      .offset((page - 1) * limit)
-      .limit(limit)
-      .preload('category', (query) => {
-        // Handle null categories gracefully
-        query.whereRaw('categories.id IS NOT NULL OR categories.id IS NULL')
-      })
+    const courses = await coursesQuery.orderBy('createdAt', 'desc')
 
     if (auth.user) await this.attachProgress(courses, auth.user as User)
 
@@ -146,24 +133,11 @@ export default class CoursesController {
       .groupBy('categories.id')
       .orderBy('categories.name', 'asc')
 
-    // Calculate pagination data
-    const totalPages = Math.ceil(totalCount / limit)
-    const hasNextPage = page < totalPages
-    const hasPrevPage = page > 1
-
     return view.render('pages/courses/browse', {
       courses,
       categories,
       selectedCategory: categoryId,
-      searchQuery,
-      pagination: {
-        currentPage: page,
-        totalPages,
-        totalCount,
-        hasNextPage,
-        hasPrevPage,
-        limit
-      }
+      searchQuery
     })
   }
 

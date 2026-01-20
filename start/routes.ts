@@ -64,18 +64,4 @@ router.group(() => {
   router.get('/categories', [CategoriesController, 'index'])
   router.get('/categories/:slug', [CategoriesController, 'show'])
   router.get('/courses/:slug', [CoursesController, 'show']).as('courses.show')
-  
-  // Pages légales (avec auth pour maintenir l'état de connexion)
-  router.get('/conditions', ({ view, auth }) => {
-    auth.check() // Vérifie l'authentification mais ne bloque pas
-    return view.render('pages/legal/terms')
-  })
-  router.get('/confidentialite', ({ view, auth }) => {
-    auth.check() // Vérifie l'authentification mais ne bloque pas
-    return view.render('pages/legal/privacy')
-  })
-  router.get('/a-propos', ({ view, auth }) => {
-    auth.check() // Vérifie l'authentification mais ne bloque pas
-    return view.render('pages/legal/about')
-  })
-}).use(middleware.auth())
+})

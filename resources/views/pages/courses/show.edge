@@ -88,7 +88,155 @@
 
   @slot('main')
     <main class="max-w-5xl mx-auto px-4 sm:px-6 py-6 md:py-12">
-      @if(course.status === 'generating')
+      @if(course.status === 'waiting_local')
+        <div x-data="{
+          loading: true,
+          error: null,
+          progress: 0,
+          statusMessage: 'Initialisation...',
+          async init() {
+            this.generateLocally();
+          },
+          async generateLocally() {
+            this.statusMessage = 'Connexion à votre Ollama local...';
+            try {
+              const check = await fetch('http://localhost:11434/api/tags');
+              if (!check.ok) throw new Error('Ollama not running');
+              
+              this.statusMessage = 'Génération du cours en cours (ceci peut prendre 1-2 minutes)...';
+              this.progress = 20;
+
+              const prompt = `Agis en tant qu'expert pédagogue.
+              Sujet: \"{{ course.title }}\".
+              Génère un cours COMPLET et structuré (JSON).
+              Objectif: De débutant à expert.
+              Structure: 
+                - 3 à 4 Modules maximum.
+                - 2 à 3 leçons par module.
+                - Un Quiz de validation (3 questions) à la fin de chaque module.
+              Contenu:
+                - Leçons détaillées (environ 300 mots/leçon).
+                - Exemples de code, cas pratiques, explications claires.
+              Format JSON STRICT (Attention: tout guillemet double à l'intérieur d'une chaîne doit être échappé \\\", ou utilise des guillemets simples '' pour le code) :
+              {
+                \"description\": \"Description captivante (min 100 mots)\",
+                \"level\": \"Expert\",
+                \"image\": \"URL Unsplash en rapport avec {{ course.title }}\",
+                \"sources\": [\"Source fiable\"],
+                \"modules\": [
+                  {
+                    \"title\": \"Titre Module\",
+                    \"lessons\": [
+                      {
+                        \"title\": \"Titre Leçon\",
+                        \"content\": \"Contenu riche en Markdown...\",
+                        \"video_url\": \"\",
+                        \"audio_url\": \"\"
+                      }
+                    ],
+                    \"exercises\": [\"Exercice\"],
+                    \"flashcards\": [{\"question\": \"?\", \"answer\": \"\"}],
+                    \"quiz\": [{\"question\": \"?\", \"options\": [\"A\", \"B\"], \"answer\": \"A\", \"explanation\": \"\"}]
+                  }
+                ]
+              }`;
+
+              const response = await fetch('http://localhost:11434/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  model: '{{ auth.user.aiModel || "llama3" }}',
+                  prompt: prompt + '\n\nRespond ONLY with valid JSON.',
+                  format: 'json',
+                  stream: false,
+                  options: { temperature: 0.7, num_ctx: 4096 }
+                })
+              });
+
+              if (!response.ok) throw new Error('La génération locale (Ollama) a échoué. Vérifiez que l\'application est lancée.');
+              
+              this.progress = 80;
+              this.statusMessage = 'Finalisation et sauvegarde...';
+              
+              const data = await response.json();
+              let courseContent;
+              
+              try {
+                courseContent = typeof data.response === 'string' ? JSON.parse(data.response) : data.response;
+              } catch (e) {
+                const match = data.response.match(/\{[\s\S]*\}/);
+                if (match) {
+                    try {
+                        courseContent = JSON.parse(match[0]);
+                    } catch (e2) {
+                        throw new Error('Le format JSON généré est corrompu. Réessayez.');
+                    }
+                } else {
+                    throw new Error('Impossible de lire le JSON généré par Ollama.');
+                }
+              }
+
+              const syncRes = await fetch('{{ route('courses.sync', [course.id]) }}', {
+                method: 'POST',
+                headers: { 
+                  'Content-Type': 'application/json',
+                  'X-CSRF-TOKEN': '{{ csrfToken }}',
+                  'Accept': 'application/json'
+                },
+                body: JSON.stringify({ content: courseContent })
+              });
+
+              if (!syncRes.ok) {
+                const errorData = await syncRes.json();
+                throw new Error(errorData.message || 'Erreur de synchronisation avec le serveur.');
+              }
+
+              this.progress = 100;
+              this.statusMessage = 'C\'est prêt ! Redirection...';
+              setTimeout(() => window.location.reload(), 500);
+
+            } catch (e) {
+              console.error(e);
+              this.loading = false;
+              this.error = e.message || 'Erreur inconnue lors de la génération.';
+            }
+          }
+        }" class="text-center py-20 bg-white rounded-[3rem] shadow-xl border border-slate-100 max-w-2xl mx-auto px-8">
+          
+          <template x-if="loading">
+            <div>
+              <div class="w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-8 relative">
+                 <span class="text-4xl animate-bounce">🦙</span>
+                 <div class="absolute inset-0 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+              <h1 class="text-3xl font-black text-slate-800 mb-4" x-text="statusMessage"></h1>
+              <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden mb-6">
+                 <div class="bg-orange-500 h-full transition-all duration-500" :style="'width: ' + progress + '%'"></div>
+              </div>
+              <p class="text-slate-500 text-sm">
+                L'IA tourne actuellement sur <strong>votre ordinateur</strong>.<br>
+                Ne fermez pas cette page.
+              </p>
+            </div>
+          </template>
+
+          <template x-if="error">
+            <div class="animate-in fade-in slide-in-from-bottom-4">
+              <div class="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">⚠️</div>
+              <h2 class="text-2xl font-bold text-slate-800 mb-4">Ollama non détecté</h2>
+              <p class="text-slate-500 mb-8" x-text="error"></p>
+              <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="{{ route('settings') }}" class="px-6 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all shadow-lg">
+                  Vérifier mes paramètres
+                </a>
+                <button @click="generateLocally(); loading = true; error = null" class="px-6 py-3 bg-white text-slate-700 border border-slate-200 rounded-xl font-bold hover:bg-slate-50 transition-all">
+                  Réessayer
+                </button>
+              </div>
+            </div>
+          </template>
+        </div>
+      @elseif(course.status === 'generating')
         <div class="text-center py-20 bg-white rounded-[3rem] shadow-xl border border-slate-100">
           <div class="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-8 animate-spin">
              <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">

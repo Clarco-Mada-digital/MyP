@@ -1,5 +1,4 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import OllamaService from '#services/ollama_service'
 import GeminiService from '#services/gemini_service'
 import User from '#models/user'
 
@@ -10,9 +9,6 @@ export default class SettingsController {
   async index({ view, auth }: HttpContext) {
     await auth.check()
     const user = auth.user! as User
-
-    // Fetch Ollama models
-    const ollamaModels = await OllamaService.getModels()
 
     // Fetch Gemini models (Dynamic with Fallback)
     let geminiModels: string[] = []
@@ -35,9 +31,7 @@ export default class SettingsController {
 
     return view.render('pages/settings/index', {
       user,
-      ollamaModels,
       geminiModels,
-      ollamaConnected: ollamaModels.length > 0
     })
   }
 

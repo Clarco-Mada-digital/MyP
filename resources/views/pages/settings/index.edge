@@ -64,21 +64,70 @@
         </div>
       </div>
 
-      {{-- Tab: AI (Existing Content) --}}
-      <div x-show="activeTab === 'ai'" x-transition:enter="transition ease-out duration-300"
-        x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0"
-        style="display: none;">
+      {{-- Tab: AI --}}
+      <div x-show="activeTab === 'ai'" 
+           x-data="{ 
+              activeProvider: '{{ user.aiProvider }}',
+              ollama: {
+                connected: false,
+                models: [],
+                loading: false,
+                selectedModel: '{{ user.aiProvider === 'ollama' ? user.aiModel : '' }}'
+              },
+              os: 'linux',
+              showHelp: false,
+              async init() {
+                this.detectOS();
+                if (this.activeProvider === 'ollama') {
+                  this.checkOllama();
+                }
+              },
+              detectOS() {
+                const ua = window.navigator.userAgent.toLowerCase();
+                if (ua.indexOf('win') !== -1) this.os = 'windows';
+                else if (ua.indexOf('mac') !== -1) this.os = 'macos';
+                else if (ua.indexOf('linux') !== -1) this.os = 'linux';
+                else if (ua.indexOf('android') !== -1) this.os = 'android';
+                else if (ua.indexOf('iphone') !== -1 || ua.indexOf('ipad') !== -1) this.os = 'ios';
+              },
+              async checkOllama() {
+                this.ollama.loading = true;
+                try {
+                  const res = await fetch('http://localhost:11434/api/tags');
+                  if (res.ok) {
+                    const data = await res.json();
+                    this.ollama.models = data.models.map(m => m.name);
+                    this.ollama.connected = true;
+                    if (!this.ollama.selectedModel && this.ollama.models.length > 0) {
+                      this.ollama.selectedModel = this.ollama.models[0];
+                    }
+                  } else {
+                    this.ollama.connected = false;
+                  }
+                } catch (e) {
+                  this.ollama.connected = false;
+                } finally {
+                  this.ollama.loading = false;
+                }
+              }
+           }"
+           x-transition:enter="transition ease-out duration-300"
+           x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0"
+           style="display: none;">
+        
         <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100">
           <h2 class="text-2xl font-bold text-slate-900 mb-2">Moteur d'Intelligence Artificielle</h2>
           <p class="text-slate-500 mb-8">Choisissez le modèle qui génèrera vos cours.</p>
 
           <form action="/settings" method="POST" class="space-y-8">
             {{ csrfField() }}
+            
+            <!-- Hidden input for the final model selection -->
+            <input type="hidden" name="ai_model" :value="activeProvider === 'gemini' ? $refs.geminiSelect.value : ollama.selectedModel">
 
             <!-- Cloud Option (Gemini) -->
             <div class="relative group">
-              <input type="radio" name="ai_provider" id="provider_gemini" value="gemini" class="peer hidden" {{
-                user.aiProvider==='gemini' ? 'checked' : '' }} onchange="toggleModels('gemini')">
+              <input type="radio" name="ai_provider" id="provider_gemini" value="gemini" x-model="activeProvider" class="peer hidden">
               <label for="provider_gemini"
                 class="block cursor-pointer select-none rounded-2xl border-2 border-slate-100 p-4 md:p-6 transition-all hover:border-primary-200 peer-checked:border-primary-600 peer-checked:bg-primary-50 peer-checked:shadow-md">
                 <div class="flex items-center justify-between mb-4">
@@ -97,12 +146,10 @@
                   </div>
                 </div>
 
-                <div id="models_gemini"
-                  class="{{ user.aiProvider === 'gemini' ? '' : 'hidden' }} pl-0 md:pl-16 mt-4 transition-all">
+                <div x-show="activeProvider === 'gemini'" class="pl-0 md:pl-16 mt-4 transition-all">
                   <label class="block text-sm font-bold text-slate-700 mb-2">Modèle Gemini</label>
-                  <select name="ai_model" id="input_model_gemini"
-                    class="w-full rounded-xl border-slate-200 bg-white py-3 px-4 text-slate-700 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                    {{ user.aiProvider !=='gemini' ? 'disabled' : '' }}>
+                  <select x-ref="geminiSelect"
+                    class="w-full rounded-xl border-slate-200 bg-white py-3 px-4 text-slate-700 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500">
                     @each(model in geminiModels)
                     <option value="{{ model }}" {{ user.aiModel===model ? 'selected' : '' }}>{{ model }}</option>
                     @end
@@ -113,8 +160,7 @@
 
             <!-- Local Option (Ollama) -->
             <div class="relative group">
-              <input type="radio" name="ai_provider" id="provider_ollama" value="ollama" class="peer hidden" {{
-                user.aiProvider==='ollama' ? 'checked' : '' }} onchange="toggleModels('ollama')">
+              <input type="radio" name="ai_provider" id="provider_ollama" value="ollama" x-model="activeProvider" @change="checkOllama()" class="peer hidden">
               <label for="provider_ollama"
                 class="block cursor-pointer select-none rounded-2xl border-2 border-slate-100 p-4 md:p-6 transition-all hover:border-orange-200 peer-checked:border-orange-500 peer-checked:bg-orange-50 peer-checked:shadow-md">
                 <div class="flex items-center justify-between mb-4">
@@ -123,7 +169,12 @@
                       class="h-10 w-10 md:h-12 md:w-12 rounded-xl bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center text-white text-xl md:text-2xl shadow-lg">
                       🦙</div>
                     <div>
-                      <h3 class="font-bold text-base md:text-lg text-slate-800">Ollama (Local)</h3>
+                      <div class="flex items-center gap-2">
+                        <h3 class="font-bold text-base md:text-lg text-slate-800">Ollama (Local)</h3>
+                        <template x-if="ollama.connected">
+                            <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full uppercase">Connecté</span>
+                        </template>
+                      </div>
                       <p class="text-slate-500 text-xs md:text-sm">Gratuit, illimité, privé. Dépend de votre PC.</p>
                     </div>
                   </div>
@@ -133,29 +184,45 @@
                   </div>
                 </div>
 
-                <div id="models_ollama"
-                  class="{{ user.aiProvider === 'ollama' ? '' : 'hidden' }} pl-0 md:pl-16 mt-4 transition-all">
-                  @if(ollamaConnected)
-                  <label class="block text-sm font-bold text-slate-700 mb-2">Modèle Local (installé)</label>
-                  <select name="ai_model" id="input_model_ollama"
-                    class="w-full rounded-xl border-slate-200 bg-white py-3 px-4 text-slate-700 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
-                    {{ user.aiProvider !=='ollama' ? 'disabled' : '' }}>
-                    @each(model in ollamaModels)
-                    <option value="{{ model }}" {{ user.aiModel===model ? 'selected' : '' }}>{{ model }}</option>
-                    @end
-                  </select>
-                  @else
-                  <div
-                    class="bg-red-50 border border-red-100 rounded-xl p-4 text-red-600 text-sm flex gap-2 items-start">
-                    <span>⚠️</span>
-                    <div>
-                      <strong>Ollama n'est pas détecté.</strong><br>
-                      Assurez-vous qu'il tourne sur <code class="bg-red-100 px-1 rounded">127.0.0.1:11434</code>.<br>
-                      <a href="https://ollama.com" target="_blank" class="underline hover:text-red-800">Installer
-                        Ollama</a>
+                <div x-show="activeProvider === 'ollama'" class="pl-0 md:pl-16 mt-4 transition-all">
+                  <template x-if="ollama.loading">
+                    <div class="flex items-center gap-2 text-slate-400 text-sm">
+                        <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        Recherche d'Ollama sur votre PC...
                     </div>
-                  </div>
-                  @end
+                  </template>
+
+                  <template x-if="!ollama.loading && ollama.connected">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-sm font-bold text-slate-700">Modèle Local (installé)</label>
+                            <button type="button" @click="checkOllama()" class="text-xs text-primary-600 font-bold hover:underline">Actualiser</button>
+                        </div>
+                        <select x-model="ollama.selectedModel"
+                            class="w-full rounded-xl border-slate-200 bg-white py-3 px-4 text-slate-700 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500">
+                            <template x-for="model in ollama.models" :key="model">
+                                <option :value="model" x-text="model" :selected="ollama.selectedModel === model"></option>
+                            </template>
+                        </select>
+                    </div>
+                  </template>
+
+                  <template x-if="!ollama.loading && !ollama.connected">
+                    <div class="bg-red-50 border border-red-100 rounded-xl p-5 text-red-700 text-sm relative overflow-hidden">
+                        <div class="relative z-10">
+                            <div class="flex items-center gap-2 font-bold mb-2">
+                                <span>⚠️</span> Ollama n'est pas détecté.
+                            </div>
+                            <p class="mb-4 text-red-600/80">Assurez-vous qu'Ollama est installé et qu'il est configuré pour accepter les requêtes de ce site.</p>
+                            <button type="button" @click="showHelp = true" class="bg-red-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-red-700 transition-colors shadow-sm">
+                                Comment configurer ?
+                            </button>
+                        </div>
+                        <div class="absolute -right-4 -bottom-4 opacity-10 grayscale">
+                            <span class="text-8xl">🦙</span>
+                        </div>
+                    </div>
+                  </template>
                 </div>
               </label>
             </div>
@@ -167,6 +234,90 @@
               </button>
             </div>
           </form>
+        </div>
+
+        {{-- Help Modal for Ollama --}}
+        <div x-show="showHelp" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+             class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+             style="display: none;">
+            
+            <div @click.away="showHelp = false" class="bg-white rounded-[2.5rem] p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+                <div class="flex justify-between items-start mb-6">
+                    <div class="flex items-center gap-4">
+                        <div class="p-3 bg-red-100 rounded-2xl text-2xl">⚙️</div>
+                        <h2 class="text-2xl font-black text-slate-800 tracking-tight">Configuration d'Ollama</h2>
+                    </div>
+                    <button @click="showHelp = false" class="text-slate-400 hover:text-slate-600 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+
+                <div class="space-y-6 text-slate-600">
+                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                        <p class="font-bold text-slate-800 mb-2">Pourquoi cette étape ?</p>
+                        <p class="text-sm">Pour des raisons de sécurité, votre navigateur bloque les requêtes vers Ollama (CORS) à moins que vous ne l'autorisiez explicitement à répondre à ce site.</p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <p class="font-bold text-slate-800 flex items-center gap-2">
+                            <span>💻</span> Instructions pour votre système : <span class="px-2 py-0.5 bg-primary-100 text-primary-700 rounded text-xs uppercase" x-text="os"></span>
+                        </p>
+
+                        {{-- Windows --}}
+                        <div x-show="os === 'windows'" class="space-y-3">
+                            <p class="text-sm">1. Fermez Ollama depuis la barre des tâches.</p>
+                            <p class="text-sm">2. Ouvrez le <strong>Menu Démarrer</strong> et cherchez <strong>Variables d'environnement</strong>.</p>
+                            <p class="text-sm">3. Ajoutez une nouvelle variable système :</p>
+                            <div class="bg-slate-900 text-slate-300 p-4 rounded-xl font-mono text-xs">
+                                Variable : OLLAMA_ORIGINS<br>
+                                Valeur : *
+                            </div>
+                            <p class="text-sm">4. Redémarrez Ollama.</p>
+                        </div>
+
+                        {{-- Linux --}}
+                        <div x-show="os === 'linux'" class="space-y-3">
+                            <p class="text-sm">1. Éditez la configuration du service :</p>
+                            <div class="bg-slate-900 text-slate-300 p-4 rounded-xl font-mono text-xs">
+                                sudo systemctl edit ollama.service
+                            </div>
+                            <p class="text-sm">2. Ajoutez ces lignes dans la section <code class="bg-slate-800 px-1 rounded">[Service]</code> :</p>
+                            <div class="bg-slate-900 text-slate-300 p-4 rounded-xl font-mono text-xs">
+                                [Service]<br>
+                                Environment="OLLAMA_ORIGINS=*"
+                            </div>
+                            <p class="text-sm">3. Rechargez et redémarrez :</p>
+                            <div class="bg-slate-900 text-slate-300 p-4 rounded-xl font-mono text-xs">
+                                sudo systemctl daemon-reload<br>
+                                sudo systemctl restart ollama
+                            </div>
+                        </div>
+
+                        {{-- MacOS --}}
+                        <div x-show="os === 'macos'" class="space-y-3">
+                            <p class="text-sm">1. Quittez complètement Ollama.</p>
+                            <p class="text-sm">2. Ouvrez votre <strong>Terminal</strong> et lancez :</p>
+                            <div class="bg-slate-900 text-slate-300 p-4 rounded-xl font-mono text-xs">
+                                launchctl setenv OLLAMA_ORIGINS "*"
+                            </div>
+                            <p class="text-sm">3. Relancez l'application Ollama par le dossier Applications.</p>
+                        </div>
+
+                        {{-- Others --}}
+                        <div x-show="!['windows', 'linux', 'macos'].includes(os)" class="space-y-3">
+                            <p class="text-sm">Consultez la documentation officielle d'Ollama pour savoir comment définir la variable d'environnement <code class="font-bold italic">OLLAMA_ORIGINS</code> sur votre appareil.</p>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 flex justify-end">
+                        <button @click="showHelp = false; checkOllama()" class="bg-slate-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-slate-800 transition-all">
+                            C'est fait, actualiser
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
       </div>
 
@@ -209,28 +360,5 @@
   </div>
 </main>
 
-<script>
-  function toggleModels(provider) {
-    const geminiSection = document.getElementById('models_gemini');
-    const ollamaSection = document.getElementById('models_ollama');
-    const geminiSelect = document.getElementById('input_model_gemini');
-    const ollamaSelect = document.getElementById('input_model_ollama');
-
-    if (provider === 'gemini') {
-      geminiSection.classList.remove('hidden');
-      ollamaSection.classList.add('hidden');
-      geminiSelect.disabled = false;
-      if (ollamaSelect) ollamaSelect.disabled = true;
-      // Sync actual name input? No, backend just takes 'ai_model' from the enabled select usually or checks provider
-      // But wait, both selects have name="ai_model". Only the enabled one should confirm.
-      // By default forms submit all successful controls. We need to disable the hidden one.
-    } else {
-      geminiSection.classList.add('hidden');
-      ollamaSection.classList.remove('hidden');
-      geminiSelect.disabled = true;
-      if (ollamaSelect) ollamaSelect.disabled = false;
-    }
-  }
-</script>
 @end
 @end

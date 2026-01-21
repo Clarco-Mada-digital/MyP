@@ -36,6 +36,7 @@ router.group(() => {
   router.post('/courses/:id/delete', [CoursesController, 'destroy'])
   router.post('/courses/:id/request-deletion', [CoursesController, 'requestDeletion']).as('courses.requestDeletion')
   router.post('/progress/toggle', [ProgressesController, 'toggle'])
+  router.post('/courses/:id/sync', [CoursesController, 'syncLocalContent']).as('courses.sync')
   router.post('/courses/:id/bookmark', [CoursesController, 'toggleBookmark']).as('courses.bookmark')
   router.get('/settings', [SettingsController, 'index'])
   router.post('/settings', [SettingsController, 'update'])

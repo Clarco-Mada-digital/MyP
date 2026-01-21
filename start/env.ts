@@ -33,4 +33,16 @@ export default await Env.create(new URL('../', import.meta.url), {
   OLLAMA_URL: Env.schema.string.optional(),
   OLLAMA_MODEL: Env.schema.string.optional(),
   GEMINI_API_KEY: Env.schema.string.optional(),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for configuring database connection
+  |----------------------------------------------------------
+  */
+  DB_CONNECTION: Env.schema.enum(['sqlite', 'mysql'] as const),
+  DB_HOST: Env.schema.string.optional(),
+  DB_PORT: Env.schema.number.optional(),
+  DB_USER: Env.schema.string.optional(),
+  DB_PASSWORD: Env.schema.string.optional(),
+  DB_DATABASE: Env.schema.string.optional(),
 })

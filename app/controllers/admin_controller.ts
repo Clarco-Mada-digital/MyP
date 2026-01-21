@@ -1,3 +1,4 @@
+import Env from '#start/env'
 import type { HttpContext } from '@adonisjs/core/http'
 import User from '#models/user'
 import Course from '#models/course'
@@ -282,7 +283,7 @@ export default class AdminController {
   /**
    * Download the database backup or export data
    */
-  async downloadBackup({ request, response }: HttpContext) {
+  async downloadBackup({ request, response, session }: HttpContext) {
     const format = request.input('format', 'sqlite')
     const date = DateTime.now().toFormat('yyyy-MM-dd_HH-mm')
 
@@ -335,6 +336,14 @@ export default class AdminController {
     }
 
     // Default: SQLite backup
+    if (Env.get('DB_CONNECTION') !== 'sqlite') {
+      session.flash('notification', {
+        type: 'error',
+        message: 'La sauvegarde directe du fichier de base de données n\'est disponible que pour SQLite. Pour MySQL, utilisez les exports JSON ou CSV.'
+      })
+      return response.redirect().back()
+    }
+
     const dbPath = app.tmpPath('db.sqlite3')
     return response.attachment(dbPath, `backup_myp_${date}.sqlite3`)
   }

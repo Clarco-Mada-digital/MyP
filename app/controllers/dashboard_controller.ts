@@ -1,3 +1,4 @@
+import Env from '#start/env'
 import type { HttpContext } from '@adonisjs/core/http'
 import CourseProgress from '#models/course_progress'
 import Bookmark from '#models/bookmark'
@@ -75,16 +76,34 @@ export default class DashboardController {
     const topics = masterTopicsData.map((t: any) => t.topic_tag)
 
     // 7. Progression par semaine (pour le graphique)
-    const weeklyProgress = await db.rawQuery(`
-      SELECT 
-        strftime('%Y-%W', updated_at) as week,
-        COUNT(DISTINCT course_id) as courses_count
-      FROM course_progresses
-      WHERE user_id = ?
-        AND updated_at >= date('now', '-56 days')
-      GROUP BY week
-      ORDER BY week ASC
-    `, [userId])
+    const isSQLite = Env.get('DB_CONNECTION') === 'sqlite'
+    let weeklyProgress: any[] = []
+
+    if (isSQLite) {
+      weeklyProgress = await db.rawQuery(`
+        SELECT 
+          strftime('%Y-%W', updated_at) as week,
+          COUNT(DISTINCT course_id) as courses_count
+        FROM course_progresses
+        WHERE user_id = ?
+          AND updated_at >= date('now', '-56 days')
+        GROUP BY week
+        ORDER BY week ASC
+      `, [userId])
+    } else {
+      // MySQL
+      const [rows]: [any[], any] = await db.rawQuery(`
+        SELECT 
+          DATE_FORMAT(updated_at, '%Y-%u') as week,
+          COUNT(DISTINCT course_id) as courses_count
+        FROM course_progresses
+        WHERE user_id = ?
+          AND updated_at >= DATE_SUB(NOW(), INTERVAL 56 DAY)
+        GROUP BY week
+        ORDER BY week ASC
+      `, [userId])
+      weeklyProgress = rows
+    }
 
     // 8. Badges débloqués
     const badges = []

@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Course from '#models/course'
 import Category from '#models/category'
+import CourseDeletionRequest from '#models/course_deletion_request'
 import GeminiService from '#services/gemini_service'
 import OllamaService from '#services/ollama_service'
 import string from '@adonisjs/core/helpers/string'
@@ -29,7 +30,7 @@ export default class CoursesController {
    */
   async show({ params, view, auth, request, response, session }: HttpContext) {
     await auth.check()
-    const course = await Course.findBy('slug', params.slug)
+    const course = await Course.query().where('slug', params.slug).preload('category').first()
 
     if (!course) {
       session.flash('notification', { type: 'error', message: 'Ce cours n\'existe pas ou a été supprimé.' })
@@ -164,6 +165,17 @@ export default class CoursesController {
         const dateB = b.lastReviewedAt?.toMillis() || b.createdAt.toMillis()
         return dateB - dateA
       })[0]
+
+    // 2. Check for pending deletion requests
+    const pendingDeletionCourseIds = await db.from('course_deletion_requests')
+      .where('status', 'pending')
+      .select('course_id')
+      .then(rows => rows.map(row => row.course_id))
+
+    // Add deletion status to courses
+    courses.forEach(course => {
+      course.$extras.hasPendingDeletion = pendingDeletionCourseIds.includes(course.id)
+    })
 
     // 2. Stats
     const totalCourses = courses.length
@@ -486,7 +498,7 @@ export default class CoursesController {
           "description": "Description captivante (min 100 mots)",
           "level": "Expert",
           "image": "URL Unsplash",
-          "sources": ["Source 1 (ex: MDN Web Docs)", "Source 2"],
+          "sources": ["Source 1 (ex: MDN Web Docs)", "Source 2", "Source 3 ou plus"],
           "modules": [
             {
               "title": "Titre Module",
@@ -531,7 +543,7 @@ export default class CoursesController {
           "description": "Description courte",
           "level": "Intermédiaire",
           "image": "URL Unsplash",
-          "sources": ["Source fiable 1", "Source fiable 2"],
+          "sources": ["Source fiable 1", "Source fiable 2", "Source 3 ou plus"],
           "modules": [
             {
               "title": "Titre Module",
@@ -688,6 +700,53 @@ export default class CoursesController {
     }
 
     return view.render('pages/courses/flashcards', { course, flashcards })
+  }
+
+  /**
+   * Request course deletion (with checks for learning paths)
+   */
+  async requestDeletion({ params, auth, request, response, session }: HttpContext) {
+    await auth.check()
+    const user = auth.user!
+    const course = await Course.query().where('id', params.id).preload('category').first()
+
+    if (!course) {
+      session.flash('notification', { type: 'error', message: "Ce cours n'existe pas." })
+      return response.redirect().back()
+    }
+
+    if (course.userId !== user.id) {
+      session.flash('notification', { type: 'error', message: "Vous n'êtes pas autorisé à supprimer ce cours." })
+      return response.redirect().back()
+    }
+
+    // Vérifier si le cours est dans un parcours publié
+    const learningPathCount = await db.from('learning_path_courses')
+      .where('course_id', course.id)
+      .count('* as total')
+
+    const isInLearningPath = Number(learningPathCount[0].total) > 0
+
+    if (isInLearningPath) {
+      session.flash('notification', { 
+        type: 'error', 
+        message: "❌ Impossible de supprimer ce cours car il est utilisé dans un ou plusieurs parcours publiés." 
+      })
+      return response.redirect().back()
+    }
+
+    // Créer la demande de suppression
+    await CourseDeletionRequest.create({
+      courseId: course.id,
+      userId: user.id,
+      reason: request.input('reason') || null
+    })
+
+    session.flash('notification', { 
+      type: 'success', 
+      message: "✅ Votre demande de suppression a été envoyée à l'administrateur. Elle sera traitée prochainement." 
+    })
+    return response.redirect().back()
   }
 
   /**

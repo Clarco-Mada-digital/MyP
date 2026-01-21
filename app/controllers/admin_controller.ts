@@ -5,6 +5,7 @@ import Course from '#models/course'
 import Category from '#models/category'
 import LearningPath from '#models/learning_path'
 import GuestAccess from '#models/guest_access'
+import CourseDeletionRequest from '#models/course_deletion_request'
 import app from '@adonisjs/core/services/app'
 import db from '@adonisjs/lucid/services/db'
 import { DateTime } from 'luxon'
@@ -19,6 +20,7 @@ export default class AdminController {
     const totalCourses = await Course.query().count('* as total').then(r => r[0].$extras.total)
     const totalPaths = await LearningPath.query().count('* as total').then(r => r[0].$extras.total)
     const totalGuestAccess = await GuestAccess.query().count('* as total').then(r => r[0].$extras.total)
+    const pendingDeletions = await CourseDeletionRequest.query().where('status', 'pending').count('* as total').then(r => r[0].$extras.total)
 
     const coursesByStatus = await Course.query()
       .select('status')
@@ -83,6 +85,7 @@ export default class AdminController {
         totalCourses,
         totalPaths,
         totalGuestAccess,
+        pendingDeletions,
         coursesByStatus,
         userTrends,
         courseTrends,
@@ -139,22 +142,64 @@ export default class AdminController {
   }
 
   /**
-   * List all courses
+   * List all courses with pagination and search
    */
-  async courses({ view, auth, response }: HttpContext) {
+  async courses({ view, auth, response, request }: HttpContext) {
     if (!auth.user?.isAdmin) {
       return response.unauthorized('Accès réservé aux administrateurs')
     }
 
-    const courses = await Course.query()
+    const page = request.input('page', 1)
+    const limit = 20 // 20 cours par page
+    const search = request.input('search', '')
+    const status = request.input('status', '')
+    const categoryId = request.input('category_id', '')
+
+    // Build query with filters
+    const query = Course.query()
       .preload('owner')
       .preload('category')
       .orderBy('createdAt', 'desc')
 
-    // Get all categories for the dropdown
+    // Apply search filter
+    if (search) {
+      query.where((builder) => {
+        builder
+          .where('title', 'LIKE', `%${search}%`)
+          .orWhere('slug', 'LIKE', `%${search}%`)
+          .orWhereHas('owner', (ownerQuery) => {
+            ownerQuery.where('fullName', 'LIKE', `%${search}%`)
+               .orWhere('email', 'LIKE', `%${search}%`)
+          })
+      })
+    }
+
+    // Apply status filter
+    if (status) {
+      query.where('status', status)
+    }
+
+    // Apply category filter
+    if (categoryId) {
+      query.where('categoryId', categoryId)
+    }
+
+    const courses = await query.paginate(page, limit)
+
+    // Get all categories for dropdown
     const categories = await Category.query().orderBy('name', 'asc')
 
-    return view.render('pages/admin/courses', { courses, categories })
+    return view.render('pages/admin/courses', { 
+      courses, 
+      categories,
+      currentPage: page,
+      limit,
+      filters: {
+        search,
+        status,
+        categoryId
+      }
+    })
   }
 
   /**

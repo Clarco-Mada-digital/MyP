@@ -147,24 +147,57 @@
           @each(user in recentUsers)
             <div class="px-8 py-5 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
               <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-400 flex items-center justify-center font-bold shadow-sm border border-indigo-100">
-                  {{ user.fullName.charAt(0) }}
+                <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600">
+                  {{ user.email.substring(0, 1).toUpperCase() }}
                 </div>
                 <div>
-                  <p class="font-bold text-slate-900 leading-tight">{{ user.fullName }}</p>
-                  <p class="text-xs text-slate-400 font-medium">{{ user.email }}</p>
+                  <div class="font-bold text-slate-900">{{ user.fullName }}</div>
+                  <div class="text-xs text-slate-400">{{ user.createdAt.toRelative() }}</div>
                 </div>
-              </div>
-              <div class="text-right">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-tighter bg-slate-100 px-2 py-1 rounded-md">{{ user.createdAt.toRelative() }}</p>
               </div>
             </div>
           @end
         </div>
       </div>
 
-      {{-- Recent Courses --}}
+      {{-- Course Deletion Requests --}}
       <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-8 py-6 border-bottom border-slate-100 bg-slate-50/50 flex items-center justify-between">
+          <h2 class="font-bold text-slate-800 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="M19 11h-6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Demandes de Suppression
+          </h2>
+          <a href="{{ route('admin.course_deletions') }}" class="text-xs font-black text-primary-600 hover:text-primary-800 flex items-center gap-1">
+            GÉRER TOUT
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
+        <div class="divide-y divide-slate-50">
+          @if(stats.pendingDeletions > 0)
+            <div class="px-8 py-6 bg-red-50 border-l-4 border-red-400">
+              <div class="flex items-center gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14l2-2m0 0l-2 2m7-14a2 2 0 00-2 2H6a2 2 0 00-2 2v16a2 2 0 002 2h8a2 2 0 002-2V6a2 2 0 00-2-2h-4a2 2 0 00-2 2v4z"/><path d="M12 14l2-2m0 0l-2 2m7-14a2 2 0 00-2 2H6a2 2 0 00-2 2v16a2 2 0 002 2h8a2 2 0 002-2V6a2 2 0 00-2-2h-4a2 2 0 00-2 2v4z"/></svg>
+                <div>
+                  <div class="font-bold text-red-700">{{ stats.pendingDeletions }}</div>
+                  <div class="text-sm text-red-600">demande(s) en attente</div>
+                </div>
+              </div>
+            </div>
+          @else
+            <div class="px-8 py-6 text-center text-slate-400">
+              <div class="flex items-center justify-center gap-3 mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2m0 0l-2 2m7-14a2 2 0 00-2 2H6a2 2 0 00-2 2v16a2 2 0 002 2h8a2 2 0 002-2V6a2 2 0 00-2-2h-4a2 2 0 00-2 2v4z"/><path d="M12 14l2-2m0 0l-2 2m7-14a2 2 0 00-2 2H6a2 2 0 00-2 2v16a2 2 0 002 2h8a2 2 0 002-2V6a2 2 0 00-2-2h-4a2 2 0 00-2 2v4z"/><path d="M12 14l2-2m0 0l-2 2m7-14a2 2 0 00-2 2H6a2 2 0 00-2 2v16a2 2 0 002 2h8a2 2 0 002-2V6a2 2 0 00-2-2h-4a2 2 0 00-2 2v4z"/></svg>
+                <span class="text-lg font-medium">Aucune demande</span>
+              </div>
+              <p class="text-sm text-slate-400">Toutes les demandes de suppression apparaîtront ici</p>
+            </div>
+          @end
+        </div>
+      </div>
+    </div>
+
+    {{-- Recent Courses --}}
+    <div class="mt-10 bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
         <div class="px-8 py-6 border-bottom border-slate-100 bg-slate-50/50 flex items-center justify-between">
           <h2 class="font-bold text-slate-800">Dernières Générations</h2>
           <a href="/admin/courses" class="text-xs font-black text-primary-600 hover:text-primary-800 flex items-center gap-1">
@@ -181,7 +214,7 @@
                 </div>
                 <div>
                   <p class="font-bold text-slate-900 text-sm leading-tight line-clamp-1">{{ course.title }}</p>
-                  <p class="text-[10px] text-slate-500 font-medium uppercase tracking-tighter">Par {{ course.owner ? course.owner.fullName : 'Invité AI' }}</p>
+                  <p class="text-[10px] text-slate-500 font-medium uppercase tracking-tighter">Par {{ course.user?.fullName || 'Invité IA' }}</p>
                 </div>
               </div>
               <div class="text-right">
@@ -197,7 +230,7 @@
     </div>
 
     {{-- Recent Learning Paths --}}
-    <div class="mt-10 bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
+    <div class="max-w-7xl mx-auto mt-10 bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
         <div class="px-8 py-6 border-bottom border-slate-100 bg-slate-50/50 flex items-center justify-between">
           <h2 class="font-bold text-slate-800 flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
@@ -208,9 +241,9 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </a>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">
           @each(path in recentPaths)
-            <div class="p-5 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-md transition-all group">
+            <div class="p-6 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-md transition-all group">
               <div class="flex items-center gap-3 mb-4">
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-sm" style="background: {{ path.color }}20; color: {{ path.color }};">
                   {{ path.icon }}
@@ -226,7 +259,7 @@
               </div>
             </div>
           @else
-             <div class="col-span-full text-center py-6 text-slate-400 italic">
+             <div class="md:col-span-2 text-center py-6 text-slate-400 italic">
                 Aucun parcours pour le moment.
              </div>
           @end
@@ -234,7 +267,7 @@
     </div>
 
     {{-- Guest Activity Report --}}
-    <div class="mt-10 bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
+    <div class="max-w-7xl mx-auto mt-10 bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
       <div class="px-8 py-6 border-bottom border-slate-100 bg-slate-900 flex items-center justify-between">
         <h2 class="font-bold text-white flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.969 11.633a2.26 2.26 0 1 1 2.06 3.417 2.26 2.26 0 0 1-2.06-3.417zM5.969 11.633a2.26 2.26 0 1 1 2.06 3.417 2.26 2.26 0 0 1-2.06-3.417zM12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/></svg>
@@ -272,7 +305,7 @@
     </div>
 
     {{-- MAINTENANCE ZONE --}}
-    <div class="mt-12 bg-white rounded-[2rem] p-8 shadow-xl border border-red-50 relative overflow-hidden">
+    <div class="max-w-7xl mx-auto mt-12 bg-white rounded-[2rem] p-8 shadow-xl border border-red-50 relative overflow-hidden">
       <div class="absolute top-0 right-0 p-8 opacity-5">
          <svg xmlns="http://www.w3.org/2000/svg" class="h-64 w-64" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
       </div>

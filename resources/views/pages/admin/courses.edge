@@ -17,7 +17,74 @@
       </form>
     </div>
 
+    {{-- Search and Filters --}}
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-xl p-6 mb-6">
+      <form method="GET" class="flex flex-col md:flex-row gap-4">
+        <div class="flex-1">
+          <label class="block text-sm font-bold text-slate-700 mb-2">Rechercher un cours</label>
+          <input 
+            type="text" 
+            name="search" 
+            value="{{ request.input('search', '') }}"
+            placeholder="Titre, slug, ou auteur..."
+            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all outline-none"
+          />
+        </div>
+        <div class="md:w-48">
+          <label class="block text-sm font-bold text-slate-700 mb-2">Statut</label>
+          <select name="status" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all outline-none">
+            <option value="">Tous les statuts</option>
+            <option value="ready" {{ request.input('status') === 'ready' ? 'selected' : '' }}>✅ Prêt</option>
+            <option value="generating" {{ request.input('status') === 'generating' ? 'selected' : '' }}>🔄 En cours</option>
+            <option value="error" {{ request.input('status') === 'error' ? 'selected' : '' }}>❌ Erreur</option>
+          </select>
+        </div>
+        <div class="md:w-64">
+          <label class="block text-sm font-bold text-slate-700 mb-2">Catégorie</label>
+          <select name="category_id" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all outline-none">
+            <option value="">Toutes les catégories</option>
+            @each(category in categories)
+              <option value="{{ category.id }}" {{ request.input('category_id') == category.id ? 'selected' : '' }}>
+                {{ category.icon }} {{ category.name }}
+              </option>
+            @end
+          </select>
+        </div>
+        <div class="flex items-end">
+          <button type="submit" class="w-full md:w-auto px-6 py-3 bg-primary-600 text-white font-bold rounded-xl hover:bg-primary-700 transition-colors shadow-lg shadow-primary-200 hover:scale-105">
+            Rechercher
+          </button>
+        </div>
+        @if(request.input('search') || request.input('status') || request.input('category_id'))
+          <div class="flex items-end">
+            <a href="/admin/courses" class="w-full md:w-auto px-6 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-colors">
+              Réinitialiser
+            </a>
+          </div>
+        @end
+      </form>
+    </div>
 
+    @let(currentPage = parseInt((courses.meta && courses.meta.currentPage) || courses.currentPage || 1))
+@let(lastPage = parseInt((courses.meta && courses.meta.lastPage) || courses.lastPage || 1))
+@let(firstItem = parseInt((courses.meta && courses.meta.firstItem) || courses.firstItem || 1))
+@let(lastItem = parseInt((courses.meta && courses.meta.lastItem) || courses.lastItem || courses.total || 0))
+
+{{-- Pagination Info --}}
+    <div class="flex items-center justify-between mb-6">
+      <div class="text-sm text-slate-600">
+        @if(courses.total && courses.total > 0)
+          Affichage de {{ firstItem }} à {{ lastItem }} sur {{ courses.total }} cours
+        @else
+          Aucun cours trouvé
+        @end
+      </div>
+      <div class="text-sm text-slate-500">
+        @if(lastPage > 1)
+          Page {{ currentPage }} sur {{ lastPage }}
+        @end
+      </div>
+    </div>
 
     <div class="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
       <table class="w-full text-left border-collapse">
@@ -31,9 +98,12 @@
             <th class="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-slate-100">
-          @each(course in courses)
-            <tr class="hover:bg-slate-50/50 transition-colors">
+        @let(coursesList = courses.data || courses)
+
+<tbody class="divide-y divide-slate-100">
+          @if(coursesList && coursesList.length > 0)
+            @each(course in coursesList)
+              <tr class="hover:bg-slate-50/50 transition-colors">
               <td class="px-6 py-4">
                 <div class="flex items-center gap-4" x-data="{ editingImage: false }">
                   <div class="relative group cursor-pointer" @click="editingImage = true">
@@ -134,9 +204,101 @@
                 </div>
               </td>
             </tr>
+            @end
+          @else
+            <tr>
+              <td colspan="6" class="px-6 py-12 text-center text-slate-400">
+                <div class="flex flex-col items-center gap-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-slate-300">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                    <path d="M2 17l10 5 10-5"/>
+                    <path d="M2 12l10 5 10-5"/>
+                  </svg>
+                  <div>
+                    <p class="text-lg font-medium text-slate-600">Aucun cours trouvé</p>
+                    <p class="text-sm text-slate-400">
+                      @if(request.input('search') || request.input('status') || request.input('category_id'))
+                        Essayez de modifier vos filtres de recherche
+                      @else
+                        Les cours apparaîtront ici une fois créés
+                      @end
+                    </p>
+                  </div>
+                </div>
+              </td>
+            </tr>
           @end
         </tbody>
       </table>
     </div>
+
+    {{-- Pagination Controls --}}
+    @if(lastPage > 1)
+      <div class="flex items-center justify-between mt-6">
+        <div class="text-sm text-slate-600">
+          @if(courses.total && courses.total > 0)
+            Affichage de {{ firstItem }} à {{ lastItem }} sur {{ courses.total }} cours
+          @end
+        </div>
+        
+        <div class="flex items-center gap-2">
+          {{-- Previous Button --}}
+          @if(currentPage > 1)
+            <a href="?page={{ currentPage - 1 }}&search={{ request.input('search', '') }}&status={{ request.input('status', '') }}&category_id={{ request.input('category_id', '') }}" class="px-3 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              Précédent
+            </a>
+          @else
+            <span class="px-3 py-2 text-sm font-medium text-slate-400 bg-slate-100 border border-slate-200 rounded-lg flex items-center gap-1 cursor-not-allowed">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              Précédent
+            </span>
+          @end
+
+          {{-- Page Numbers --}}
+          <div class="flex items-center gap-1">
+            {{-- First page --}}
+            @if(currentPage > 3)
+              <a href="?page=1&search={{ request.input('search', '') }}&status={{ request.input('status', '') }}&category_id={{ request.input('category_id', '') }}" class="px-3 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">1</a>
+              @if(currentPage > 4)
+                <span class="px-2 text-slate-400">...</span>
+              @end
+            @end
+
+            {{-- Pages around current --}}
+            @each(pageNum in [currentPage - 2, currentPage - 1, currentPage, currentPage + 1, currentPage + 2])
+              @if(pageNum >= 1 && pageNum <= lastPage)
+                @if(pageNum == currentPage)
+                  <span class="px-3 py-2 text-sm font-medium text-white bg-primary-600 border border-primary-600 rounded-lg">{{ pageNum }}</span>
+                @else
+                  <a href="?page={{ pageNum }}&search={{ request.input('search', '') }}&status={{ request.input('status', '') }}&category_id={{ request.input('category_id', '') }}" class="px-3 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">{{ pageNum }}</a>
+                @end
+              @end
+            @end
+
+            {{-- Last page --}}
+            @if(currentPage < lastPage - 2)
+              @if(currentPage < lastPage - 3)
+                <span class="px-2 text-slate-400">...</span>
+              @end
+              <a href="?page={{ lastPage }}&search={{ request.input('search', '') }}&status={{ request.input('status', '') }}&category_id={{ request.input('category_id', '') }}" class="px-3 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">{{ lastPage }}</a>
+            @end
+          </div>
+
+          {{-- Next Button --}}
+          @if(currentPage < lastPage)
+            <a href="?page={{ currentPage + 1 }}&search={{ request.input('search', '') }}&status={{ request.input('status', '') }}&category_id={{ request.input('category_id', '') }}" class="px-3 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-1">
+              Suivant
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+          @else
+            <span class="px-3 py-2 text-sm font-medium text-slate-400 bg-slate-100 border border-slate-200 rounded-lg flex items-center gap-1 cursor-not-allowed">
+              Suivant
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </span>
+          @end
+        </div>
+      </div>
+    @end
   </div>
 @end

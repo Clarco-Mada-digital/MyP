@@ -16,6 +16,7 @@ const CoursesController = () => import('#controllers/courses_controller')
 const ProgressesController = () => import('#controllers/progresses_controller')
 const SettingsController = () => import('#controllers/settings_controller')
 const AdminController = () => import('#controllers/admin_controller')
+const AdminCourseDeletionController = () => import('#controllers/admin/course_deletion_controller')
 const CategoriesController = () => import('#controllers/categories_controller')
 
 router.get('/', [HomeController, 'index'])
@@ -33,6 +34,7 @@ router.group(() => {
   router.post('/courses/generate', [CoursesController, 'generate'])
   router.get('/courses/confirm', [CoursesController, 'confirm']).as('courses.confirm')
   router.post('/courses/:id/delete', [CoursesController, 'destroy'])
+  router.post('/courses/:id/request-deletion', [CoursesController, 'requestDeletion']).as('courses.requestDeletion')
   router.post('/progress/toggle', [ProgressesController, 'toggle'])
   router.post('/courses/:id/bookmark', [CoursesController, 'toggleBookmark']).as('courses.bookmark')
   router.get('/settings', [SettingsController, 'index'])
@@ -68,6 +70,11 @@ router.group(() => {
   router.post('/admin/learning-paths/:id/reorder', '#controllers/admin/learning_paths_controller.reorder').as('admin.learning_paths.reorder')
   router.post('/admin/learning-paths/:id/remove-course', '#controllers/admin/learning_paths_controller.removeCourse').as('admin.learning_paths.remove_course')
   router.post('/admin/learning-paths/:id/delete', '#controllers/admin/learning_paths_controller.destroy').as('admin.learning_paths.delete')
+
+  // Course Deletion Requests
+  router.get('/admin/course-deletions', [AdminCourseDeletionController, 'index']).as('admin.course_deletions')
+  router.post('/admin/course-deletions/:id/approve', [AdminCourseDeletionController, 'approve']).as('admin.course_deletions.approve')
+  router.post('/admin/course-deletions/:id/reject', [AdminCourseDeletionController, 'reject']).as('admin.course_deletions.reject')
 
   // Course Chat
   router.post('/courses/chat', '#controllers/course_chats_controller.sendMessage').as('courses.chat.send')

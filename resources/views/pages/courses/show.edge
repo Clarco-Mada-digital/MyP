@@ -32,6 +32,18 @@
       }
     </style>
     <script>
+      function confirmDeletion(courseTitle) {
+        const confirmation = `⚠️ CONFIRMATION DE SUPPRESSION ⚠️\n\n` +
+          `Cours : "${courseTitle}"\n\n` +
+          `Cette action va envoyer une demande de suppression à l'administrateur.\n\n` +
+          `❗️ Si le cours est utilisé dans un parcours, la demande sera AUTOMATIQUEMENT refusée.\n\n` +
+          `❗️ Si le cours n'est pas dans un parcours, la demande sera envoyée pour validation.\n\n` +
+          `Êtes-vous ABSOLUMENT sûr de vouloir continuer ?\n\n` +
+          `Cliquez sur "OK" pour confirmer, ou "Annuler" pour annuler.`;
+        
+        return confirm(confirmation);
+      }
+
       function initQuiz(data) {
         // Normalisation : On s'assure que la "réponse" stockée est bien le texte complet de l'option
         // car l'IA renvoie souvent juste "A", "B", "C" alors que les options sont "A. Texte..."
@@ -102,6 +114,15 @@
           <div class="p-6 md:p-16">
             <div class="flex flex-col xl:flex-row gap-6 mb-12 border-b border-slate-100 pb-8 justify-between">
               <div class="flex flex-wrap gap-4">
+                 @if(course.category)
+                   <div class="px-4 py-2 rounded-2xl flex items-center gap-2" style="background-color: {{ course.category.color }}20; border: 1px solid {{ course.category.color }}40;">
+                     <span class="text-lg">{{ course.category.icon }}</span>
+                     <div>
+                       <span class="text-xs text-slate-400 block uppercase font-bold tracking-widest">Catégorie</span>
+                       <span class="font-bold" style="color: {{ course.category.color }};">{{ course.category.name }}</span>
+                     </div>
+                   </div>
+                 @end
                  <div class="px-4 py-2 bg-slate-50 rounded-2xl">
                    <span class="text-xs text-slate-400 block uppercase font-bold tracking-widest">Niveau</span>
                    <span class="font-bold text-slate-700">{{ course.content?.level || 'Tous niveaux' }}</span>
@@ -110,75 +131,95 @@
                    <span class="text-xs text-slate-400 block uppercase font-bold tracking-widest">Progression</span>
                    <span class="font-bold text-primary-600" id="global-progress">0%</span>
                  </div>
-                 <div class="px-4 py-2 bg-slate-50 rounded-2xl">
+                 {{--  <div class="px-4 py-2 bg-slate-50 rounded-2xl">
                    <span class="text-xs text-slate-400 block uppercase font-bold tracking-widest">Certifié par</span>
                    <span class="font-bold text-primary-600">My Professor IA</span>
-                 </div>
+                 </div>  --}}
               </div>
 
-                <div class="flex flex-wrap md:flex-nowrap gap-2 md:gap-3">
-                  @if(auth.user)
-                    <a href="{{ route('courses.flashcards', [course.slug]) }}" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-violet-100 text-violet-700 font-bold hover:bg-violet-200 transition-all whitespace-nowrap text-xs md:text-sm h-fit shadow-sm">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-                      <span class="hidden sm:inline">Mode Révision</span>
-                      <span class="sm:hidden">Réviser</span>
-                    </a>
-                    <button 
-                      onclick="toggleBookmark(this)"
-                      data-course-id="{{ course.id }}"
-                      class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-bold transition-all whitespace-nowrap text-xs md:text-sm h-fit {{ isBookmarked ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}"
-                      id="bookmark-btn"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5 {{ isBookmarked ? 'fill-current' : 'fill-none' }}" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                      </svg>
-                      <span class="hidden sm:inline">{{ isBookmarked ? 'Sauvegardé' : 'Sauvegarder' }}</span>
-                      <span class="sm:hidden">Favori</span>
-                    </button>
-                  @end
+              <div class="flex flex-wrap md:flex-nowrap gap-2 md:gap-3">
+                @if(auth.user)
+                  <a href="{{ route('courses.flashcards', [course.slug]) }}" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-violet-100 text-violet-700 font-bold hover:bg-violet-200 transition-all whitespace-nowrap text-xs md:text-sm h-fit shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                    <span class="hidden sm:inline">Mode Révision</span>
+                    <span class="sm:hidden">Réviser</span>
+                  </a>
+                  <button 
+                    onclick="toggleBookmark(this)"
+                    data-course-id="{{ course.id }}"
+                    class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-bold transition-all whitespace-nowrap text-xs md:text-sm h-fit {{ isBookmarked ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}"
+                    id="bookmark-btn"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5 {{ isBookmarked ? 'fill-current' : 'fill-none' }}" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                    </svg>
+                    <span class="hidden sm:inline">{{ isBookmarked ? 'Sauvegardé' : 'Sauvegarder' }}</span>
+                    <span class="sm:hidden">Favori</span>
+                  </button>
+                @end
 
-                  <div x-data="{ open: false }" class="relative flex-1 md:flex-none">
+                <div x-data="{ open: false }" class="relative flex-1 md:flex-none">
+                  @if(auth.user && auth.user.id === course.userId)
+                    <button @click="open = !open" @click.outside="open = false" class="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-indigo-50 text-indigo-700 font-bold hover:bg-indigo-100 transition-all whitespace-nowrap text-xs md:text-sm h-fit">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+                      </svg>
+                      Gérer
+                    </button>
+                  @else
                     <button @click="open = !open" @click.outside="open = false" class="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-indigo-50 text-indigo-700 font-bold hover:bg-indigo-100 transition-all whitespace-nowrap text-xs md:text-sm h-fit">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                       </svg>
                       Partager
                     </button>
+                  @end
 
                   <div x-show="open" 
-                       x-transition:enter="transition ease-out duration-200"
-                       x-transition:enter-start="opacity-0 scale-95 translate-y-2"
-                       x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                       class="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-indigo-50 p-2 z-20 divide-y divide-slate-100">
+                        x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+                        x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                        x-transition:leave="transition ease-in duration-150"
+                        x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                        x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+                        x-cloak
+                        class="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-indigo-50 p-2 z-20 divide-y divide-slate-100">
+                  
+                  <div class="pb-2">
+                    <button @click="navigator.clipboard.writeText(window.location.href); open = false; alert('Lien copié !')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-50 flex items-center gap-3 transition-colors text-slate-600 font-medium">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                      Copier le lien
+                    </button>
                     
-                    <div class="pb-2">
-                      <button @click="navigator.clipboard.writeText(window.location.href); open = false; alert('Lien copié !')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-50 flex items-center gap-3 transition-colors text-slate-600 font-medium">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
-                        Copier le lien
+                    <a href="https://twitter.com/intent/tweet?text=Je%20viens%20de%20d%C3%A9couvrir%20ce%20cours%20incroyable%20sur%20{{ course.title }}%20!%20%F0%9F%9A%80&url={{ request.url() }}" target="_blank" class="w-full text-left px-4 py-3 rounded-xl hover:bg-sky-50 flex items-center gap-3 transition-colors text-slate-600 font-medium hover:text-sky-600">
+                      <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
+                      Twitter
+                    </a>
+                    
+                    <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.url() }}" target="_blank" class="w-full text-left px-4 py-3 rounded-xl hover:bg-blue-50 flex items-center gap-3 transition-colors text-slate-600 font-medium hover:text-blue-700">
+                      <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                      LinkedIn
+                    </a>
+                  </div>
+                  
+                  @if(auth.user && auth.user.id === course.userId)
+                    <div class="pt-2 border-t border-slate-100">
+                      <form method="POST" action="{{ route('courses.requestDeletion', [course.id]) }}" 
+                            onsubmit="return confirmDeletion('{{ course.title }}')">
+                        {{ csrfField() }}
+                        <button type="submit" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 flex items-center gap-3 transition-colors text-red-600 font-medium hover:text-red-700">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          Demander la suppression
+                        </button>
+                      </form>
+                    </div>
+                  @end
+                      <button onclick="downloadCourse('txt')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-50 flex items-center gap-3 transition-colors text-slate-600 font-bold hover:text-slate-800">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        Format Texte
                       </button>
-                      
-                      <a href="https://twitter.com/intent/tweet?text=Je%20viens%20de%20d%C3%A9couvrir%20ce%20cours%20incroyable%20sur%20{{ course.title }}%20!%20%F0%9F%9A%80&url={{ request.url() }}" target="_blank" class="w-full text-left px-4 py-3 rounded-xl hover:bg-sky-50 flex items-center gap-3 transition-colors text-slate-600 font-medium hover:text-sky-600">
-                        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
-                        Twitter
-                      </a>
-                      
-                      <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.url() }}" target="_blank" class="w-full text-left px-4 py-3 rounded-xl hover:bg-blue-50 flex items-center gap-3 transition-colors text-slate-600 font-medium hover:text-blue-700">
-                        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
-                        LinkedIn
-                      </a>
-                    </div>
-                    
-                    <div class="pt-2">
-                       <p class="px-4 py-2 text-[10px] uppercase font-bold text-slate-400 tracking-widest">Télécharger</p>
-                       <button onclick="downloadCourse('html')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-orange-50 flex items-center gap-3 transition-colors text-slate-600 font-bold hover:text-orange-600">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                          Format HTML
-                       </button>
-                       <button onclick="downloadCourse('txt')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-50 flex items-center gap-3 transition-colors text-slate-600 font-bold hover:text-slate-800">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                          Format Texte
-                       </button>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -366,7 +407,6 @@
 
               </div>
             @end
-            </div>
           @end
       </div>
 
@@ -379,11 +419,19 @@
            <p class="text-sm text-slate-500 mb-4 italic">Ce cours a été généré par une IA en se basant sur les connaissances générales provenant des sources suivantes :</p>
            <ul class="grid grid-cols-1 md:grid-cols-2 gap-4">
              @each(source in course.content.sources)
-               <li class="flex items-center gap-3 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                 <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+               <li class="flex items-center gap-3 bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                 <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 flex-shrink-0">
                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
                  </div>
-                 <span class="font-medium text-slate-700">{{ source }}</span>
+                 @if(source.includes('http'))
+                   <a href="{{ source }}" target="_blank" rel="noopener noreferrer" class="font-medium text-primary-600 hover:text-primary-800 hover:underline truncate flex-1" title="{{ source }}">
+                     {{ source.replace(/^https?:\/\//, '').replace(/\/$/, '') }}
+                   </a>
+                 @else
+                   <a href="https://www.google.com/search?q={{ encodeURIComponent(source) }}" target="_blank" rel="noopener noreferrer" class="font-medium text-primary-600 hover:text-primary-800 hover:underline truncate flex-1" title="Rechercher {{ source }} sur Google">
+                     {{ source }}
+                   </a>
+                 @end
                </li>
              @end
            </ul>
@@ -771,5 +819,5 @@
          document.body.removeChild(a);
       }
     </script>
-  @end
+@end
 @end

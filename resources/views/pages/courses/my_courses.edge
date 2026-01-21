@@ -1,3 +1,17 @@
+<script>
+      function confirmDeletion(courseTitle) {
+        const confirmation = `⚠️ CONFIRMATION DE SUPPRESSION ⚠️\n\n` +
+          `Cours : "${courseTitle}"\n\n` +
+          `Cette action va envoyer une demande de suppression à l'administrateur.\n\n` +
+          `❗️ Si le cours est utilisé dans un parcours, la demande sera AUTOMATIQUEMENT refusée.\n\n` +
+          `❗️ Si le cours n'est pas dans un parcours, la demande sera envoyée pour validation.\n\n` +
+          `Êtes-vous ABSOLUMENT sûr de vouloir continuer ?\n\n` +
+          `Cliquez sur "OK" pour confirmer, ou "Annuler" pour annuler.`;
+        
+        return confirm(confirmation);
+      }
+</script>
+
 @app({ title: 'Mon Dashboard - My Professor' })
   @slot('main')
     <main class="max-w-7xl mx-auto px-6 py-12">
@@ -85,10 +99,17 @@
                 @end
                </div>
 
-               <form action="/courses/{{ course.id }}/delete" method="POST" class="absolute top-4 right-4 z-10 transition-all opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0">
+               {{-- Indicateur de demande de suppression en cours --}}
+               @if(course.$extras.hasPendingDeletion)
+                 <div class="absolute top-2 right-2 bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg z-20 animate-pulse">
+                   ⏳ EN ATTENTE
+                 </div>
+               @end
+
+               <form action="{{ route('courses.requestDeletion', [course.id]) }}" method="POST" class="absolute top-4 right-4 z-10 transition-all opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0">
                  {{ csrfField() }}
-                 <button type="submit" onclick="return confirm('Supprimer ce cours définitivement ?')" class="bg-white/90 backdrop-blur p-2 rounded-full text-red-500 hover:bg-red-500 hover:text-white transition-colors shadow-lg" title="Supprimer le cours">
-                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                 <button type="submit" onclick="return confirmDeletion('{{ course.title }}')" class="bg-white/90 backdrop-blur p-2 rounded-full text-red-500 hover:bg-red-500 hover:text-white transition-colors shadow-lg" title="Demander la suppression">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="M19 11h-6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                  </button>
                </form>
             </div>

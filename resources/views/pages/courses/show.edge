@@ -656,18 +656,20 @@
 
           {{-- Input --}}
           <div class="p-4 bg-white border-t border-slate-100">
-            <div class="relative flex items-center">
-              <input 
-                type="text" 
+            <div class="relative flex items-start">
+              <textarea 
                 x-model="userInput" 
-                @keydown.enter="send()"
+                @keydown.enter.prevent="if(!event.shiftKey) send()"
                 placeholder="Posez une question sur ce cours..."
-                class="w-full pl-4 pr-12 py-3 bg-slate-100 rounded-2xl border-none focus:ring-2 focus:ring-primary-500 text-sm font-medium outline-none"
-              >
+                rows="1"
+                class="w-full pl-4 pr-12 py-3 bg-slate-100 rounded-2xl border-none focus:ring-2 focus:ring-primary-500 text-sm font-medium outline-none resize-none overflow-hidden min-h-[48px] max-h-32"
+                x-ref="chatInput"
+                x-init="$watch('userInput', () => { $el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px' })"
+              ></textarea>
               <button 
                 @click="send()"
                 :disabled="!userInput.trim() || isLoading"
-                class="absolute right-2 p-2 bg-primary-600 text-white rounded-xl disabled:opacity-50 transition-all hover:bg-primary-700"
+                class="absolute right-2 top-2 p-2 bg-primary-600 text-white rounded-xl disabled:opacity-50 transition-all hover:bg-primary-700"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
               </button>

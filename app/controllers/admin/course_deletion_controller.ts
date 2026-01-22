@@ -1,7 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import CourseDeletionRequest from '#models/course_deletion_request'
 import Course from '#models/course'
-import db from '@adonisjs/lucid/services/db'
 
 export default class AdminCourseDeletionController {
   /**

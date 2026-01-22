@@ -7,7 +7,7 @@ export default class extends BaseSeeder {
     // Créer des parcours d'exemple
     const paths = [
       {
-        title: 'Développeur Web Full-Stack',
+        title: 'Développement et programation',
         slug: 'developpeur-web-full-stack',
         description: 'Maîtrisez le développement web de A à Z : du HTML/CSS jusqu\'aux frameworks modernes et bases de données.',
         icon: '💻',

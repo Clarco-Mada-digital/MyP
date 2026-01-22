@@ -435,10 +435,36 @@ export default class CoursesController {
     }
     if (await isImageAccessible(url)) return url
 
-    const pollinationsUrl = `https://image.pollinations.ai/prompt/minimalist illustration for ${encodeURIComponent(topic)}?nologo=true`
-    if (await isImageAccessible(pollinationsUrl)) return pollinationsUrl
+    // Utiliser Unsplash avec des mots-clés pertinents
+    const keywords = this.getUnsplashKeywords(topic)
+    const unsplashUrl = `https://source.unsplash.com/1600x900/?${keywords}&auto=format&fit=crop&q=80`
+    if (await isImageAccessible(unsplashUrl)) return unsplashUrl
 
     return DEFAULT_IMAGE
+  }
+
+  private getUnsplashKeywords(topic: string): string {
+    const topicLower = topic.toLowerCase()
+    
+    // Mapping des sujets vers des mots-clés Unsplash pertinents
+    if (topicLower.includes('javascript') || topicLower.includes('programmation') || topicLower.includes('code')) {
+      return 'coding,programming,computer,technology'
+    }
+    if (topicLower.includes('marketing') || topicLower.includes('business')) {
+      return 'marketing,business,office,technology'
+    }
+    if (topicLower.includes('data') || topicLower.includes('ia') || topicLower.includes('science')) {
+      return 'data,science,technology,research'
+    }
+    if (topicLower.includes('design') || topicLower.includes('web')) {
+      return 'design,web,creative,technology'
+    }
+    if (topicLower.includes('database') || topicLower.includes('sql')) {
+      return 'database,server,technology,data'
+    }
+    
+    // Mots-clés par défaut
+    return 'technology,education,learning,computer'
   }
 
   async toggleBookmark({ params, auth, response }: HttpContext) {

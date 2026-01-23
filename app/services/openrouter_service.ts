@@ -24,7 +24,7 @@ export default class OpenRouterService {
       const data = await response.json() as any
       // Ne garder que les modèles gratuits (:free)
       return data.data
-        ?.filter((m: any) => m.id.endsWith(':free'))
+        // ?.filter((m: any) => m.id.endsWith(':free'))
         .map((m: any) => m.id) || []
     } catch (error) {
       console.error('OpenRouter connection failed:', error)
@@ -58,7 +58,9 @@ export default class OpenRouterService {
         body: JSON.stringify({
           model: model,
           messages: messages,
-          response_format: { type: 'json_object' }
+          // Certains modèles gratuits plantent avec response_format: 'json_object'
+          // On se fie au system prompt qui est déjà très clair.
+          // response_format: { type: 'json_object' }
         }),
       })
 

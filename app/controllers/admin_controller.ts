@@ -76,6 +76,10 @@ export default class AdminController {
           // ce qui casse le .toRelative() dans le template Edge.
           return {
             ipAddress: acc.ipAddress,
+            country: acc.country,
+            city: acc.city,
+            countryCode: acc.countryCode,
+            userAgent: acc.userAgent,
             courseTitle: course?.title || 'Cours inconnu',
             createdAt: acc.createdAt
           }

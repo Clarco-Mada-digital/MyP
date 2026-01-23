@@ -41,10 +41,25 @@ export default class CoursesController {
     // Logique de restriction pour les invités (non connectés)
     if (!auth.user) {
       const ip = request.ip()
+      let guestId = request.cookie('guest_id')
+      const userAgent = request.header('user-agent') || null
+
+      if (!guestId) {
+        guestId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+        response.cookie('guest_id', guestId, {
+          maxAge: '1 year',
+          httpOnly: true,
+          sameSite: 'lax'
+        })
+      }
+
       const startOfMonth = DateTime.now().startOf('month')
 
+      // Vérifier si cet utilisateur (IP ou ID cookie) a déjà accédé à un cours ce mois-ci
       const access = await GuestAccess.query()
-        .where('ipAddress', ip)
+        .where((query) => {
+          query.where('ipAddress', ip).orWhere('guestId', guestId!)
+        })
         .where('createdAt', '>=', startOfMonth.toSQL())
         .first()
 
@@ -61,7 +76,27 @@ export default class CoursesController {
         if (!confirmed) {
           return view.render('pages/courses/guest_warning', { course })
         }
-        await GuestAccess.create({ ipAddress: ip, courseId: course.id })
+
+        // Récupérer les infos géo
+        let geo = null
+        try {
+          const geoRes = await fetch(`http://ip-api.com/json/${ip}?fields=status,country,countryCode,city`)
+          if (geoRes.ok) {
+            geo = await geoRes.json()
+          }
+        } catch (e) {
+          console.error('[GeoIP] Error:', e)
+        }
+
+        await GuestAccess.create({
+          ipAddress: ip,
+          guestId,
+          userAgent,
+          courseId: course.id,
+          country: geo?.status === 'success' ? geo.country : null,
+          countryCode: geo?.status === 'success' ? geo.countryCode : null,
+          city: geo?.status === 'success' ? geo.city : null
+        })
       }
     }
 

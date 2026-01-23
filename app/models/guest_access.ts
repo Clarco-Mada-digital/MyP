@@ -9,6 +9,21 @@ export default class GuestAccess extends BaseModel {
   declare ipAddress: string
 
   @column()
+  declare guestId: string | null
+
+  @column()
+  declare country: string | null
+
+  @column()
+  declare countryCode: string | null
+
+  @column()
+  declare city: string | null
+
+  @column()
+  declare userAgent: string | null
+
+  @column()
   declare courseId: number
 
   @column.dateTime({ autoCreate: true })

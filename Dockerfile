@@ -23,12 +23,20 @@ ENV NODE_ENV=production
 ENV PORT=3333
 ENV HOST=0.0.0.0
 
+# Install system dependencies and increase limits
+RUN apk add --no-cache \
+    && echo "fs.inotify.max_user_watches=524288" >> /etc/sysctl.conf \
+    && echo "fs.inotify.max_user_instances=512" >> /etc/sysctl.conf
+
 # Copy built assets and entrypoint from stage 1
 COPY --from=build /app/build ./
 COPY --from=build /app/entrypoint.sh ./
 
 # Install ONLY production dependencies
 RUN npm ci --omit=dev && chmod +x entrypoint.sh
+
+# Create tmp directory for SQLite database
+RUN mkdir -p tmp
 
 # Expose port
 EXPOSE 3333

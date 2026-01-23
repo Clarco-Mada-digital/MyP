@@ -125,10 +125,10 @@
             <!-- Hidden input for the final model selection -->
             <input type="hidden" name="ai_model" x-model="ollama.selectedModel">
 
-            <!-- Cloud Option (Gemini) -->
+            <!-- Cloud Option -->
             <div class="relative group">
-              <input type="radio" name="ai_provider" id="provider_gemini" value="gemini" x-model="activeProvider" @change="ollama.selectedModel = $refs.geminiSelect.value" class="peer hidden">
-              <label for="provider_gemini"
+              <input type="radio" name="ai_provider" id="provider_cloud" value="gemini" x-model="activeProvider" @change="ollama.selectedModel = $refs.cloudSelect.value" class="peer hidden">
+              <label for="provider_cloud"
                 class="block cursor-pointer select-none rounded-2xl border-2 border-slate-100 p-4 md:p-6 transition-all hover:border-primary-200 peer-checked:border-primary-600 peer-checked:bg-primary-50 peer-checked:shadow-md">
                 <div class="flex items-center justify-between mb-4">
                   <div class="flex items-center gap-3 md:gap-4">
@@ -136,8 +136,10 @@
                       class="h-10 w-10 md:h-12 md:w-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xl md:text-2xl shadow-lg">
                       ☁️</div>
                     <div>
-                      <h3 class="font-bold text-base md:text-lg text-slate-800">Google Gemini (Cloud)</h3>
-                      <p class="text-slate-500 text-xs md:text-sm">Rapide, puissant, mais soumis aux quotas.</p>
+                      <h3 class="font-bold text-base md:text-lg text-slate-800">
+                        {{ activeCloudProvider === 'openrouter' ? 'OpenRouter (Multi-IA)' : 'Google Gemini (Cloud)' }}
+                      </h3>
+                      <p class="text-slate-500 text-xs md:text-sm">Propulsé par le service cloud configuré par l'admin.</p>
                     </div>
                   </div>
                   <div
@@ -147,10 +149,10 @@
                 </div>
 
                 <div x-show="activeProvider === 'gemini'" class="pl-0 md:pl-16 mt-4 transition-all">
-                  <label class="block text-sm font-bold text-slate-700 mb-2">Modèle Gemini</label>
-                  <select x-ref="geminiSelect" @change="ollama.selectedModel = $el.value"
+                  <label class="block text-sm font-bold text-slate-700 mb-2">Sélectionner le modèle</label>
+                  <select x-ref="cloudSelect" @change="ollama.selectedModel = $el.value"
                     class="w-full rounded-xl border-slate-200 bg-white py-3 px-4 text-slate-700 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500">
-                    @each(model in geminiModels)
+                    @each(model in cloudModels)
                     <option value="{{ model }}" {{ user.aiModel === model ? 'selected' : '' }}>{{ model }}</option>
                     @end
                   </select>

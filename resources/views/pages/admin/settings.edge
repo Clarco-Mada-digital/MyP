@@ -1,0 +1,111 @@
+@component('components/app', { title: 'Configuration IA - Admin' })
+  <div class="max-w-7xl mx-auto px-6 py-12">
+    <div class="mb-12">
+      <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">Configuration IA Globale</h1>
+      <p class="text-slate-500 font-medium">Choisissez le fournisseur cloud par défaut pour tous les utilisateurs.</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {{-- Sidebar info --}}
+      <div class="lg:col-span-1">
+        <div class="bg-primary-50 p-8 rounded-[2.5rem] border border-primary-100 text-primary-900">
+          <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+            <span>💡</span> Info Admin
+          </h3>
+          <p class="text-sm leading-relaxed mb-4">
+            Ce réglage définit quel service cloud (Gemini ou OpenRouter) est utilisé pour générer les cours si l'utilisateur ne possède pas de configuration locale (Ollama).
+          </p>
+          <p class="text-sm leading-relaxed">
+            Les clés API doivent être configurées dans votre fichier <code class="bg-primary-100 px-1 rounded font-bold">.env</code>.
+          </p>
+        </div>
+      </div>
+
+      {{-- Settings Form --}}
+      <div class="lg:col-span-2">
+        <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm mb-8">
+          <form action="/admin/settings" method="POST" class="space-y-8">
+            {{ csrfField() }}
+
+            <div class="space-y-4">
+              <label class="block text-sm font-black text-slate-400 uppercase tracking-widest">Fournisseur Cloud Actif</label>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {{-- Gemini --}}
+                <label class="relative flex flex-col p-6 cursor-pointer rounded-3xl border-2 transition-all {{ activeCloudProvider === 'gemini' ? 'border-primary-600 bg-primary-50 bg-opacity-50' : 'border-slate-100 hover:border-slate-200' }}">
+                  <input type="radio" name="active_cloud_provider" value="gemini" class="sr-only" {{ activeCloudProvider === 'gemini' ? 'checked' : '' }}>
+                  <div class="flex items-center gap-4 mb-3">
+                    <div class="h-10 w-10 bg-blue-500 rounded-xl flex items-center justify-center text-xl shadow-lg shadow-blue-200">☁️</div>
+                    <span class="font-bold text-slate-900">Google Gemini</span>
+                  </div>
+                  <p class="text-xs text-slate-500">Utilise l'API native de Google. Stable et gratuit (selon quotas).</p>
+                  @if(activeCloudProvider === 'gemini')
+                    <div class="absolute top-4 right-4 text-primary-600">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  @endif
+                </label>
+
+                {{-- OpenRouter --}}
+                <label class="relative flex flex-col p-6 cursor-pointer rounded-3xl border-2 transition-all {{ activeCloudProvider === 'openrouter' ? 'border-primary-600 bg-primary-50 bg-opacity-50' : 'border-slate-100 hover:border-slate-200' }}">
+                  <input type="radio" name="active_cloud_provider" value="openrouter" class="sr-only" {{ activeCloudProvider === 'openrouter' ? 'checked' : '' }}>
+                  <div class="flex items-center gap-4 mb-3">
+                    <div class="h-10 w-10 bg-purple-600 rounded-xl flex items-center justify-center text-xl shadow-lg shadow-purple-200">🚀</div>
+                    <span class="font-bold text-slate-900">OpenRouter</span>
+                  </div>
+                  <p class="text-xs text-slate-500">Accès à des centaines de modèles (Gemini, Llama, Mistral...) via une seule clé.</p>
+                  @if(activeCloudProvider === 'openrouter')
+                    <div class="absolute top-4 right-4 text-primary-600">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  @endif
+                </label>
+              </div>
+            </div>
+
+            <div class="flex justify-end pt-4">
+              <button type="submit" class="bg-slate-900 text-white font-bold py-4 px-10 rounded-2xl hover:bg-slate-800 transition-all shadow-xl hover:shadow-2xl active:scale-95">
+                Enregistrer la configuration globale
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {{-- Models Preview Card --}}
+        <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
+          <h3 class="text-xl font-bold text-slate-900 mb-6 flex items-center gap-3">
+             <span class="p-2 bg-slate-100 rounded-xl text-lg">📁</span> Liste des modèles détectés
+          </h3>
+          
+          <div class="space-y-6">
+            <div>
+              <h4 class="text-sm font-black text-slate-400 uppercase tracking-widest mb-4">Google Gemini (Direct)</h4>
+              <div class="flex flex-wrap gap-2">
+                @each(model in geminiModels)
+                  <span class="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-lg border border-blue-100">{{ model }}</span>
+                @else
+                  <span class="text-xs text-slate-400 italic">Aucun modèle détecté ou clé manquante.</span>
+                @end
+              </div>
+            </div>
+
+            <div class="pt-6 border-t border-slate-100">
+              <h4 class="text-sm font-black text-slate-400 uppercase tracking-widest mb-4">OpenRouter (Populaires / Free)</h4>
+              <div class="flex flex-wrap gap-2">
+                @each(model in openRouterModels)
+                  <span class="px-3 py-1 bg-purple-50 text-purple-700 text-xs font-bold rounded-lg border border-purple-100">{{ model }}</span>
+                @else
+                  <span class="text-xs text-slate-400 italic">Aucun modèle détecté ou clé manquante.</span>
+                @end
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+@end

@@ -1,8 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import GeminiService from '#services/gemini_service'
 import User from '#models/user'
-
 import hash from '@adonisjs/core/services/hash'
+import AiProviderService from '#services/ai_provider_service'
 
 export default class SettingsController {
 
@@ -10,28 +9,29 @@ export default class SettingsController {
     await auth.check()
     const user = auth.user! as User
 
-    // Fetch Gemini models (Dynamic with Fallback)
-    let geminiModels: string[] = []
+    // Fetch models for the ACTIVE cloud provider (Admin chosen)
+    let cloudModels: string[] = []
+    const activeCloudProvider = await AiProviderService.getActiveProviderName()
+
     try {
-      geminiModels = await GeminiService.getModels()
+      cloudModels = await AiProviderService.getActiveCloudModels()
     } catch (e) {
-      console.warn('Could not fetch Gemini models dynamically', e)
+      console.warn('Could not fetch cloud models dynamically', e)
     }
 
-    // Fallback if API fails (e.g. Rate Limit 429)
-    if (geminiModels.length === 0) {
-      geminiModels = [
-        'gemini-flash-latest',
-        'gemini-flash-lite-latest',
-        'gemini-2.0-flash',
-        'gemini-2.0-flash-lite',
-        'gemini-2.5-flash',
-      ]
+    // Fallbacks
+    if (cloudModels.length === 0) {
+      if (activeCloudProvider === 'openrouter') {
+        cloudModels = ['google/gemini-2.0-flash-lite:free', 'mistralai/mistral-7b-instruct:free', 'anthropic/claude-3-haiku']
+      } else {
+        cloudModels = ['gemini-1.5-flash', 'gemini-1.5-flash-8b', 'gemini-1.5-pro']
+      }
     }
 
     return view.render('pages/settings/index', {
       user,
-      geminiModels,
+      cloudModels,
+      activeCloudProvider
     })
   }
 

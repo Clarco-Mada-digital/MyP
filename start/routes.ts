@@ -61,6 +61,10 @@ router.group(() => {
   router.get('/admin/backup/download', [AdminController, 'downloadBackup']).as('admin.backup.download')
   router.post('/admin/backup/restore', [AdminController, 'restoreBackup']).as('admin.backup.restore')
 
+  // Global AI Settings
+  router.get('/admin/settings', [AdminController, 'settings']).as('admin.settings')
+  router.post('/admin/settings', [AdminController, 'updateSettings']).as('admin.settings.update')
+
   // Learning Paths Admin
   router.get('/admin/learning-paths', '#controllers/admin/learning_paths_controller.index').as('admin.learning_paths.index')
   router.get('/admin/learning-paths/create', '#controllers/admin/learning_paths_controller.create').as('admin.learning_paths.create')

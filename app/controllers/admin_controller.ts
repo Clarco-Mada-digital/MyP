@@ -9,6 +9,9 @@ import CourseDeletionRequest from '#models/course_deletion_request'
 import app from '@adonisjs/core/services/app'
 import db from '@adonisjs/lucid/services/db'
 import { DateTime } from 'luxon'
+import ApplicationSetting from '#models/application_setting'
+import GeminiService from '#services/gemini_service'
+import OpenRouterService from '#services/open_router_service'
 
 export default class AdminController {
   async index({ view, auth, response }: HttpContext) {
@@ -169,7 +172,7 @@ export default class AdminController {
           .orWhere('slug', 'LIKE', `%${search}%`)
           .orWhereHas('owner', (ownerQuery) => {
             ownerQuery.where('fullName', 'LIKE', `%${search}%`)
-               .orWhere('email', 'LIKE', `%${search}%`)
+              .orWhere('email', 'LIKE', `%${search}%`)
           })
       })
     }
@@ -189,8 +192,8 @@ export default class AdminController {
     // Get all categories for dropdown
     const categories = await Category.query().orderBy('name', 'asc')
 
-    return view.render('pages/admin/courses', { 
-      courses, 
+    return view.render('pages/admin/courses', {
+      courses,
       categories,
       currentPage: page,
       limit,
@@ -426,5 +429,21 @@ export default class AdminController {
       session.flash('notification', { type: 'error', message: 'Erreur lors de la restauration.' })
       return response.redirect().back()
     }
+  }
+
+  async settings({ view, auth, response }: HttpContext) {
+    if (!auth.user?.isAdmin) return response.unauthorized()
+    const activeCloudProvider = await ApplicationSetting.getValue('active_cloud_provider', 'gemini')
+    const geminiModels = await GeminiService.getModels()
+    const openRouterModels = await OpenRouterService.getModels()
+    return view.render('pages/admin/settings', { activeCloudProvider, geminiModels, openRouterModels })
+  }
+
+  async updateSettings({ request, response, auth, session }: HttpContext) {
+    if (!auth.user?.isAdmin) return response.unauthorized()
+    const provider = request.input('active_cloud_provider')
+    await ApplicationSetting.setValue('active_cloud_provider', provider)
+    session.flash('notification', { type: 'success', message: 'Configuration IA mise à jour' })
+    return response.redirect().back()
   }
 }

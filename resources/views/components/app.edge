@@ -159,8 +159,12 @@
               </a>
               @if(auth.user.isAdmin)
                 <a href="{{ route('admin.dashboard') }}" 
-                   class="nav-link hover:text-primary-600 transition-colors {{ request.url().startsWith('/admin') ? 'text-primary-600 font-bold' : '' }}">
+                   class="nav-link hover:text-primary-600 transition-colors {{ request.url().startsWith('/admin') && !request.url().includes('settings') ? 'text-primary-600 font-bold' : '' }}">
                    Admin
+                </a>
+                <a href="{{ route('admin.settings') }}" 
+                   class="nav-link hover:text-primary-600 transition-colors {{ request.url().includes('/admin/settings') ? 'text-primary-600 font-bold' : '' }}" title="Configuration IA Globale">
+                   ⚙️ IA
                 </a>
               @end
             @end
@@ -220,7 +224,8 @@
             <a href="/mes-cours" class="py-2 hover:text-primary-600 transition-colors">Mes Cours</a>
             <a href="/dashboard" class="py-2 hover:text-primary-600 transition-colors">📊 Dashboard</a>
             @if(auth.user.isAdmin)
-              <a href="{{ route('admin.dashboard') }}" class="py-2 text-rose-600">Admin</a>
+              <a href="{{ route('admin.dashboard') }}" class="py-2 text-rose-600">Admin Dashboard</a>
+              <a href="{{ route('admin.settings') }}" class="py-2 text-slate-700">⚙️ Config IA</a>
             @end
           @end
         </div>

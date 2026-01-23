@@ -4,6 +4,7 @@ import Category from '#models/category'
 import CourseDeletionRequest from '#models/course_deletion_request'
 import GeminiService from '#services/gemini_service'
 import OllamaService from '#services/ollama_service'
+import AiProviderService from '#services/ai_provider_service'
 import string from '@adonisjs/core/helpers/string'
 import User from '#models/user'
 import GuestAccess from '#models/guest_access'
@@ -312,107 +313,97 @@ export default class CoursesController {
 
   private async generateCourseContent(course: Course, user: User) {
     try {
-      let content;
-      let prompt = '';
-
+      // --- BUILD PROMPT ---
+      let prompt = ''
       if (user.aiProvider === 'ollama') {
-        // --- PROMPT OLLAMA (ILLIMITÉ & COMPLET) ---
         prompt = `Agis en tant qu'expert pédagogue.
-        Sujet: "${course.title}".
-        Génère un cours COMPLET et structuré (JSON).
-        Objectif: De débutant à expert.
-        Structure: 
-          - 3 à 4 Modules maximum.
-          - 2 à 3 leçons par module.
-          - Un Quiz de validation (3 questions) à la fin de chaque module.
-        Contenu:
-          - Leçons détaillées (environ 300 mots/leçon).
-          - Exemples de code, cas pratiques, explications claires.
-        Format JSON STRICT (Attention: tout guillemet double à l'intérieur d'une chaîne doit être échappé \\", ou utilise des guillemets simples '' pour le code) :
-        {
-          "description": "Description captivante (min 100 mots)",
-          "level": "Expert",
-          "image": "Mots-clés pour l'image d'illustration (ex: python coding machine learning)",
-          "sources": ["Source 1 (ex: MDN Web Docs)", "Source 2", "Source 3 ou plus"],
-          "modules": [
-            {
-              "title": "Titre Module",
-              "lessons": [
-                {
-                  "title": "Titre Leçon",
-                  "content": "Contenu riche en Markdown (titres, listes, code blocks)...",
-                  "video_url": "URL .mp4 (optionnel)",
-                  "audio_url": "URL .mp3 (optionnel)"
-                }
-              ],
-              "exercises": ["Exercice 1", "Exercice 2"],
-              "flashcards": [
-                {
-                  "question": "Question de mémorisation ?",
-                  "answer": "Réponse courte et précise."
-                }
-              ],
-              "quiz": [
-                {
-                  "question": "Question sur ce module ?",
-                  "options": ["Choix A", "Choix B", "Choix C", "Choix D"],
-                  "answer": "Choix A",
-                  "explanation": "Explication de la réponse."
-                }
-              ]
-            }
-          ]
-        }`;
-
-        content = await OllamaService.generateJson(prompt, user.aiModel || 'llama3')
-
+      Sujet: "${course.title}".
+      Génère un cours COMPLET et structuré (JSON).
+      Objectif: De débutant à expert.
+      Structure: 
+        - 3 à 4 Modules maximum.
+        - 2 à 3 leçons par module.
+        - Un Quiz de validation (3 questions) à la fin de chaque module.
+      Contenu:
+        - Leçons détaillées (environ 300 mots/leçon).
+        - Exemples de code, cas pratiques, explications claires.
+      Format JSON STRICT (Attention: tout guillemet double à l'intérieur d'une chaîne doit être échappé \\", ou utilise des guillemets simples '' pour le code) :
+      {
+        "description": "Description captivante (min 100 mots)",
+        "level": "Expert",
+        "image": "Mots-clés pour l'image d'illustration (ex: python coding machine learning)",
+        "sources": ["Source 1 (ex: MDN Web Docs)", "Source 2", "Source 3 ou plus"],
+        "modules": [
+          {
+            "title": "Titre Module",
+            "lessons": [
+              {
+                "title": "Titre Leçon",
+                "content": "Contenu riche en Markdown (titres, listes, code blocks)...",
+                "video_url": "URL .mp4 (optionnel)",
+                "audio_url": "URL .mp3 (optionnel)"
+              }
+            ],
+            "exercises": ["Exercice 1", "Exercice 2"],
+            "flashcards": [
+              {
+                "question": "Question de mémorisation ?",
+                "answer": "Réponse courte et précise."
+              }
+            ],
+            "quiz": [
+              {
+                "question": "Question sur ce module ?",
+                "options": ["Choix A", "Choix B", "Choix C", "Choix D"],
+                "answer": "Choix A",
+                "explanation": "Explication de la réponse."
+              }
+            ]
+          }
+        ]
+      }`;
       } else {
-        // --- PROMPT GEMINI (OPTIMISÉ QUOTA GRATUIT) ---
         prompt = `Sujet: "${course.title}".
-        Génère un cours structuré (JSON).
-        Objectif: Synthétique & Percutant (Format "Flash Course").
-        Structure: MAX 3 Modules, MAX 2 Leçons par module. 1 Quiz par module.
-        Contenu: Essentiel uniquement (env. 200 mots/leçon).
-        Format JSON STRICT (Attention: échappe les " par \\" à l'intérieur des textes, ou utilise des ' pour le code) :
-        {
-          "description": "Description courte",
-          "level": "Intermédiaire",
-          "image": "Sujet de l'image (mots-clés)",
-          "sources": ["Source fiable 1", "Source fiable 2", "Source 3 ou plus"],
-          "modules": [
-            {
-              "title": "Titre Module",
-              "lessons": [
-                {
-                  "title": "Titre Leçon",
-                  "content": "Contenu Markdown concis. (min 200 mots)."
-                }
-              ],
-              "exercises": ["Exercice 1"],
-              "flashcards": [
-                {
-                  "question": "Concept clé ?",
-                  "answer": "Définition courte."
-                }
-              ],
-              "quiz": [
-                {
-                  "question": "Question simple ?",
-                  "options": ["A", "B", "C"],
-                  "answer": "A",
-                  "explanation": "Explication courte."
-                }
-              ]
-            }
-          ]
-        }`;
-
-        content = await GeminiService.generateJson(prompt, user.aiModel || 'gemini-flash-latest')
+      Génère un cours structuré (JSON).
+      Objectif: Synthétique & Percutant (Format "Flash Course").
+      Structure: MAX 3 Modules, MAX 2 Leçons par module. 1 Quiz par module.
+      Contenu: Essentiel uniquement (env. 200 mots/leçon).
+      Format JSON STRICT (Attention: échappe les " par \\" à l'intérieur des textes, ou utilise des ' pour le code) :
+      {
+        "description": "Description courte",
+        "level": "Intermédiaire",
+        "image": "Sujet de l'image (mots-clés)",
+        "sources": ["Source fiable 1", "Source fiable 2", "Source 3 ou plus"],
+        "modules": [
+          {
+            "title": "Titre Module",
+            "lessons": [
+              {
+                "title": "Titre Leçon",
+                "content": "Contenu Markdown concis. (min 200 mots)."
+              }
+            ],
+            "exercises": ["Exercice 1"],
+            "flashcards": [
+              {
+                "question": "Concept clé ?",
+                "answer": "Définition courte."
+              }
+            ],
+            "quiz": [
+              {
+                "question": "Question simple ?",
+                "options": ["A", "B", "C"],
+                "answer": "A",
+                "explanation": "Explication courte."
+              }
+            ]
+          }
+        ]
+      }`;
       }
-      // const prompt = `Topic: "${course.title}". Generate structured course (JSON). Modules, lessons, content, quiz. Format JSON STRICT.`
-      // content = (user.aiProvider === 'ollama')
-      //   ? await OllamaService.generateJson(prompt, user.aiModel || 'llama3')
-      //   : await GeminiService.generateJson(prompt, user.aiModel || 'gemini-flash-latest')
+
+      const content = await AiProviderService.generateJson(prompt, user)
 
       course.description = content.description || ""
       content.image = await this.verifyAndFixImage(content.image, course.title)

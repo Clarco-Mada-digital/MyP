@@ -2,8 +2,6 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Course from '#models/course'
 import Category from '#models/category'
 import CourseDeletionRequest from '#models/course_deletion_request'
-import GeminiService from '#services/gemini_service'
-import OllamaService from '#services/ollama_service'
 import AiProviderService from '#services/ai_provider_service'
 import string from '@adonisjs/core/helpers/string'
 import User from '#models/user'
@@ -454,7 +452,6 @@ export default class CoursesController {
   }
 
   private async verifyAndFixImage(url: string, topic: string): Promise<string> {
-    const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1600&auto=format&fit=crop&q=80'
 
     const isImageAccessible = async (testUrl: string) => {
       try {

@@ -1,7 +1,7 @@
 import User from '#models/user'
 import GeminiService from '#services/gemini_service'
 import OllamaService from '#services/ollama_service'
-import OpenRouterService from '#services/open_router_service'
+import OpenRouterService from '#services/openrouter_service'
 import ApplicationSetting from '#models/application_setting'
 
 export default class AiProviderService {

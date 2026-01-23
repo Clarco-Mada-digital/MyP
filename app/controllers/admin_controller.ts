@@ -11,7 +11,7 @@ import db from '@adonisjs/lucid/services/db'
 import { DateTime } from 'luxon'
 import ApplicationSetting from '#models/application_setting'
 import GeminiService from '#services/gemini_service'
-import OpenRouterService from '#services/open_router_service'
+import OpenRouterService from '#services/openrouter_service'
 
 export default class AdminController {
   async index({ view, auth, response }: HttpContext) {

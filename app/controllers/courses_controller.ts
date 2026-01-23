@@ -332,7 +332,7 @@ export default class CoursesController {
         {
           "description": "Description captivante (min 100 mots)",
           "level": "Expert",
-          "image": "URL Unsplash",
+          "image": "Mots-clés pour l'image d'illustration (ex: python coding machine learning)",
           "sources": ["Source 1 (ex: MDN Web Docs)", "Source 2", "Source 3 ou plus"],
           "modules": [
             {
@@ -377,7 +377,7 @@ export default class CoursesController {
         {
           "description": "Description courte",
           "level": "Intermédiaire",
-          "image": "URL Unsplash",
+          "image": "Sujet de l'image (mots-clés)",
           "sources": ["Source fiable 1", "Source fiable 2", "Source 3 ou plus"],
           "modules": [
             {
@@ -427,44 +427,30 @@ export default class CoursesController {
 
   private async verifyAndFixImage(url: string, topic: string): Promise<string> {
     const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1600&auto=format&fit=crop&q=80'
+
     const isImageAccessible = async (testUrl: string) => {
       try {
-        const res = await fetch(testUrl, { method: 'HEAD' })
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 3000)
+        const res = await fetch(testUrl, { method: 'HEAD', signal: controller.signal })
+        clearTimeout(timeoutId)
         return res.ok && res.headers.get('content-type')?.startsWith('image/')
       } catch { return false }
     }
-    if (await isImageAccessible(url)) return url
 
-    // Utiliser Unsplash avec des mots-clés pertinents
-    const keywords = this.getUnsplashKeywords(topic)
-    const unsplashUrl = `https://source.unsplash.com/1600x900/?${keywords}&auto=format&fit=crop&q=80`
-    if (await isImageAccessible(unsplashUrl)) return unsplashUrl
+    // 1. Essayer l'URL fournie (si elle est valide)
+    if (url && url.startsWith('http') && await isImageAccessible(url)) {
+      return url
+    }
 
+    // 2. Fallback sur Pollinations (Génère une image parfaite pour le sujet)
+    const pollinationsUrl = `https://image.pollinations.ai/prompt/professional minimalist 3d illustration for ${encodeURIComponent(topic)}, technology style, high resolution?nologo=true&width=1200&height=630`
+    if (await isImageAccessible(pollinationsUrl)) {
+      return pollinationsUrl
+    }
+
+    // 3. Dernier recours : Image par défaut stable
     return DEFAULT_IMAGE
-  }
-
-  private getUnsplashKeywords(topic: string): string {
-    const topicLower = topic.toLowerCase()
-    
-    // Mapping des sujets vers des mots-clés Unsplash pertinents
-    if (topicLower.includes('javascript') || topicLower.includes('programmation') || topicLower.includes('code')) {
-      return 'coding,programming,computer,technology'
-    }
-    if (topicLower.includes('marketing') || topicLower.includes('business')) {
-      return 'marketing,business,office,technology'
-    }
-    if (topicLower.includes('data') || topicLower.includes('ia') || topicLower.includes('science')) {
-      return 'data,science,technology,research'
-    }
-    if (topicLower.includes('design') || topicLower.includes('web')) {
-      return 'design,web,creative,technology'
-    }
-    if (topicLower.includes('database') || topicLower.includes('sql')) {
-      return 'database,server,technology,data'
-    }
-    
-    // Mots-clés par défaut
-    return 'technology,education,learning,computer'
   }
 
   async toggleBookmark({ params, auth, response }: HttpContext) {
@@ -514,9 +500,9 @@ export default class CoursesController {
     const isInLearningPath = Number(learningPathCount[0].total) > 0
 
     if (isInLearningPath) {
-      session.flash('notification', { 
-        type: 'error', 
-        message: "❌ Impossible de supprimer ce cours car il est utilisé dans un ou plusieurs parcours publiés." 
+      session.flash('notification', {
+        type: 'error',
+        message: "❌ Impossible de supprimer ce cours car il est utilisé dans un ou plusieurs parcours publiés."
       })
       return response.redirect().back()
     }
@@ -528,9 +514,9 @@ export default class CoursesController {
       reason: request.input('reason') || null
     })
 
-    session.flash('notification', { 
-      type: 'success', 
-      message: "✅ Votre demande de suppression a été envoyée à l'administrateur. Elle sera traitée prochainement." 
+    session.flash('notification', {
+      type: 'success',
+      message: "✅ Votre demande de suppression a été envoyée à l'administrateur. Elle sera traitée prochainement."
     })
     return response.redirect().back()
   }
@@ -581,6 +567,11 @@ export default class CoursesController {
 
     try {
       const data = await vine.validate({ schema: contentSchema, data: request.all() })
+
+      // Vérifier et corriger l'image si nécessaire avant la sauvegarde
+      const fixedImage = await this.verifyAndFixImage(data.content.image || '', course.title)
+      data.content.image = fixedImage
+
       course.description = data.content.description
       course.content = data.content
       course.status = 'ready'

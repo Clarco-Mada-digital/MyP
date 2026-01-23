@@ -12,6 +12,8 @@ if [ "$DB_CONNECTION" = "mysql" ]; then
   echo "MySQL is up!"
 fi
 
+echo "Configuration: HOST=$HOST, PORT=$PORT, NODE_ENV=$NODE_ENV"
+
 echo "Running migrations..."
 node ace.js migration:run --force || echo "Migrations failed or already run"
 

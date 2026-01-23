@@ -22,6 +22,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3333
 ENV HOST=0.0.0.0
+ENV ADONIS_ACE_ANALYTICS=false
 
 # Install system dependencies
 RUN apk add --no-cache curl tzdata \

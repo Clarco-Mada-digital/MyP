@@ -1,0 +1,12 @@
+.env
+node_modules
+build
+tmp
+.git
+.editorconfig
+.vscode
+Dockerfile
+docker-compose.yml
+PROJECT_STATUS.md
+generation_debug.log
+server.log

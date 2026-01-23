@@ -233,7 +233,7 @@ export default class CoursesController {
 
     if (!categoryId) {
       try {
-        const suggestedCategory = await this.categorizeCourseWithAI(course.title)
+        const suggestedCategory = await this.categorizeCourseWithAI(course.title, auth.user as User)
         if (suggestedCategory) {
           course.categoryId = suggestedCategory.id
           await course.save()
@@ -266,47 +266,84 @@ export default class CoursesController {
   }
 
   private async extractTopicWithAI(userPrompt: string, user: User): Promise<string> {
-    const prompt = `Analyze: "${userPrompt}". Identify main subject. Output ONLY the subject noun. Examples: "Learn Python" -> "Python".`
+    const prompt = `Task: Extract the core academic subject or technology from this request. 
+    Request: "${userPrompt}"
+    Rules: 
+    - Output ONLY the subject name (1-3 words).
+    - No punctuation.
+    - No verbs like "Learn" or "Course about".
+    - Correct capitalization.
+    Example: "I want to learn programming in python for data science" -> "Python Data Science"
+    Result:`
+
     try {
-      let tag = (user.aiProvider === 'ollama')
-        ? await OllamaService.generateText(prompt, user.aiModel || 'llama3')
-        : await GeminiService.generateText(prompt, user.aiModel || 'gemini-flash-latest')
+      const tag = await AiProviderService.generateText(prompt, user)
       return tag.trim().replace(/^['"]|['"]$/g, '').replace(/\.$/, '') || string.slug(userPrompt)
     } catch (e) {
+      console.error('[extractTopicWithAI] Error:', e)
       return string.slug(userPrompt)
     }
   }
 
-  private async categorizeCourseWithAI(courseTitle: string): Promise<Category | null> {
-    const existingCategories = await Category.query().orderBy('name', 'asc')
-    if (existingCategories.length === 0) {
-      await this.createDefaultCategories()
-      const categories = await Category.query().orderBy('name', 'asc')
-      return await this.selectBestCategory(courseTitle, categories)
+  private async categorizeCourseWithAI(courseTitle: string, user: User): Promise<Category | null> {
+    const prompt = `Task: Categorize this course title into a single broad category.
+    Title: "${courseTitle}"
+    Existing categories you can choose from if they fit: "Programming", "Design", "Marketing", "Science", "Languages", "Mathematics", "Art", "Health", "Business", "Personal Development".
+    Rule: Output ONLY the category name. If none fit, invent a new short category name (1-2 words).
+    Example: "Advanced Dart Programming" -> "Programming"
+    Result:`
+
+    try {
+      const categoryName = await AiProviderService.generateText(prompt, user)
+      const cleanName = categoryName.trim().replace(/^['"]|['"]$/g, '').replace(/\.$/, '')
+      const slug = string.slug(cleanName).toLowerCase()
+
+      // Find or create
+      let category = await Category.findBy('slug', slug)
+      if (!category) {
+        category = await Category.create({
+          name: cleanName,
+          slug: slug,
+          icon: '📁',
+          color: '#6366f1'
+        })
+      }
+      return category
+    } catch (e) {
+      console.error('[categorizeCourseWithAI] Error:', e)
+      // Fallback to basic regex categorization
+      const existingCategories = await Category.query().orderBy('name', 'asc')
+      if (existingCategories.length === 0) {
+        await this.createDefaultCategories()
+        const categories = await Category.query().orderBy('name', 'asc')
+        return await this.selectBestCategory(courseTitle, categories)
+      }
+      return await this.selectBestCategory(courseTitle, existingCategories)
     }
-    return await this.selectBestCategory(courseTitle, existingCategories)
   }
 
   private async createDefaultCategories(): Promise<void> {
     const defaultCategories = [
-      { name: 'Développement Web', icon: '💻', color: '#3b82f6' },
-      { name: 'Design & Créativité', icon: '🎨', color: '#ec4899' },
-      { name: 'Marketing & Business', icon: '📈', color: '#10b981' },
-      { name: 'Science & Technologie', icon: '🔬', color: '#8b5cf6' },
-      { name: 'Langues & Communication', icon: '🗣️', color: '#f59e0b' },
-      { name: 'Mathématiques & Logique', icon: '🧮', color: '#ef4444' },
-      { name: 'Art & Culture', icon: '🎭', color: '#06b6d4' },
-      { name: 'Santé & Bien-être', icon: '🏥', color: '#84cc16' }
+      { name: 'Programmation', icon: '💻', color: '#3b82f6' },
+      { name: 'Design', icon: '🎨', color: '#ec4899' },
+      { name: 'Marketing', icon: '📈', color: '#10b981' },
+      { name: 'Sciences', icon: '🔬', color: '#8b5cf6' },
+      { name: 'Langues', icon: '🗣️', color: '#f59e0b' },
+      { name: 'Mathématiques', icon: '🧮', color: '#ef4444' }
     ]
     for (const cat of defaultCategories) {
-      await Category.create({ name: cat.name, slug: string.slug(cat.name).toLowerCase(), icon: cat.icon, color: cat.color })
+      const slug = string.slug(cat.name).toLowerCase()
+      const existing = await Category.findBy('slug', slug)
+      if (!existing) {
+        await Category.create({ name: cat.name, slug, icon: cat.icon, color: cat.color })
+      }
     }
   }
 
   private async selectBestCategory(courseTitle: string, categories: Category[]): Promise<Category | null> {
     const title = courseTitle.toLowerCase()
-    if (title.match(/javascript|react|vue|angular|html|css|php|python|node|web|site|application|code|programming|développement|programmation/)) {
-      return categories.find(c => c.name.toLowerCase().includes('web') || c.name.toLowerCase().includes('développement')) || categories[0]
+    if (title.match(/javascript|react|vue|angular|html|css|php|python|node|ruby|web|site|application|ui|ux|frontend|backend/)) {
+      return categories.find(c => c.slug.includes('prog') || c.slug.includes('web')) || categories[0]
     }
     return categories[0]
   }
@@ -331,7 +368,7 @@ export default class CoursesController {
       {
         "description": "Description captivante (min 100 mots)",
         "level": "Expert",
-        "image": "Mots-clés pour l'image d'illustration (ex: python coding machine learning)",
+        "image": "english keywords for a professional cover image (ex: 'rust programming language', 'vintage typewriter')",
         "sources": ["Source 1 (ex: MDN Web Docs)", "Source 2", "Source 3 ou plus"],
         "modules": [
           {
@@ -372,7 +409,7 @@ export default class CoursesController {
       {
         "description": "Description courte",
         "level": "Intermédiaire",
-        "image": "Sujet de l'image (mots-clés)",
+        "image": "english keywords for a cover image (ex: 'data science', 'vintage computer')",
         "sources": ["Source fiable 1", "Source fiable 2", "Source 3 ou plus"],
         "modules": [
           {
@@ -429,19 +466,23 @@ export default class CoursesController {
       } catch { return false }
     }
 
-    // 1. Essayer l'URL fournie (si elle est valide)
-    if (url && url.startsWith('http') && await isImageAccessible(url)) {
-      return url
+    // 1. Si c'est déjà une URL valide (Unsplash ou autre)
+    if (url && url.startsWith('http')) {
+      if (await isImageAccessible(url)) return url
     }
 
-    // 2. Fallback sur Pollinations (Génère une image parfaite pour le sujet)
-    const pollinationsUrl = `https://image.pollinations.ai/prompt/professional minimalist 3d illustration for ${encodeURIComponent(topic)}, technology style, high resolution?nologo=true&width=1200&height=630`
-    if (await isImageAccessible(pollinationsUrl)) {
-      return pollinationsUrl
-    }
+    // 2. Si c'est des mots-clés ou une URL invalide, on utilise Pollinations
+    // On nettoie les mots-clés (enlever les guillemets, "Mots-clés pour...", etc.)
+    let keywords = url || topic
+    keywords = keywords.replace(/^mots-clés pour.*?:/i, '')
+      .replace(/['"]/g, '')
+      .trim()
 
-    // 3. Dernier recours : Image par défaut stable
-    return DEFAULT_IMAGE
+    const pollinationsUrl = `https://image.pollinations.ai/prompt/professional high quality cover for ${encodeURIComponent(keywords)}, 4k, cinematic?width=1200&height=630&nologo=true`
+
+    // On retourne l'URL Pollinations directement. 
+    // Même si HEAD échoue (certains serveurs bloquent), l'image s'affichera dans le navigateur.
+    return pollinationsUrl
   }
 
   async toggleBookmark({ params, auth, response }: HttpContext) {

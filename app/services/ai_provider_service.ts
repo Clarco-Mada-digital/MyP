@@ -7,16 +7,12 @@ import ApplicationSetting from '#models/application_setting'
 export default class AiProviderService {
   /**
    * Generates JSON content using the appropriate AI provider.
-   * Logic:
-   * 1. If user chose 'ollama', use local Ollama.
-   * 2. Else, use the GLOBAL_CLOUD_PROVIDER setting (admin chosen).
    */
   static async generateJson(prompt: string, user: User) {
     if (user.aiProvider === 'ollama') {
       return OllamaService.generateJson(prompt, user.aiModel || 'llama3')
     }
 
-    // Determine which cloud provider is active globally
     const cloudProvider = await ApplicationSetting.getValue('active_cloud_provider', 'gemini')
 
     switch (cloudProvider) {
@@ -24,7 +20,29 @@ export default class AiProviderService {
         return OpenRouterService.generateJson(prompt, user.aiModel || 'google/gemini-2.0-flash-lite:free')
       case 'gemini':
       default:
-        return GeminiService.generateJson(prompt, user.aiModel || 'gemini-flash-latest')
+        return GeminiService.generateJson(prompt, user.aiModel || 'gemini-1.5-flash')
+    }
+  }
+
+  /**
+   * Generates PLAIN TEXT content using the appropriate AI provider.
+   */
+  static async generateText(prompt: string, user: User) {
+    if (user.aiProvider === 'ollama') {
+      return OllamaService.generateText(prompt, user.aiModel || 'llama3')
+    }
+
+    const cloudProvider = await ApplicationSetting.getValue('active_cloud_provider', 'gemini')
+
+    switch (cloudProvider) {
+      case 'openrouter':
+        // Reuse generateJson but we might need a specific text method. 
+        // For now, OpenRouter generateJson returns the raw content parsed as JSON.
+        // Let's add generateText to services.
+        return OpenRouterService.generateText(prompt, user.aiModel || 'google/gemini-2.0-flash-lite:free')
+      case 'gemini':
+      default:
+        return GeminiService.generateText(prompt, user.aiModel || 'gemini-1.5-flash')
     }
   }
 

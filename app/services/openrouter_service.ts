@@ -70,12 +70,18 @@ export default class OpenRouterService {
       }
 
       const data = await response.json() as any
-      const content = data.choices[0].message.content
+      let content = data.choices[0].message.content.trim()
+
+      // Nettoyage robuste : Extraire le contenu entre { et } si l'IA a ajouté du texte
+      const jsonMatch = content.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        content = jsonMatch[0]
+      }
 
       try {
         return JSON.parse(content)
       } catch (e) {
-        console.error('Failed to parse OpenRouter JSON:', content)
+        console.error('Failed to parse OpenRouter JSON (Cleaned):', content)
         throw new Error('Invalid JSON received from OpenRouter')
       }
 

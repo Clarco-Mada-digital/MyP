@@ -37,4 +37,10 @@ export const http = defineConfig({
     secure: app.inProduction,
     sameSite: 'lax',
   },
+
+  /**
+   * Trust proxy headers. Set this to true if you are behind a reverse 
+   * proxy like Nginx or Docker.
+   */
+  trustProxy: true,
 })

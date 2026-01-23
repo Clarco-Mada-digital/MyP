@@ -40,9 +40,19 @@ export default class CoursesController {
 
     // Logique de restriction pour les invités (non connectés)
     if (!auth.user) {
-      const ip = request.ip()
+      let ip = request.ip()
       let guestId = request.cookie('guest_id')
       const userAgent = request.header('user-agent') || null
+
+      // Vérifier si l'IP est une IP privée (Docker, LAN, Localhost)
+      const isPrivateIp = (addr: string) => {
+        return addr === '127.0.0.1' || addr === '::1' ||
+          addr.startsWith('10.') ||
+          addr.startsWith('192.168.') ||
+          (addr.startsWith('172.') && parseInt(addr.split('.')[1]) >= 16 && parseInt(addr.split('.')[1]) <= 31)
+      }
+
+      const ipIsUnreliable = isPrivateIp(ip)
 
       if (!guestId) {
         guestId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
@@ -55,10 +65,15 @@ export default class CoursesController {
 
       const startOfMonth = DateTime.now().startOf('month')
 
-      // Vérifier si cet utilisateur (IP ou ID cookie) a déjà accédé à un cours ce mois-ci
+      // Vérifier si cet utilisateur a déjà accédé à un cours ce mois-ci
+      // Si l'IP est privée/interne, on se base UNIQUEMENT sur le guestId
       const access = await GuestAccess.query()
         .where((query) => {
-          query.where('ipAddress', ip).orWhere('guestId', guestId!)
+          if (ipIsUnreliable) {
+            query.where('guestId', guestId!)
+          } else {
+            query.where('ipAddress', ip).orWhere('guestId', guestId!)
+          }
         })
         .where('createdAt', '>=', startOfMonth.toSQL())
         .first()
@@ -77,15 +92,17 @@ export default class CoursesController {
           return view.render('pages/courses/guest_warning', { course })
         }
 
-        // Récupérer les infos géo
+        // Récupérer les infos géo (Uniquement si l'IP est publique)
         let geo: any = null
-        try {
-          const geoRes = await fetch(`http://ip-api.com/json/${ip}?fields=status,country,countryCode,city`)
-          if (geoRes.ok) {
-            geo = await geoRes.json()
+        if (!ipIsUnreliable) {
+          try {
+            const geoRes = await fetch(`http://ip-api.com/json/${ip}?fields=status,country,countryCode,city`)
+            if (geoRes.ok) {
+              geo = await geoRes.json()
+            }
+          } catch (e) {
+            console.error('[GeoIP] Error:', e)
           }
-        } catch (e) {
-          console.error('[GeoIP] Error:', e)
         }
 
         await GuestAccess.create({
@@ -93,7 +110,7 @@ export default class CoursesController {
           guestId,
           userAgent,
           courseId: course.id,
-          country: geo?.status === 'success' ? geo.country : null,
+          country: geo?.status === 'success' ? geo.country : (ipIsUnreliable ? 'Local/Network' : null),
           countryCode: geo?.status === 'success' ? geo.countryCode : null,
           city: geo?.status === 'success' ? geo.city : null
         })

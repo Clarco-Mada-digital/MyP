@@ -25,7 +25,7 @@ ENV HOST=0.0.0.0
 ENV ADONIS_ACE_ANALYTICS=false
 
 # Install system dependencies
-RUN apk add --no-cache curl tzdata \
+RUN apk add --no-cache curl wget tzdata \
     && echo "fs.inotify.max_user_watches=524288" >> /etc/sysctl.conf \
     && echo "fs.inotify.max_user_instances=512" >> /etc/sysctl.conf
 

@@ -4,9 +4,11 @@ export default class extends BaseSchema {
   protected tableName = 'courses'
 
   async up() {
-    this.schema.alterTable(this.tableName, (table) => {
-      table.string('topic_tag').nullable().after('title').index()
-    })
+    if (!(await this.schema.hasColumn(this.tableName, 'topic_tag'))) {
+      this.schema.alterTable(this.tableName, (table) => {
+        table.string('topic_tag').nullable().after('title').index()
+      })
+    }
   }
 
   async down() {

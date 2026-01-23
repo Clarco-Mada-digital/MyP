@@ -78,7 +78,7 @@ export default class CoursesController {
         }
 
         // Récupérer les infos géo
-        let geo = null
+        let geo: any = null
         try {
           const geoRes = await fetch(`http://ip-api.com/json/${ip}?fields=status,country,countryCode,city`)
           if (geoRes.ok) {

@@ -20,7 +20,7 @@ WORKDIR /app
 
 # Set environment
 ENV NODE_ENV=production
-ENV PORT=3333
+ENV PORT=3000
 ENV HOST=0.0.0.0
 ENV ADONIS_ACE_ANALYTICS=false
 
@@ -40,7 +40,7 @@ RUN npm ci --omit=dev && chmod +x entrypoint.sh
 RUN mkdir -p tmp
 
 # Expose port
-EXPOSE 3333
+EXPOSE 3000
 
 # Start the application via entrypoint
 ENTRYPOINT ["./entrypoint.sh"]

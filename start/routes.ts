@@ -42,6 +42,7 @@ router.group(() => {
   router.post('/settings', [SettingsController, 'update'])
   router.post('/settings/profile', [SettingsController, 'updateProfile'])
   router.post('/settings/password', [SettingsController, 'updatePassword'])
+  router.post('/settings/test-key', [SettingsController, 'testKey'])
   router.get('/admin', [AdminController, 'index']).as('admin.dashboard')
   router.get('/admin/users', [AdminController, 'users']).as('admin.users')
   router.post('/admin/users/:id/toggle-admin', [AdminController, 'toggleAdmin']).as('admin.users.toggle')

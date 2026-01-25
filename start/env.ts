@@ -34,6 +34,7 @@ export default await Env.create(new URL('../', import.meta.url), {
   OLLAMA_MODEL: Env.schema.string.optional(),
   GEMINI_API_KEY: Env.schema.string.optional(),
   OPENROUTER_API_KEY: Env.schema.string.optional(),
+  OPENAI_API_KEY: Env.schema.string.optional(),
 
   /*
   |----------------------------------------------------------

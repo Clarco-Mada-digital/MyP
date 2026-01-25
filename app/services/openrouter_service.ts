@@ -2,18 +2,26 @@ import env from '#start/env'
 
 export default class OpenRouterService {
   private static baseUrl = 'https://openrouter.ai/api/v1'
-  private static apiKey = env.get('OPENROUTER_API_KEY')
+  private static globalApiKey = env.get('OPENROUTER_API_KEY')
+
+  private static getEffectiveKey(apiKey?: string | null, forcePersonal: boolean = false): string {
+    if (apiKey) return apiKey
+    if (forcePersonal) throw new Error('Votre clé OpenRouter personnelle est vide.')
+    if (!this.globalApiKey) throw new Error('Aucune clé OpenRouter configurée.')
+    return this.globalApiKey
+  }
 
   /**
    * List available models from OpenRouter (relevant ones)
    */
-  static async getModels(): Promise<string[]> {
-    if (!this.apiKey) return []
+  static async getModels(apiKey?: string | null): Promise<string[]> {
+    const effectiveKey = apiKey || this.globalApiKey
+    if (!effectiveKey) return []
 
     try {
       const response = await fetch(`${this.baseUrl}/models`, {
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
+          'Authorization': `Bearer ${effectiveKey}`,
           'HTTP-Referer': 'https://myprofessor.ai',
           'X-Title': 'My Professor'
         }
@@ -22,10 +30,7 @@ export default class OpenRouterService {
       if (!response.ok) return []
 
       const data = await response.json() as any
-      // Ne garder que les modèles gratuits (:free)
-      return data.data
-        // ?.filter((m: any) => m.id.endsWith(':free'))
-        .map((m: any) => m.id) || []
+      return data.data.map((m: any) => m.id) || []
     } catch (error) {
       console.error('OpenRouter connection failed:', error)
       return []
@@ -35,10 +40,10 @@ export default class OpenRouterService {
   /**
    * Generate JSON using OpenRouter
    */
-  static async generateJson(prompt: string, model: string) {
-    if (!this.apiKey) throw new Error('OpenRouter API Key is missing')
+  static async generateJson(prompt: string, model: string, apiKey?: string | null, forcePersonal: boolean = false) {
+    const effectiveKey = this.getEffectiveKey(apiKey, forcePersonal)
 
-    console.log(`[OpenRouter] Generating JSON with model: ${model}`)
+    console.log(`[OpenRouter] Generating JSON with model: ${model} ${apiKey || forcePersonal ? '(Personal Key)' : '(Global Key)'}`)
 
     const messages = [
       { role: 'system', content: 'You are an educational expert. Respond ONLY with valid JSON.' },
@@ -49,7 +54,7 @@ export default class OpenRouterService {
       const response = await fetch(`${this.baseUrl}/chat/completions`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
+          'Authorization': `Bearer ${effectiveKey}`,
           'Content-Type': 'application/json',
           'HTTP-Referer': 'https://myprofessor.ai',
           'X-Title': 'My Professor',
@@ -58,9 +63,6 @@ export default class OpenRouterService {
         body: JSON.stringify({
           model: model,
           messages: messages,
-          // Certains modèles gratuits plantent avec response_format: 'json_object'
-          // On se fie au system prompt qui est déjà très clair.
-          // response_format: { type: 'json_object' }
         }),
       })
 
@@ -72,7 +74,6 @@ export default class OpenRouterService {
       const data = await response.json() as any
       let content = data.choices[0].message.content.trim()
 
-      // Nettoyage robuste : Extraire le contenu entre { et } si l'IA a ajouté du texte
       const jsonMatch = content.match(/\{[\s\S]*\}/)
       if (jsonMatch) {
         content = jsonMatch[0]
@@ -94,8 +95,8 @@ export default class OpenRouterService {
   /**
    * Generate text using OpenRouter
    */
-  static async generateText(prompt: string, model: string) {
-    if (!this.apiKey) throw new Error('OpenRouter API Key is missing')
+  static async generateText(prompt: string, model: string, apiKey?: string | null, forcePersonal: boolean = false) {
+    const effectiveKey = this.getEffectiveKey(apiKey, forcePersonal)
 
     const messages = [
       { role: 'user', content: prompt }
@@ -105,7 +106,7 @@ export default class OpenRouterService {
       const response = await fetch(`${this.baseUrl}/chat/completions`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
+          'Authorization': `Bearer ${effectiveKey}`,
           'Content-Type': 'application/json',
           'HTTP-Referer': 'https://myprofessor.ai',
           'X-Title': 'My Professor',

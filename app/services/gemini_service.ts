@@ -2,18 +2,34 @@ import env from '#start/env'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
 export default class GeminiService {
-  private static apiKey = env.get('GEMINI_API_KEY')
-  private static genAI = this.apiKey ? new GoogleGenerativeAI(this.apiKey) : null
+  private static globalApiKey = env.get('GEMINI_API_KEY')
+  private static globalGenAI = this.globalApiKey ? new GoogleGenerativeAI(this.globalApiKey) : null
 
-  static async generateJson(prompt: string, userModel?: string) {
-    if (!this.genAI) {
-      throw new Error('GEMINI_API_KEY is not configured')
+  private static getClient(apiKey?: string | null, forcePersonal: boolean = false) {
+    // If personal key is provided, always use it
+    if (apiKey) {
+      return new GoogleGenerativeAI(apiKey)
     }
 
-    const modelName = userModel || 'gemini-flash-latest'
-    console.log(`[GeminiService] Using model: ${modelName}`)
+    // If we are forced to use personal but none provided -> Error
+    if (forcePersonal) {
+      throw new Error('Votre clé Gemini personnelle est vide. Veuillez la configurer dans les paramètres.')
+    }
 
-    const model = this.genAI.getGenerativeModel({
+    // Default to global
+    if (!this.globalGenAI) {
+      throw new Error('GEMINI_API_KEY is not configured on server and no personal key provided')
+    }
+    return this.globalGenAI
+  }
+
+  static async generateJson(prompt: string, userModel?: string, apiKey?: string | null, forcePersonal: boolean = false) {
+    const genAI = this.getClient(apiKey, forcePersonal)
+    const modelName = userModel || 'gemini-1.5-flash'
+
+    console.log(`[GeminiService] Generating JSON with model: ${modelName} ${apiKey || forcePersonal ? '(Personal Key)' : '(Global Key)'}`)
+
+    const model = genAI.getGenerativeModel({
       model: modelName,
       generationConfig: {
         responseMimeType: 'application/json',
@@ -46,12 +62,9 @@ export default class GeminiService {
             continue
           }
 
-          const fs = await import('node:fs')
-          fs.writeFileSync('raw_gemini_response.txt', text)
-          console.error('Failed to parse Gemini response as JSON (Full Text):', text)
           throw new Error('Invalid JSON response from Gemini after multiple attempts')
         }
-      } catch (error) {
+      } catch (error: any) {
         // Retry on Rate Limit (429)
         if (error.message && error.message.includes('429') && retries < maxRetries - 1) {
           retries++
@@ -69,13 +82,10 @@ export default class GeminiService {
     }
   }
 
-  static async generateText(prompt: string, userModel?: string) {
-    if (!this.genAI) {
-      throw new Error('GEMINI_API_KEY is not configured')
-    }
-
-    const modelName = userModel || 'gemini-flash-latest'
-    const model = this.genAI.getGenerativeModel({ model: modelName })
+  static async generateText(prompt: string, userModel?: string, apiKey?: string | null, forcePersonal: boolean = false) {
+    const genAI = this.getClient(apiKey, forcePersonal)
+    const modelName = userModel || 'gemini-1.5-flash'
+    const model = genAI.getGenerativeModel({ model: modelName })
 
     try {
       const result = await model.generateContent(prompt)
@@ -87,10 +97,11 @@ export default class GeminiService {
     }
   }
 
-  static async getModels(): Promise<string[]> {
-    if (!this.apiKey) return []
+  static async getModels(apiKey?: string | null): Promise<string[]> {
+    const effectiveKey = apiKey || this.globalApiKey
+    if (!effectiveKey) return []
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${this.apiKey}`)
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${effectiveKey}`)
       if (!response.ok) return []
       const data = await response.json() as any
       return data.models

@@ -1,366 +1,347 @@
-@app({ title: 'Paramètres - My Professor' })
+@app({ title: 'Paramètres IA - My Professor' })
 @slot('main')
-<main class="max-w-7xl mx-auto px-6 py-12">
-  <div class="mb-12">
-    <h1 class="text-4xl font-extrabold tracking-tight mb-4 text-slate-900">Paramètres IA</h1>
-    <p class="text-slate-500 text-lg">Choisissez le cerveau qui propulse vos cours.</p>
-  </div>
+    <script>
+      const settingsConfig = {
+        initialProvider: '{{ user.aiProvider || 'default' }}',
+        initialUsePersonal: {{ user.useCustomKeys ? 'true' : 'false' }},
+        initialCloudModels: {{{ JSON.stringify(cloudModels) }}},
+        initialModel: '{{ user.aiModel || '' }}',
+        csrfToken: '{{ csrfToken }}'
+      };
 
-  <div x-data="{ activeTab: 'profile' }" class="flex flex-col lg:flex-row gap-8">
-    {{-- Sidebar / Tabs --}}
-    <aside class="w-full lg:w-64 flex-shrink-0">
-      <nav class="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0">
-        <button @click="activeTab = 'profile'"
-          :class="{ 'bg-primary-50 text-primary-700': activeTab === 'profile', 'hover:bg-slate-50 text-slate-600': activeTab !== 'profile' }"
-          class="flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all whitespace-nowrap">
-          <span class="text-xl">👤</span>
-          Profil
-        </button>
-        <button @click="activeTab = 'ai'"
-          :class="{ 'bg-primary-50 text-primary-700': activeTab === 'ai', 'hover:bg-slate-50 text-slate-600': activeTab !== 'ai' }"
-          class="flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all whitespace-nowrap">
-          <span class="text-xl">🤖</span>
-          Intelligence Artificielle
-        </button>
-        <button @click="activeTab = 'security'"
-          :class="{ 'bg-primary-50 text-primary-700': activeTab === 'security', 'hover:bg-slate-50 text-slate-600': activeTab !== 'security' }"
-          class="flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all whitespace-nowrap">
-          <span class="text-xl">🔒</span>
-          Sécurité
-        </button>
-      </nav>
-    </aside>
+      function settingsManager(config) {
+        return {
+          activeTab: 'ai',
+          activeProvider: config.initialProvider || 'default',
+          usePersonal: config.initialUsePersonal,
+          cloudModels: config.initialCloudModels,
+          storedModel: config.initialModel,
+          
+          ollama: {
+            connected: false,
+            models: [],
+            loading: false,
+            selectedModel: config.initialProvider === 'ollama' ? config.initialModel : ''
+          },
+          showHelp: false,
 
-    {{-- Content Area --}}
-    <div class="flex-1">
+          async init() {
+            if (this.activeProvider === 'ollama') await this.checkOllama();
+            
+            this.$watch('usePersonal', val => {
+              if (!val && (this.activeProvider === 'gemini' || this.activeProvider === 'openrouter')) {
+                this.activeProvider = 'default';
+              }
+            });
+          },
 
-      {{-- Tab: Profile --}}
-      <div x-show="activeTab === 'profile'" x-transition:enter="transition ease-out duration-300"
-        x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0">
-        <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100 mb-8">
-          <h2 class="text-2xl font-bold text-slate-900 mb-6">Informations personnelles</h2>
-          <form action="/settings/profile" method="POST" class="space-y-6">
-            {{ csrfField() }}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label class="block text-sm font-bold text-slate-700 mb-2">Nom complet</label>
-                <input type="text" name="fullName" value="{{ user.fullName }}"
-                  class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-500 transition-all font-medium">
-              </div>
-              <div>
-                <label class="block text-sm font-bold text-slate-700 mb-2">Email</label>
-                <input type="email" name="email" value="{{ user.email }}"
-                  class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-500 transition-all font-medium bg-slate-50 text-slate-500 cursor-not-allowed"
-                  readonly title="L'email ne peut pas être modifié">
-              </div>
-            </div>
-            <div class="flex justify-end pt-4">
-              <button type="submit"
-                class="bg-slate-900 text-white font-bold py-3 px-6 rounded-xl hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl">
-                Mettre à jour le profil
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      {{-- Tab: AI --}}
-      <div x-show="activeTab === 'ai'" 
-           x-data="{ 
-              activeProvider: '{{ user.aiProvider }}',
-              ollama: {
-                connected: false,
-                models: [],
-                loading: false,
-                selectedModel: '{{ user.aiProvider === 'ollama' ? user.aiModel : '' }}'
-              },
-              os: 'linux',
-              showHelp: false,
-              async init() {
-                this.detectOS();
-                if (this.activeProvider === 'ollama') {
-                  this.checkOllama();
-                }
-              },
-              detectOS() {
-                const ua = window.navigator.userAgent.toLowerCase();
-                if (ua.indexOf('win') !== -1) this.os = 'windows';
-                else if (ua.indexOf('mac') !== -1) this.os = 'macos';
-                else if (ua.indexOf('linux') !== -1) this.os = 'linux';
-                else if (ua.indexOf('android') !== -1) this.os = 'android';
-                else if (ua.indexOf('iphone') !== -1 || ua.indexOf('ipad') !== -1) this.os = 'ios';
-              },
-              async checkOllama() {
-                this.ollama.loading = true;
-                try {
-                  const res = await fetch('http://localhost:11434/api/tags');
-                  if (res.ok) {
-                    const data = await res.json();
-                    this.ollama.models = data.models.map(m => m.name);
-                    this.ollama.connected = true;
-                    if (!this.ollama.selectedModel && this.ollama.models.length > 0) {
-                      this.ollama.selectedModel = this.ollama.models[0];
-                    }
-                  } else {
-                    this.ollama.connected = false;
-                  }
-                } catch (e) {
-                  this.ollama.connected = false;
-                } finally {
-                  this.ollama.loading = false;
+          async checkOllama() {
+            this.ollama.loading = true;
+            try {
+              const res = await fetch('http://localhost:11434/api/tags');
+              if (res.ok) {
+                const data = await res.json();
+                this.ollama.models = data.models.map(m => m.name);
+                this.ollama.connected = true;
+                if (!this.ollama.selectedModel && this.ollama.models.length > 0) {
+                  this.ollama.selectedModel = this.ollama.models[0];
                 }
               }
-           }"
-           x-transition:enter="transition ease-out duration-300"
-           x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0"
-           style="display: none;">
-        
-        <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100">
-          <h2 class="text-2xl font-bold text-slate-900 mb-2">Moteur d'Intelligence Artificielle</h2>
-          <p class="text-slate-500 mb-8">Choisissez le modèle qui génèrera vos cours.</p>
+            } catch (e) {
+              this.ollama.connected = false;
+            } finally {
+              this.ollama.loading = false;
+            }
+          },
 
-          <form action="/settings" method="POST" class="space-y-8">
-            {{ csrfField() }}
-            
-            <!-- Hidden input for the final model selection -->
-            <input type="hidden" name="ai_model" x-model="ollama.selectedModel">
+          async testKey(provider, key) {
+            if (!key) return alert('Entrez une clé d\'abord.');
+            const btn = event.currentTarget;
+            btn.innerText = '⏳...';
+            try {
+              const res = await fetch('/settings/test-key', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': config.csrfToken },
+                body: JSON.stringify({ provider, key })
+              });
+              const data = await res.json();
+              if (res.ok) {
+                alert('✅ Clé valide ! Modèles chargés.');
+                this.cloudModels = data.models;
+                this.activeProvider = provider;
+                this.usePersonal = true;
+              } else {
+                alert('❌ ' + data.message);
+              }
+            } catch (e) {
+              alert('❌ Erreur de connexion');
+            } finally {
+              btn.innerText = 'Vérifier & Charger';
+            }
+          }
+        }
+      }
+    </script>
 
-            <!-- Cloud Option -->
-            <div class="relative group">
-              <input type="radio" name="ai_provider" id="provider_cloud" value="gemini" x-model="activeProvider" @change="ollama.selectedModel = $refs.cloudSelect.value" class="peer hidden">
-              <label for="provider_cloud"
-                class="block cursor-pointer select-none rounded-2xl border-2 border-slate-100 p-4 md:p-6 transition-all hover:border-primary-200 peer-checked:border-primary-600 peer-checked:bg-primary-50 peer-checked:shadow-md">
-                <div class="flex items-center justify-between mb-4">
-                  <div class="flex items-center gap-3 md:gap-4">
-                    <div
-                      class="h-10 w-10 md:h-12 md:w-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xl md:text-2xl shadow-lg">
-                      ☁️</div>
-                    <div>
-                      <h3 class="font-bold text-base md:text-lg text-slate-800">
-                        {{ activeCloudProvider === 'openrouter' ? 'OpenRouter (Multi-IA)' : 'Google Gemini (Cloud)' }}
-                      </h3>
-                      <p class="text-slate-500 text-xs md:text-sm">Propulsé par le service cloud configuré par l'admin.</p>
-                    </div>
-                  </div>
-                  <div
-                    class="h-6 w-6 rounded-full border-2 border-slate-300 peer-checked:border-primary-600 peer-checked:bg-primary-600 transition-all flex items-center justify-center">
-                    <div class="h-2.5 w-2.5 rounded-full bg-white opacity-0 peer-checked:opacity-100"></div>
-                  </div>
-                </div>
+    <main class="max-w-7xl mx-auto px-6 py-12" x-data="settingsManager(settingsConfig)">
+      
+      <div class="mb-12">
+        <h1 class="text-4xl font-black text-slate-900 mb-2 italic">Paramètres Premium</h1>
+        <p class="text-slate-500">Gérez vos sources d'intelligence et vos clés API.</p>
+      </div>
 
-                <div x-show="activeProvider === 'gemini'" class="pl-0 md:pl-16 mt-4 transition-all">
-                  <label class="block text-sm font-bold text-slate-700 mb-2">Sélectionner le modèle</label>
-                  <select x-ref="cloudSelect" @change="ollama.selectedModel = $el.value"
-                    class="w-full rounded-xl border-slate-200 bg-white py-3 px-4 text-slate-700 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500">
-                    @each(model in cloudModels)
-                    <option value="{{ model }}" {{ user.aiModel === model ? 'selected' : '' }}>{{ model }}</option>
-                    @end
-                  </select>
-                </div>
-              </label>
-            </div>
+      <div class="flex flex-col lg:flex-row gap-10">
+        {{-- Sidebar --}}
+        <aside class="w-full lg:w-64">
+           <nav class="space-y-2">
+              <button @click="activeTab = 'ai'" :class="activeTab === 'ai' ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'bg-white text-slate-600 hover:bg-slate-50'" class="w-full flex items-center gap-3 px-6 py-4 rounded-2xl font-bold transition-all">🤖 Moteur IA</button>
+              <button @click="activeTab = 'profile'" :class="activeTab === 'profile' ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'bg-white text-slate-600 hover:bg-slate-50'" class="w-full flex items-center gap-3 px-6 py-4 rounded-2xl font-bold transition-all">👤 Mon Profil</button>
+              <button @click="activeTab = 'security'" :class="activeTab === 'security' ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'bg-white text-slate-600 hover:bg-slate-50'" class="w-full flex items-center gap-3 px-6 py-4 rounded-2xl font-bold transition-all">🔒 Sécurité</button>
+           </nav>
+        </aside>
 
-            <!-- Local Option (Ollama) -->
-            <div class="relative group">
-              <input type="radio" name="ai_provider" id="provider_ollama" value="ollama" x-model="activeProvider" @change="checkOllama()" class="peer hidden">
-              <label for="provider_ollama"
-                class="block cursor-pointer select-none rounded-2xl border-2 border-slate-100 p-4 md:p-6 transition-all hover:border-orange-200 peer-checked:border-orange-500 peer-checked:bg-orange-50 peer-checked:shadow-md">
-                <div class="flex items-center justify-between mb-4">
-                  <div class="flex items-center gap-3 md:gap-4">
-                    <div
-                      class="h-10 w-10 md:h-12 md:w-12 rounded-xl bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center text-white text-xl md:text-2xl shadow-lg">
-                      🦙</div>
-                    <div>
-                      <div class="flex items-center gap-2">
-                        <h3 class="font-bold text-base md:text-lg text-slate-800">Ollama (Local)</h3>
-                        <template x-if="ollama.connected">
-                            <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full uppercase">Connecté</span>
-                        </template>
+        {{-- Content --}}
+        <div class="flex-1">
+          
+          {{-- PILLIERS IA --}}
+          <div x-show="activeTab === 'ai'" class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <form action="/settings" method="POST" class="space-y-8">
+              {{ csrfField() }}
+              
+              {{-- On stocke le modèle choisi --}}
+              <input type="hidden" name="ai_model" :value="activeProvider === 'ollama' ? ollama.selectedModel : storedModel">
+
+              <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest mb-6 px-2">1. Choisissez votre source d'intelligence</h2>
+              
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                 {{-- PILLIER 1 : ADMIN --}}
+                 <div class="relative group">
+                    <input type="radio" name="ai_provider" id="p_default" value="default" x-model="activeProvider" @click="usePersonal = false" class="peer hidden">
+                    <label for="p_default" class="block h-full cursor-pointer rounded-[2rem] border-2 border-slate-100 p-8 transition-all hover:border-primary-200 peer-checked:border-primary-600 peer-checked:bg-primary-50 peer-checked:shadow-xl">
+                       <span class="text-xs font-black px-2 py-1 bg-slate-900 text-white rounded-lg mb-4 inline-block tracking-tighter">STANDARD</span>
+                       <div class="text-4xl mb-4">🏠</div>
+                       <h3 class="text-lg font-bold text-slate-900 mb-2">Clé du Serveur</h3>
+                       <p class="text-xs text-slate-500 leading-relaxed italic">Utilise les quotas de l'administrateur (Gemini par défaut).</p>
+                    </label>
+                 </div>
+
+                 {{-- PILLIER 2 : PERSONNEL --}}
+                 <div class="relative group">
+                    <input type="radio" name="ai_provider" id="p_custom" value="gemini" x-model="activeProvider" @click="usePersonal = true" class="peer hidden" :checked="usePersonal">
+                    <label for="p_custom" class="block h-full cursor-pointer rounded-[2rem] border-2 border-slate-100 p-8 transition-all hover:border-indigo-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50 peer-checked:shadow-xl">
+                       <span class="text-xs font-black px-2 py-1 bg-indigo-600 text-white rounded-lg mb-4 inline-block tracking-tighter">PREMIUM</span>
+                       <div class="text-4xl mb-4">🔑</div>
+                       <h3 class="text-lg font-bold text-slate-900 mb-2">Mes clés API</h3>
+                       <p class="text-xs text-slate-500 leading-relaxed italic">Utilisez vos propres accès (Gemini ou OpenRouter) sans limites.</p>
+                    </label>
+                 </div>
+
+                 {{-- PILLIER 3 : OLLAMA --}}
+                 <div class="relative group">
+                    <input type="radio" name="ai_provider" id="p_ollama" value="ollama" x-model="activeProvider" @click="checkOllama(); usePersonal = false" class="peer hidden">
+                    <label for="p_ollama" class="block h-full cursor-pointer rounded-[2rem] border-2 border-slate-100 p-8 transition-all hover:border-orange-200 peer-checked:border-orange-600 peer-checked:bg-orange-50 peer-checked:shadow-xl">
+                       <span class="text-xs font-black px-2 py-1 bg-orange-600 text-white rounded-lg mb-4 inline-block tracking-tighter">LOCAL</span>
+                       <div class="text-4xl mb-4">🦙</div>
+                       <h3 class="text-lg font-bold text-slate-900 mb-2">Ollama (PC)</h3>
+                       <p class="text-xs text-slate-500 leading-relaxed italic">Gérez vos cours gratuitement sur votre machine. 100% privé.</p>
+                    </label>
+                 </div>
+              </div>
+
+              {{-- CONFIGURATION CONDITIONNELLE --}}
+              <div class="space-y-6">
+                
+                {{-- Sous-choix pour le mode Personnel --}}
+                <div x-show="usePersonal || (activeProvider !== 'default' && activeProvider !== 'ollama')" class="bg-white rounded-[2.5rem] p-8 border border-slate-200 shadow-sm animate-in zoom-in-95 duration-300">
+                   <div class="flex items-center gap-4 mb-8">
+                      <input type="checkbox" name="use_custom_keys" x-model="usePersonal" class="w-6 h-6 text-primary-600 rounded-lg">
+                      <label class="font-black text-slate-800 tracking-tight">Activer l'utilisation de mes clés</label>
+                   </div>
+                   
+                   <div class="grid grid-cols-1 md:grid-cols-2 gap-8" x-show="usePersonal">
+                      <div class="space-y-4">
+                         <label class="block text-xs font-black text-slate-400 uppercase tracking-widest">Choisir mon moteur</label>
+                         <select x-model="activeProvider" name="ai_provider_sub" class="w-full p-4 rounded-xl bg-slate-50 border-none font-bold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="gemini">✨ Google Gemini (Recommandé)</option>
+                            <option value="openrouter">🌐 OpenRouter (Multi-modèles)</option>
+                         </select>
                       </div>
-                      <p class="text-slate-500 text-xs md:text-sm">Gratuit, illimité, privé. Dépend de votre PC.</p>
-                    </div>
-                  </div>
-                  <div
-                    class="h-6 w-6 rounded-full border-2 border-slate-300 peer-checked:border-orange-500 peer-checked:bg-orange-500 transition-all flex items-center justify-center">
-                    <div class="h-2.5 w-2.5 rounded-full bg-white opacity-0 peer-checked:opacity-100"></div>
-                  </div>
+
+                      <div class="space-y-4">
+                        <label class="block text-xs font-black text-slate-400 uppercase tracking-widest">Ma clé API</label>
+                        <div x-show="activeProvider === 'gemini'">
+                           <div class="flex gap-2">
+                              <input type="password" name="custom_gemini_key" value="{{ user.customGeminiKey || '' }}" x-ref="gKey" class="flex-1 p-4 rounded-xl bg-slate-50 border-none font-mono text-sm shadow-inner" placeholder="Pousser ici votre clé Gemini">
+                              <button type="button" @click="testKey('gemini', $refs.gKey.value)" class="px-4 bg-slate-900 text-white rounded-xl font-bold text-xs">Vérifier</button>
+                           </div>
+                        </div>
+                        <div x-show="activeProvider === 'openrouter'">
+                           <div class="flex gap-2">
+                              <input type="password" name="custom_openrouter_key" value="{{ user.customOpenrouterKey || '' }}" x-ref="oKey" class="flex-1 p-4 rounded-xl bg-slate-50 border-none font-mono text-sm shadow-inner" placeholder="Votre clé OpenRouter">
+                              <button type="button" @click="testKey('openrouter', $refs.oKey.value)" class="px-4 bg-slate-900 text-white rounded-xl font-bold text-xs">Vérifier</button>
+                           </div>
+                        </div>
+                      </div>
+                   </div>
                 </div>
 
-                <div x-show="activeProvider === 'ollama'" class="pl-0 md:pl-16 mt-4 transition-all">
-                  <template x-if="ollama.loading">
-                    <div class="flex items-center gap-2 text-slate-400 text-sm">
-                        <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        Recherche d'Ollama sur votre PC...
-                    </div>
-                  </template>
-
-                  <template x-if="!ollama.loading && ollama.connected">
-                    <div>
-                        <div class="flex items-center justify-between mb-2">
-                            <label class="block text-sm font-bold text-slate-700">Modèle Local (installé)</label>
-                            <button type="button" @click="checkOllama()" class="text-xs text-primary-600 font-bold hover:underline">Actualiser</button>
-                        </div>
-                        <select x-model="ollama.selectedModel"
-                            class="w-full rounded-xl border-slate-200 bg-white py-3 px-4 text-slate-700 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500">
-                            <template x-for="model in ollama.models" :key="model">
-                                <option :value="model" x-text="model" :selected="ollama.selectedModel === model"></option>
-                            </template>
+                {{-- SÉLECTEUR DE MODÈLE (TOUJOURS LÀ POUR CLOUD) --}}
+                <div x-show="activeProvider !== 'ollama'" class="bg-slate-900 text-white rounded-[2.5rem] p-10 shadow-2xl">
+                   <div class="flex flex-col md:flex-row gap-10 items-center">
+                      <div class="flex-1 space-y-4">
+                        <h4 class="text-xs font-black text-primary-400 uppercase tracking-widest">2. Choix du cerveau spécifique</h4>
+                        <p class="text-slate-400 text-sm">Sélectionnez le modèle exact que vous souhaitez utiliser.</p>
+                        <select x-model="storedModel" class="w-full bg-slate-800 border-none text-white p-5 rounded-2xl outline-none focus:ring-2 focus:ring-primary-500 font-mono text-sm">
+                           <template x-for="m in cloudModels" :key="m">
+                              <option :value="m" x-text="m" :selected="storedModel === m"></option>
+                           </template>
                         </select>
-                    </div>
-                  </template>
-
-                  <template x-if="!ollama.loading && !ollama.connected">
-                    <div class="bg-red-50 border border-red-100 rounded-xl p-5 text-red-700 text-sm relative overflow-hidden">
-                        <div class="relative z-10">
-                            <div class="flex items-center gap-2 font-bold mb-2">
-                                <span>⚠️</span> Ollama n'est pas détecté.
-                            </div>
-                            <p class="mb-4 text-red-600/80">Assurez-vous qu'Ollama est installé et qu'il est configuré pour accepter les requêtes de ce site.</p>
-                            <button type="button" @click="showHelp = true" class="bg-red-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-red-700 transition-colors shadow-sm">
-                                Comment configurer ?
-                            </button>
-                        </div>
-                        <div class="absolute -right-4 -bottom-4 opacity-10 grayscale">
-                            <span class="text-8xl">🦙</span>
-                        </div>
-                    </div>
-                  </template>
+                      </div>
+                      <div class="max-w-[200px] text-xs text-slate-500 leading-relaxed px-6 border-l border-slate-800">
+                         💡 <strong>Tip:</strong> Les modèles affichés dépendent du moteur choisi ci-dessus (Standard ou Personnel).
+                      </div>
+                   </div>
                 </div>
-              </label>
-            </div>
 
-            <div class="pt-6 flex justify-end">
-              <button type="submit"
-                class="bg-primary-600 text-white font-bold py-3 px-8 rounded-xl shadow-lg hover:bg-primary-700 hover:shadow-xl transition-all hover:-translate-y-0.5 active:translate-y-0">
-                Enregistrer les préférences IA
-              </button>
-            </div>
-          </form>
-        </div>
+                {{-- PANNEAU OLLAMA --}}
+                <div x-show="activeProvider === 'ollama'" class="bg-orange-50 border-2 border-orange-200 rounded-[2.5rem] p-10 space-y-6 overflow-hidden relative">
+                   <div class="flex items-center justify-between">
+                      <h4 class="font-black text-orange-900 text-xl italic">Paramètres Ollama</h4>
+                      <div :class="ollama.connected ? 'bg-emerald-500' : 'bg-red-500'" class="px-4 py-1 text-white text-[10px] font-black rounded-full uppercase" x-text="ollama.connected ? 'Connecté' : 'Hors-ligne'"></div>
+                   </div>
+                   
+                   <div x-show="!ollama.connected" class="p-6 bg-white rounded-2xl border border-orange-100 space-y-4 shadow-sm relative z-10">
+                      <p class="text-sm text-orange-800 font-bold leading-relaxed">⚠️ Ollama n'est pas détecté sur votre machine (localhost:11434).</p>
+                      <div class="flex flex-wrap gap-3 mt-4">
+                         <button type="button" @click="checkOllama()" class="bg-slate-900 text-white px-6 py-2 rounded-xl font-bold text-xs hover:bg-slate-800 transition-colors">Réessayer la détection</button>
+                         <button type="button" @click="showHelp = true" class="bg-orange-600 text-white px-6 py-2 rounded-xl font-bold text-xs hover:bg-orange-700 transition-colors shadow-lg shadow-orange-200">Comment le configurer ?</button>
+                      </div>
+                   </div>
 
-        {{-- Help Modal for Ollama --}}
-        <div x-show="showHelp" 
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-             class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
-             style="display: none;">
-            
-            <div @click.away="showHelp = false" class="bg-white rounded-[2.5rem] p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-                <div class="flex justify-between items-start mb-6">
+                   <div x-show="ollama.connected" class="space-y-4 animate-in zoom-in-95 duration-300">
+                      <label class="block text-xs font-black text-orange-900 uppercase tracking-widest">Modèle détecté sur votre PC</label>
+                      <select x-model="ollama.selectedModel" class="w-full p-4 rounded-xl bg-white border-orange-200 text-slate-800 font-bold outline-none focus:ring-2 focus:ring-orange-500">
+                         <template x-for="m in ollama.models" :key="m">
+                            <option :value="m" x-text="m"></option>
+                         </template>
+                      </select>
+                      <p class="text-[10px] text-orange-600 italic">✨ Ollama utilise uniquement la puissance de votre propre ordinateur.</p>
+                   </div>
+                </div>
+
+              </div>
+
+              <div class="flex justify-end pt-6">
+                <button type="submit" class="bg-primary-600 text-white font-black py-5 px-15 rounded-[2rem] shadow-xl hover:bg-primary-700 hover:-translate-y-1 transition-all active:translate-y-0 text-xl tracking-tight">
+                  Enregistrer ma configuration IA
+                </button>
+              </div>
+            </form>
+
+            {{-- MODAL D'AIDE OLLAMA --}}
+            <div x-show="showHelp" 
+                 x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                 class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;">
+              
+              <div @click.away="showHelp = false" class="bg-white rounded-[3rem] p-10 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl space-y-8">
+                 <div class="flex justify-between items-start">
                     <div class="flex items-center gap-4">
-                        <div class="p-3 bg-red-100 rounded-2xl text-2xl">⚙️</div>
-                        <h2 class="text-2xl font-black text-slate-800 tracking-tight">Configuration d'Ollama</h2>
+                       <div class="p-4 bg-orange-100 text-orange-600 rounded-2xl text-2xl">⚙️</div>
+                       <h2 class="text-3xl font-black text-slate-900 italic tracking-tight">Aide Ollama</h2>
                     </div>
-                    <button @click="showHelp = false" class="text-slate-400 hover:text-slate-600 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <button @click="showHelp = false" class="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400">
+                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
-                </div>
+                 </div>
 
-                <div class="space-y-6 text-slate-600">
-                    <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                        <p class="font-bold text-slate-800 mb-2">Pourquoi cette étape ?</p>
-                        <p class="text-sm">Pour des raisons de sécurité, votre navigateur bloque les requêtes vers Ollama (CORS) à moins que vous ne l'autorisiez explicitement à répondre à ce site.</p>
+                 <div class="space-y-6 text-slate-600 leading-relaxed">
+                    <div class="p-5 bg-slate-50 rounded-2xl border border-slate-100">
+                       <p class="font-bold text-slate-800 text-sm mb-2 italic">Problème de connexion ?</p>
+                       <p class="text-xs">Le navigateur bloque les accès vers Ollama pour des raisons de sécurité (CORS). Vous devez autoriser <strong>My Professor</strong> en configurant une variable d'environnement.</p>
                     </div>
 
-                    <div class="space-y-4">
-                        <p class="font-bold text-slate-800 flex items-center gap-2">
-                            <span>💻</span> Instructions pour votre système : <span class="px-2 py-0.5 bg-primary-100 text-primary-700 rounded text-xs uppercase" x-text="os"></span>
-                        </p>
+                    <div class="space-y-6">
+                       {{-- Windows --}}
+                       <div class="space-y-2">
+                          <p class="font-black text-slate-800 text-[10px] uppercase tracking-widest flex items-center gap-2">🪟 Windows (OLLAMA_ORIGINS)</p>
+                          <p class="text-xs">Fermez Ollama, cherchez "Variables d'environnement" dans Windows, ajoutez une variable système <strong>OLLAMA_ORIGINS</strong> avec la valeur <code>*</code>, puis relancez Ollama.</p>
+                       </div>
 
-                        {{-- Windows --}}
-                        <div x-show="os === 'windows'" class="space-y-3">
-                            <p class="text-sm">1. Fermez Ollama depuis la barre des tâches.</p>
-                            <p class="text-sm">2. Ouvrez le <strong>Menu Démarrer</strong> et cherchez <strong>Variables d'environnement</strong>.</p>
-                            <p class="text-sm">3. Ajoutez une nouvelle variable système :</p>
-                            <div class="bg-slate-900 text-slate-300 p-4 rounded-xl font-mono text-xs">
-                                Variable : OLLAMA_ORIGINS<br>
-                                Valeur : *
-                            </div>
-                            <p class="text-sm">4. Redémarrez Ollama.</p>
-                        </div>
+                       {{-- Linux --}}
+                       <div class="space-y-2">
+                          <p class="font-black text-slate-800 text-[10px] uppercase tracking-widest flex items-center gap-2">🐧 Linux (Service)</p>
+                          <div class="bg-dark p-4 rounded-xl font-mono text-[10px] text-slate-300">
+                             sudo systemctl edit ollama.service<br><br>
+                             # Ajoutez sous [Service]:<br>
+                             Environment="OLLAMA_ORIGINS=*"
+                          </div>
+                       </div>
 
-                        {{-- Linux --}}
-                        <div x-show="os === 'linux'" class="space-y-3">
-                            <p class="text-sm">1. Éditez la configuration du service :</p>
-                            <div class="bg-slate-900 text-slate-300 p-4 rounded-xl font-mono text-xs">
-                                sudo systemctl edit ollama.service
-                            </div>
-                            <p class="text-sm">2. Ajoutez ces lignes dans la section <code class="bg-slate-800 px-1 rounded">[Service]</code> :</p>
-                            <div class="bg-slate-900 text-slate-300 p-4 rounded-xl font-mono text-xs">
-                                [Service]<br>
-                                Environment="OLLAMA_ORIGINS=*"
-                            </div>
-                            <p class="text-sm">3. Rechargez et redémarrez :</p>
-                            <div class="bg-slate-900 text-slate-300 p-4 rounded-xl font-mono text-xs">
-                                sudo systemctl daemon-reload<br>
-                                sudo systemctl restart ollama
-                            </div>
-                        </div>
-
-                        {{-- MacOS --}}
-                        <div x-show="os === 'macos'" class="space-y-3">
-                            <p class="text-sm">1. Quittez complètement Ollama.</p>
-                            <p class="text-sm">2. Ouvrez votre <strong>Terminal</strong> et lancez :</p>
-                            <div class="bg-slate-900 text-slate-300 p-4 rounded-xl font-mono text-xs">
-                                launchctl setenv OLLAMA_ORIGINS "*"
-                            </div>
-                            <p class="text-sm">3. Relancez l'application Ollama par le dossier Applications.</p>
-                        </div>
-
-                        {{-- Others --}}
-                        <div x-show="!['windows', 'linux', 'macos'].includes(os)" class="space-y-3">
-                            <p class="text-sm">Consultez la documentation officielle d'Ollama pour savoir comment définir la variable d'environnement <code class="font-bold italic">OLLAMA_ORIGINS</code> sur votre appareil.</p>
-                        </div>
+                       {{-- MacOS --}}
+                       <div class="space-y-2">
+                          <p class="font-black text-slate-800 text-[10px] uppercase tracking-widest flex items-center gap-2">🍎 MacOS (Terminal)</p>
+                          <div class="bg-dark p-4 rounded-xl font-mono text-[10px] text-slate-300">
+                             launchctl setenv OLLAMA_ORIGINS "*"
+                          </div>
+                       </div>
                     </div>
+                 </div>
 
-                    <div class="pt-4 flex justify-end">
-                        <button @click="showHelp = false; checkOllama()" class="bg-slate-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-slate-800 transition-all">
-                            C'est fait, actualiser
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-      </div>
-
-      {{-- Tab: Security --}}
-      <div x-show="activeTab === 'security'" x-transition:enter="transition ease-out duration-300"
-        x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0"
-        style="display: none;">
-        <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100">
-          <h2 class="text-2xl font-bold text-slate-900 mb-6">Sécurité du compte</h2>
-          <form action="/settings/password" method="POST" class="space-y-6">
-            {{ csrfField() }}
-            <div>
-              <label class="block text-sm font-bold text-slate-700 mb-2">Mot de passe actuel</label>
-              <input type="password" name="current_password" required
-                class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-500 transition-all">
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label class="block text-sm font-bold text-slate-700 mb-2">Nouveau mot de passe</label>
-                <input type="password" name="new_password" required
-                  class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-500 transition-all">
-              </div>
-              <div>
-                <label class="block text-sm font-bold text-slate-700 mb-2">Confirmer le nouveau</label>
-                <input type="password" name="new_password_confirmation" required
-                  class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-500 transition-all">
+                 <div class="pt-4 flex justify-end">
+                    <button @click="showHelp = false; checkOllama()" class="bg-primary-600 text-white font-black py-4 px-10 rounded-2xl shadow-xl hover:bg-primary-700 transition-all">J'ai configuré, actualiser</button>
+                 </div>
               </div>
             </div>
-            <div class="flex justify-end pt-4">
-              <button type="submit"
-                class="bg-rose-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-rose-700 transition-all shadow-lg hover:shadow-xl">
-                Changer le mot de passe
-              </button>
-            </div>
-          </form>
+          </div>
+
+          {{-- PROFIL --}}
+          <div x-show="activeTab === 'profile'" class="bg-white rounded-[3rem] p-10 shadow-sm border border-slate-100">
+            <h2 class="text-2xl font-black mb-8">Informations personnelles</h2>
+            <form action="/settings/profile" method="POST" class="space-y-6">
+               {{ csrfField() }}
+               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <div>
+                    <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Nom complet</label>
+                    <input type="text" name="fullName" value="{{ user.fullName }}" class="w-full p-4 rounded-xl bg-slate-50 border-none font-bold text-slate-700">
+                 </div>
+                 <div>
+                    <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Email</label>
+                    <input type="email" value="{{ user.email }}" readonly class="w-full p-4 rounded-xl bg-slate-100 border-none text-slate-400 cursor-not-allowed">
+                 </div>
+               </div>
+               <div class="flex justify-end">
+                 <button type="submit" class="bg-slate-900 text-white font-black py-4 px-8 rounded-2xl shadow-lg">Mettre à jour</button>
+               </div>
+            </form>
+          </div>
+
+          {{-- SÉCURITÉ --}}
+          <div x-show="activeTab === 'security'" class="bg-white rounded-[3rem] p-10 shadow-sm border border-slate-100">
+            <h2 class="text-2xl font-black mb-8">Sécurité du compte</h2>
+            <form action="/settings/password" method="POST" class="space-y-6">
+               {{ csrfField() }}
+               <div>
+                  <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Mot de passe actuel</label>
+                  <input type="password" name="current_password" required class="w-full p-4 rounded-xl bg-slate-50 border-none">
+               </div>
+               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <div>
+                    <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Nouveau mot de passe</label>
+                    <input type="password" name="new_password" required class="w-full p-4 rounded-xl bg-slate-50 border-none">
+                 </div>
+                 <div>
+                    <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Confirmer le nouveau</label>
+                    <input type="password" name="new_password_confirmation" required class="w-full p-4 rounded-xl bg-slate-50 border-none">
+                 </div>
+               </div>
+               <div class="flex justify-end">
+                 <button type="submit" class="bg-rose-600 text-white font-black py-4 px-8 rounded-2xl shadow-lg">Changer le mot de passe</button>
+               </div>
+            </form>
+          </div>
+
         </div>
       </div>
-
-    </div>
-  </div>
-</main>
-
+    </main>
 @end
 @end

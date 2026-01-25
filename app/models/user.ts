@@ -33,6 +33,15 @@ export default class User extends compose(BaseModel, AuthFinder) {
   declare aiModel: string
 
   @column()
+  declare customGeminiKey: string | null
+
+  @column()
+  declare customOpenrouterKey: string | null
+
+  @column()
+  declare useCustomKeys: boolean
+
+  @column()
   declare isAdmin: boolean
 
   @column.dateTime({ autoCreate: true })

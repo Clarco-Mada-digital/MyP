@@ -10,6 +10,7 @@ import db from '@adonisjs/lucid/services/db'
 import { DateTime } from 'luxon'
 import Bookmark from '#models/bookmark'
 import vine from '@vinejs/vine'
+import PodcastService from '#services/podcast_service'
 
 export default class CoursesController {
   private async attachProgress(courses: Course[], user: User) {
@@ -336,11 +337,14 @@ export default class CoursesController {
   }
 
   private async categorizeCourseWithAI(courseTitle: string, user: User): Promise<Category | null> {
+    const existingCats = await Category.query().select('name').orderBy('name', 'asc')
+    const existingNames = existingCats.map(c => c.name).join('", "')
+
     const prompt = `Task: Categorize this course title into a single broad category.
     Title: "${courseTitle}"
-    Existing categories you can choose from if they fit: "Programming", "Design", "Marketing", "Science", "Languages", "Mathematics", "Art", "Health", "Business", "Personal Development".
-    Rule: Output ONLY the category name. If none fit, invent a new short category name (1-2 words).
-    Example: "Advanced Dart Programming" -> "Programming"
+    Existing categories you SHOULD reuse if they fit: "${existingNames}".
+    Rule: Output ONLY the category name. If none fit, create a new short category name (1-2 words).
+    Constraint: Re-use an existing category if it's even remotely related (e.g., if you have "Programming", don't create "Coding").
     Result:`
 
     try {
@@ -348,8 +352,16 @@ export default class CoursesController {
       const cleanName = categoryName.trim().replace(/^['"]|['"]$/g, '').replace(/\.$/, '')
       const slug = string.slug(cleanName).toLowerCase()
 
-      // Find or create
+      // Find by slug (most reliable for duplicates like "Programmation" vs "programmation")
       let category = await Category.findBy('slug', slug)
+
+      // Secondary check: search for similar name (case insensitive)
+      if (!category) {
+        category = await Category.query()
+          .whereILike('name', cleanName)
+          .first()
+      }
+
       if (!category) {
         category = await Category.create({
           name: cleanName,
@@ -361,14 +373,13 @@ export default class CoursesController {
       return category
     } catch (e) {
       console.error('[categorizeCourseWithAI] Error:', e)
-      // Fallback to basic regex categorization
-      const existingCategories = await Category.query().orderBy('name', 'asc')
-      if (existingCategories.length === 0) {
+      const categories = await Category.query().orderBy('name', 'asc')
+      if (categories.length === 0) {
         await this.createDefaultCategories()
-        const categories = await Category.query().orderBy('name', 'asc')
-        return await this.selectBestCategory(courseTitle, categories)
+        const newCats = await Category.query().orderBy('name', 'asc')
+        return await this.selectBestCategory(courseTitle, newCats)
       }
-      return await this.selectBestCategory(courseTitle, existingCategories)
+      return await this.selectBestCategory(courseTitle, categories)
     }
   }
 
@@ -479,10 +490,10 @@ export default class CoursesController {
             ],
             "quiz": [
               {
-                "question": "Question simple ?",
-                "options": ["A", "B", "C"],
-                "answer": "A",
-                "explanation": "Explication courte."
+                "question": "Question sur ce module ?",
+                "options": ["Choix A", "Choix B", "Choix C", "Choix D"],
+                "answer": "Choix A",
+                "explanation": "Explication pédagogique détaillée de pourquoi cette réponse est la bonne."
               }
             ]
           }
@@ -497,6 +508,10 @@ export default class CoursesController {
       course.content = content
       course.status = 'ready'
       await course.save()
+
+      // Lancement de la génération du podcast en arrière-plan (Premium)
+      PodcastService.generatePodcast(course, user).catch(e => console.error('Podcast gen failed', e))
+
     } catch (error) {
       course.status = 'error'
       await course.save()

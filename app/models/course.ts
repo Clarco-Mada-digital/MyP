@@ -35,6 +35,9 @@ export default class Course extends BaseModel {
   @column()
   declare status: string
 
+  @column()
+  declare podcastUrl: string | null
+
   @column.dateTime()
   declare lastReviewedAt: DateTime | null
 

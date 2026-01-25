@@ -30,6 +30,18 @@
           z-index: 200;
         }
       }
+
+      .tts-highlight {
+        background-color: #fef08a; /* Yellow-200 */
+        transition: background-color 0.2s;
+        border-radius: 4px;
+        padding: 0 2px;
+      }
+      
+      .active-audio-lesson {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+      }
     </style>
     <script>
       function confirmDeletion(courseTitle) {
@@ -135,8 +147,14 @@
                       }
                     ],
                     \"exercises\": [\"Exercice\"],
-                    \"flashcards\": [{\"question\": \"?\", \"answer\": \"\"}],
-                    \"quiz\": [{\"question\": \"?\", \"options\": [\"A\", \"B\"], \"answer\": \"A\", \"explanation\": \"\"}]
+                    \"quiz\": [
+                      {
+                        \"question\": \"Question sur ce module ?\",
+                        \"options\": [\"Choix A\", \"Choix B\", \"Choix C\", \"Choix D\"],
+                        \"answer\": \"Choix A\",
+                        \"explanation\": \"Explication pédagogique complète.\"
+                      }
+                    ]
                   }
                 ]
               }`;
@@ -251,6 +269,27 @@
         </div>
       @elseif(course.status === 'ready')
         <article class="bg-white rounded-[2rem] md:rounded-[3rem] shadow-xl border border-slate-100 overflow-hidden">
+          {{-- Podcast Section --}}
+          @if(course.podcastUrl)
+            <div class="bg-gradient-to-r from-primary-600 to-indigo-700 p-6 md:p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 border-b border-white/10">
+              <div class="flex items-center gap-5">
+                <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-3xl shadow-inner animate-pulse">🎙️</div>
+                <div>
+                   <h2 class="text-xl font-black uppercase tracking-tight">Audio Course Preview</h2>
+                   <p class="text-xs text-primary-100 font-medium">Résumé complet généré par My Professor Premium</p>
+                </div>
+              </div>
+              <div class="w-full md:w-auto bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
+                <audio src="{{ course.podcastUrl }}" controls class="course-podcast-player custom-audio"></audio>
+              </div>
+            </div>
+          @else
+            <div class="bg-slate-50 p-4 border-b border-slate-100 flex items-center justify-center gap-3">
+               <span class="animate-spin text-primary-500">⏳</span>
+               <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Le podcast premium est en cours de génération dans nos studios...</p>
+            </div>
+          @end
+
           {{-- Hero header --}}
           <div class="h-48 md:h-64 bg-slate-900 relative">
              <img src="{{ course.content?.image || 'https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=1200' }}" class="w-full h-full object-cover opacity-40" />
@@ -380,7 +419,7 @@
                 <div class="mb-16">
                    <h2 class="text-3xl">{{ module.title }}</h2>
                    
-                   @each(lesson in module.lessons)
+                   @each((lesson, lessonIndex) in module.lessons)
                     <div class="bg-slate-50 p-8 rounded-3xl mb-6 shadow-sm border border-slate-200/50 relative group">
                       <div class="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
                         <h3 class="text-primary-700 !mt-0 !mb-0 text-xl md:text-2xl">{{ lesson.title }}</h3>
@@ -417,9 +456,52 @@
                         </div>
                       @end
 
-                      <div class="markdown-body text-slate-600 mb-6" data-content="{{ lesson.content }}">
+                      <div class="markdown-body text-slate-600 mb-8" data-content="{{ lesson.content }}" id="lesson-{{ index }}-{{ lessonIndex }}">
                         {{-- Content will be rendered by JS --}}
                         <div class="whitespace-pre-wrap">{{ lesson.content }}</div>
+                      </div>
+
+                      {{-- Browser TTS Player --}}
+                      <div class="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100/50 flex flex-wrap items-center gap-4 mt-6">
+                        <div x-data="{ playing: false, rate: 1, lessonId: 'lesson-{{ index }}-{{ lessonIndex }}' }" 
+                             x-init="window.addEventListener('audio-status-' + lessonId, (e) => { playing = e.detail.playing })"
+                             class="flex items-center flex-wrap gap-4 w-full sm:w-auto">
+                          <button 
+                            @click="toggleAudio(lessonId, $refs.vSel.value)" 
+                            class="w-10 h-10 bg-white rounded-full shadow-sm flex items-center justify-center text-primary-600 hover:scale-110 transition-all border border-indigo-100"
+                            :class="playing ? 'bg-indigo-600 !text-white' : ''"
+                          >
+                            <template x-if="!playing">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            </template>
+                            <template x-if="playing">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                            </template>
+                          </button>
+                          
+                          <div class="flex flex-col gap-2">
+                             <div class="flex items-center gap-3">
+                                <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Voix de l'enseignant</span>
+                                <select 
+                                   x-ref="vSel"
+                                   @change="if(playing) { toggleAudio(lessonId, $el.value); }"
+                                   class="voice-selector text-[9px] font-bold bg-white border border-indigo-100 rounded px-2 py-0.5 outline-none focus:ring-1 focus:ring-indigo-300"
+                                ></select>
+                             </div>
+                             
+                             <div class="flex items-center gap-2">
+                                <template x-for="r in [1, 1.25, 1.5]">
+                                   <button 
+                                      @click="setAudioRate(r); rate = r" 
+                                      class="text-[9px] font-bold px-2 py-0.5 rounded transition-colors"
+                                      :class="rate === r ? 'bg-indigo-600 text-white' : 'text-indigo-400 bg-white border border-indigo-100'"
+                                      x-text="'x' + r"
+                                   ></button>
+                                </template>
+                                <button @click="stopAudio(); playing = false" class="text-[9px] font-bold text-slate-400 hover:text-red-500 ml-2">Arrêter</button>
+                             </div>
+                          </div>
+                        </div>
                       </div>
 
                       @if(lesson.audio_url)
@@ -819,6 +901,215 @@
         if (progressEl) {
           progressEl.innerText = percentage + '%';
         }
+      }
+
+      // --- Smart Audio Logic ---
+      let synth = window.speechSynthesis;
+      let utterance = null;
+      let currentLessonId = null;
+      let audioRate = 1;
+      let voices = [];
+      let selectedVoiceName = null;
+
+      // Initialiser et peupler les listes de voix (Version Robuste)
+      function loadVoices(attempt = 0) {
+         voices = synth.getVoices();
+         
+         // Si la liste est vide (commun sur Vivaldi/Linux au démarrage), on réessaie 5 fois
+         if (voices.length === 0 && attempt < 5) {
+            setTimeout(() => loadVoices(attempt + 1), 1000);
+            return;
+         }
+
+         const frVoices = voices.filter(v => v.lang.startsWith('fr'));
+         document.querySelectorAll('.voice-selector').forEach(select => {
+            const currentVal = select.value;
+            select.innerHTML = '';
+            
+            if (frVoices.length === 0) {
+               const option = document.createElement('option');
+               option.textContent = "Aucune voix FR détectée";
+               select.appendChild(option);
+               return;
+            }
+
+            frVoices.forEach(voice => {
+               const option = document.createElement('option');
+               option.value = voice.name;
+               option.textContent = voice.name + (voice.name.includes('Google') ? ' ✨' : '');
+               select.appendChild(option);
+            });
+
+            if (currentVal) select.value = currentVal;
+            else if (!selectedVoiceName && frVoices.length > 0) {
+               const best = frVoices.find(v => v.name.includes('Google') || v.name.includes('Natural')) || frVoices[0];
+               selectedVoiceName = best.name;
+               select.value = best.name;
+            }
+         });
+      }
+
+      if (speechSynthesis.onvoiceschanged !== undefined) {
+         speechSynthesis.onvoiceschanged = () => loadVoices();
+      }
+      // Premier chargement immédiat + un délai pour les navigateurs lents
+      loadVoices();
+      setTimeout(loadVoices, 100); 
+
+      function toggleAudio(lessonId, voiceNameFromSelect) {
+        if (voiceNameFromSelect) selectedVoiceName = voiceNameFromSelect;
+
+        // Gestion de la PAUSE / REPRISE (Fix spécial Firefox)
+        if (synth.speaking && currentLessonId === lessonId) {
+          if (synth.paused) {
+            synth.resume();
+            window.dispatchEvent(new CustomEvent('audio-status-' + lessonId, { detail: { playing: true } }));
+          } else {
+            synth.pause();
+            // Petit hack Firefox : il arrive que pause() s'exécute mais synth.paused reste false un court instant
+            setTimeout(() => {
+               window.dispatchEvent(new CustomEvent('audio-status-' + lessonId, { detail: { playing: false } }));
+            }, 10);
+          }
+          return;
+        }
+
+        // Nouvelle lecture
+        stopAudio();
+        
+        currentLessonId = lessonId;
+        const container = document.getElementById(lessonId);
+        container.closest('.group').classList.add('active-audio-lesson');
+        
+        const text = container.innerText;
+        utterance = new SpeechSynthesisUtterance(text);
+        
+        if (selectedVoiceName) {
+           const voice = voices.find(v => v.name === selectedVoiceName);
+           if (voice) utterance.voice = voice;
+        }
+        
+        utterance.lang = 'fr-FR';
+        utterance.rate = audioRate;
+
+        utterance.onboundary = (event) => {
+           if (event.name === 'word') {
+              highlightWordInRange(container, event.charIndex, event.charLength);
+           }
+        };
+
+        utterance.onend = () => {
+           stopAudio();
+        };
+
+        utterance.onerror = (e) => {
+           console.error('TTS Error:', e);
+           stopAudio();
+        };
+
+        // On annule tout avant de lancer pour éviter les blocages de file d'attente
+        synth.cancel();
+        
+        // Petit délai pour laisser le temps au navigateur de "reset"
+        setTimeout(() => {
+           synth.speak(utterance);
+           window.dispatchEvent(new CustomEvent('audio-status-' + lessonId, { detail: { playing: true } }));
+        }, 50);
+      }
+
+      function stopAudio() {
+        if (currentLessonId) {
+           const id = currentLessonId; // Save for the event
+           synth.cancel();
+           window.getSelection().removeAllRanges();
+           const container = document.getElementById(id);
+           if (container) {
+              container.closest('.group').classList.remove('active-audio-lesson');
+           }
+           window.dispatchEvent(new CustomEvent('audio-status-' + id, { detail: { playing: false } }));
+           currentLessonId = null;
+        }
+      }
+
+      function setAudioRate(rate) {
+        audioRate = rate;
+        if (synth.speaking) {
+           const id = currentLessonId;
+           stopAudio();
+           // On ne relance pas automatiquement pour ne pas surprendre l'utilisateur
+        }
+      }
+
+      function stopAudio() {
+        synth.cancel();
+        window.getSelection().removeAllRanges();
+        if (currentLessonId) {
+           const container = document.getElementById(currentLessonId);
+           if (container) {
+              container.closest('.group').classList.remove('active-audio-lesson');
+           }
+        }
+        currentLessonId = null;
+      }
+
+      function setAudioRate(rate) {
+        audioRate = rate;
+        if (synth.speaking) {
+           // On sauvegarde la leçon actuelle, on coupe et on relance si besoin, 
+           // mais il est préférable de laisser l'utilisateur ré-appuyer sur Play.
+           stopAudio();
+           alert("Vitesse réglée sur x" + rate + ". Ré-appuyez sur Play pour reprendre.");
+        }
+      }
+
+      // Fonction Magique pour surligner sans casser le HTML (Markdown)
+      function highlightWordInRange(container, charIndex, charLength) {
+         try {
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            
+            const range = findRangeAtOffset(container, charIndex, charIndex + charLength);
+            if (range) {
+               selection.addRange(range);
+            }
+         } catch (e) {
+            // Silently fail if calculation is off
+         }
+      }
+
+      function findRangeAtOffset(rootNode, start, end) {
+         let current = 0;
+         const range = document.createRange();
+         let startNode, startOffset, endNode, endOffset;
+
+         function traverse(node) {
+            if (node.nodeType === 3) { // Text Node
+               const len = node.textContent.length;
+               if (!startNode && current + len >= start) {
+                  startNode = node;
+                  startOffset = start - current;
+               }
+               if (current + len >= end) {
+                  endNode = node;
+                  endOffset = end - current;
+                  return true;
+               }
+               current += len;
+            } else {
+               for (let child of node.childNodes) {
+                  if (traverse(child)) return true;
+               }
+            }
+            return false;
+         }
+
+         traverse(rootNode);
+         if (startNode && endNode) {
+            range.setStart(startNode, startOffset);
+            range.setEnd(endNode, endOffset);
+            return range;
+         }
+         return null;
       }
 
       function renderMarkdown() {

@@ -1,9 +1,8 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Course from '#models/course'
 import CourseChat from '#models/course_chat'
-import GeminiService from '#services/gemini_service'
-import OllamaService from '#services/ollama_service'
-import env from '#start/env'
+import AiProviderService from '#services/ai_provider_service'
+import User from '#models/user'
 
 export default class CourseChatsController {
   /**
@@ -56,12 +55,8 @@ export default class CourseChatsController {
     let aiResponse = ''
 
     try {
-      const useGemini = env.get('GEMINI_API_KEY')
-      if (useGemini) {
-        aiResponse = await GeminiService.generateText(`${systemPrompt}\n\nÉtudiant: ${message}\nTuteur:`)
-      } else {
-        aiResponse = await OllamaService.generateText(`${systemPrompt}\n\nÉtudiant: ${message}\nTuteur:`, 'llama3')
-      }
+      // Use the unified AI Provider Service to honor user settings (Personal keys, selected model, etc.)
+      aiResponse = await AiProviderService.generateText(`${systemPrompt}\n\nÉtudiant: ${message}\nTuteur:`, user as User)
 
       // 4. Sauvegarder la réponse de l'IA
       const assistantMessage = await CourseChat.create({

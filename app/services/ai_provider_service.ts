@@ -55,6 +55,34 @@ export default class AiProviderService {
   }
 
   /**
+   * 3. Génération de texte brut
+   */
+  static async generateText(prompt: string, user: User) {
+    const provider = await this.resolveProvider(user)
+
+    if (provider === 'ollama') {
+      return OllamaService.generateText(prompt, user.aiModel || 'llama3')
+    }
+
+    // MODE PERSONNEL (Strict)
+    if (user.useCustomKeys) {
+      if (provider === 'openrouter') {
+        if (!user.customOpenrouterKey) throw new Error("Clé OpenRouter personnelle manquante.")
+        return OpenRouterService.generateText(prompt, user.aiModel || 'google/gemini-2.0-flash-lite:free', user.customOpenrouterKey, true)
+      } else {
+        if (!user.customGeminiKey) throw new Error("Clé Gemini personnelle manquante.")
+        return GeminiService.generateText(prompt, user.aiModel || 'gemini-1.5-flash', user.customGeminiKey, true)
+      }
+    }
+
+    // MODE STANDARD (Admin keys)
+    if (provider === 'openrouter') {
+      return OpenRouterService.generateText(prompt, user.aiModel || 'google/gemini-2.0-flash-lite:free')
+    }
+    return GeminiService.generateText(prompt, user.aiModel || 'gemini-1.5-flash')
+  }
+
+  /**
    * 3. Récupération des modèles pour l'interface
    */
   static async getCloudModels(provider: string, user?: User): Promise<string[]> {

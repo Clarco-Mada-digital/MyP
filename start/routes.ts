@@ -19,7 +19,10 @@ const AdminController = () => import('#controllers/admin_controller')
 const AdminCourseDeletionController = () => import('#controllers/admin/course_deletion_controller')
 const CategoriesController = () => import('#controllers/categories_controller')
 
-router.get('/', [HomeController, 'index'])
+// router.get('/', [HomeController, 'index'])
+router.get('/', () => {
+  return 'HOME OK'
+})
 
 router.group(() => {
   router.get('/register', [AuthController, 'registerPage']).use(middleware.guest())

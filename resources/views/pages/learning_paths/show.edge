@@ -38,7 +38,8 @@
           @end
           @if(auth.user)
             <div class="text-center">
-              <div class="text-3xl font-black mb-1" style="color: {{ path.color }};">{{ Math.round((completedCount / path.courses.length) * 100) }}%</div>
+              @let(percent = path.courses.length > 0 ? Math.round((completedCount / path.courses.length) * 100) : 0)
+              <div class="text-3xl font-black mb-1" style="color: {{ path.color }};">{{ percent }}%</div>
               <div class="text-sm font-bold text-slate-500 uppercase tracking-wider">Complété</div>
             </div>
           @end

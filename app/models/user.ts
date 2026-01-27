@@ -7,6 +7,7 @@ import type { HasMany } from '@adonisjs/lucid/types/relations'
 import Course from '#models/course'
 import CourseProgress from '#models/course_progress'
 import Bookmark from '#models/bookmark'
+import LearningPath from '#models/learning_path'
 
 const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
   uids: ['email'],
@@ -58,6 +59,9 @@ export default class User extends compose(BaseModel, AuthFinder) {
 
   @hasMany(() => Bookmark)
   declare bookmarks: HasMany<typeof Bookmark>
+
+  @hasMany(() => LearningPath)
+  declare learningPaths: HasMany<typeof LearningPath>
 
   @beforeSave()
   static async hashPassword(user: any) {

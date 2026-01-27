@@ -10,7 +10,7 @@ services:
       - DB_HOST=db
       - DB_PORT=3306
       - DB_USER=myp_user
-      - DB_PASSWORD=myp_password
+      - DB_PASSWORD=${DB_PASSWORD}
       - DB_DATABASE=myp_db
       - APP_KEY=${APP_KEY}
       - HOST=0.0.0.0
@@ -31,8 +31,8 @@ services:
     environment:
       - MYSQL_DATABASE=myp_db
       - MYSQL_USER=myp_user
-      - MYSQL_PASSWORD=myp_password
-      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:

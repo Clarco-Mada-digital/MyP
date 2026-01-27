@@ -18,14 +18,16 @@ const SettingsController = () => import('#controllers/settings_controller')
 const AdminController = () => import('#controllers/admin_controller')
 const AdminCourseDeletionController = () => import('#controllers/admin/course_deletion_controller')
 const CategoriesController = () => import('#controllers/categories_controller')
+const CommunityController = () => import('#controllers/community_controller')
+const LearningPathsController = () => import('#controllers/learning_paths_controller')
 
 router.get('/', [HomeController, 'index'])
 
 router.group(() => {
   router.get('/register', [AuthController, 'registerPage']).use(middleware.guest())
   router.post('/register', [AuthController, 'register']).use(middleware.guest())
-  router.get('/login', [AuthController, 'loginPage']).use(middleware.guest())
-  router.post('/login', [AuthController, 'login']).use(middleware.guest())
+  router.get('/login', [AuthController, 'loginPage']).use(middleware.guest()).use(middleware.rateLimit())
+  router.post('/login', [AuthController, 'login']).use(middleware.guest()).use(middleware.rateLimit())
   router.post('/logout', [AuthController, 'logout']).use(middleware.auth())
 })
 
@@ -85,6 +87,24 @@ router.group(() => {
   // Course Chat
   router.post('/courses/chat', '#controllers/course_chats_controller.sendMessage').as('courses.chat.send')
   router.get('/courses/:id/chat/history', '#controllers/course_chats_controller.getHistory').as('courses.chat.history')
+
+  // Community Features
+  router.get('/community', [CommunityController, 'index']).as('community.index')
+  router.get('/api/community/discover', [CommunityController, 'discoverApi']).as('community.discover_api')
+  router.get('/community/shared/:token', [CommunityController, 'show']).as('community.show')
+  router.post('/community/share', [CommunityController, 'share']).as('community.share')
+  router.get('/community/my-shares', [CommunityController, 'mySharedPaths']).as('community.my_shares')
+  router.post('/community/import/:token', [CommunityController, 'import']).as('community.import')
+  router.put('/community/shared/:token', [CommunityController, 'update']).as('community.update')
+  router.delete('/community/shared/:token', [CommunityController, 'destroy']).as('community.destroy')
+
+  // User Learning Paths
+  router.post('/parcours', [LearningPathsController, 'store']).as('learning_paths.store')
+  router.delete('/parcours/:id', [LearningPathsController, 'destroy']).as('learning_paths.destroy')
+
+  // Redirects for legacy routes
+  router.get('/social', ({ response }) => response.redirect().toPath('/community'))
+  router.get('/shared/discover', ({ response }) => response.redirect().toPath('/community'))
 }).use(middleware.auth())
 
 router.group(() => {
@@ -94,6 +114,7 @@ router.group(() => {
   router.get('/courses/:slug', [CoursesController, 'show']).as('courses.show')
   router.get('/courses/:slug/flashcards', [CoursesController, 'flashcards']).as('courses.flashcards')
   router.get('/dashboard', '#controllers/dashboard_controller.index').as('dashboard').use(middleware.auth())
+  router.get('/api/parcours', [LearningPathsController, 'apiIndex']).as('learning_paths.api').use(middleware.auth())
   router.get('/parcours', '#controllers/learning_paths_controller.index').as('learning_paths.index')
   router.get('/parcours/:slug', '#controllers/learning_paths_controller.show').as('learning_paths.show')
   router.on('/conditions').render('pages/legal/terms')

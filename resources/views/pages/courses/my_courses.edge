@@ -83,8 +83,42 @@
 
       <div class="flex items-center justify-between mb-8">
         <h2 class="text-2xl font-bold text-slate-800">Ma Bibliothèque</h2>
-        <a href="/" class="text-primary-600 font-bold text-sm hover:underline">Nouveau cours +</a>
+        <div class="flex gap-4">
+          <button onclick="openPathModal()" class="bg-indigo-50 text-indigo-600 px-6 py-2 rounded-full font-bold text-sm hover:bg-indigo-100 transition-all border border-indigo-100">
+            Créer un parcours +
+          </button>
+          <a href="/" class="bg-primary-600 text-white px-6 py-2 rounded-full font-bold text-sm hover:bg-primary-700 transition-all shadow-md">
+            Nouveau cours +
+          </a>
+        </div>
       </div>
+
+      {{-- Mes Parcours Section --}}
+      @if(userPaths && userPaths.length > 0)
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+          @each(path in userPaths)
+            <div class="bg-white rounded-[2rem] p-6 shadow-xl border border-slate-100 flex flex-col hover:border-indigo-300 transition-all group">
+              <div class="flex justify-between items-start mb-4">
+                <div class="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-xl flex items-center justify-center text-2xl">
+                  {{ path.icon || '🎯' }}
+                </div>
+                <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                   <button onclick="deletePath({{ path.id }})" class="p-2 text-rose-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                   </button>
+                </div>
+              </div>
+              <h3 class="text-xl font-black text-slate-900 mb-2">{{ path.title }}</h3>
+              <p class="text-slate-500 text-sm line-clamp-2 mb-6 flex-grow">{{ path.description || 'Pas de description.' }}</p>
+              
+              <div class="flex items-center justify-between text-xs font-bold text-slate-400 pt-4 border-t border-slate-50">
+                 <span>{{ path.courses.length }} cours</span>
+                 <a href="/parcours/{{ path.slug }}" class="text-indigo-600 hover:underline">Voir le chemin →</a>
+              </div>
+            </div>
+          @end
+        </div>
+      @end
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
         @each(course in courses)
@@ -198,5 +232,114 @@
         </div>
       @end
     </main>
+    </main>
+
+    {{-- Create Path Modal --}}
+    <div id="pathModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+      <div class="bg-white rounded-[3rem] p-10 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div class="flex justify-between items-center mb-8">
+          <h2 class="text-3xl font-black text-slate-900 tracking-tight">Créer un Parcours</h2>
+          <button onclick="closePathModal()" class="p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
+        <form id="pathForm" class="space-y-6">
+           <div>
+              <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Nom du parcours</label>
+              <input type="text" name="title" required class="w-full p-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-indigo-500 font-bold" placeholder="Ex: Master Intelligence Artificielle">
+           </div>
+           
+           <div>
+              <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Description rapide</label>
+              <textarea name="description" rows="3" class="w-full p-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-indigo-500 font-bold" placeholder="Quel est l'objectif de ce parcours ?"></textarea>
+           </div>
+
+           <div>
+              <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Sélectionnez vos cours (Maintenez Ctrl pour plusieurs)</label>
+              <select name="courseIds" multiple class="w-full p-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-indigo-500 font-bold h-48">
+                @each(course in courses)
+                  @if(course.status === 'ready')
+                    <option value="{{ course.id }}">{{ course.title }}</option>
+                  @end
+                @end
+              </select>
+              <p class="mt-2 text-[10px] text-slate-400 italic">Seuls les cours terminés ou prêts peuvent être ajoutés.</p>
+           </div>
+
+           <div class="flex justify-end gap-4 pt-4">
+              <button type="button" onclick="closePathModal()" class="px-8 py-4 rounded-2xl font-bold text-slate-600 hover:bg-slate-100 transition-all">Annuler</button>
+              <button type="submit" class="bg-indigo-600 text-white px-10 py-4 rounded-2xl font-black hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 italic">
+                C'est parti ! 🚀
+              </button>
+           </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+       function openPathModal() {
+         document.getElementById('pathModal').classList.remove('hidden')
+       }
+       function closePathModal() {
+         document.getElementById('pathModal').classList.add('hidden')
+       }
+
+       document.getElementById('pathForm')?.addEventListener('submit', async (e) => {
+         e.preventDefault()
+         const fd = new FormData(e.target)
+         const courseIds = Array.from(e.target.courseIds.selectedOptions).map(o => o.value)
+         
+         const btn = e.target.querySelector('button[type="submit"]')
+         btn.disabled = true
+         btn.textContent = 'Création...'
+
+         try {
+           const response = await fetch('/parcours', {
+             method: 'POST',
+             headers: {
+               'Content-Type': 'application/json',
+               'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+             },
+             body: JSON.stringify({
+               title: fd.get('title'),
+               description: fd.get('description'),
+               courseIds: courseIds
+             })
+           })
+
+           const res = await response.json()
+           if (res.success) {
+             window.location.reload()
+           } else {
+             alert('Erreur : ' + res.error)
+           }
+         } catch (err) {
+            console.error(err)
+            alert('Une erreur réseau est survenue.')
+         } finally {
+            btn.disabled = false
+            btn.textContent = "C'est parti ! 🚀"
+         }
+       })
+
+       async function deletePath(id) {
+         if(!confirm('Supprimer ce parcours ? (Les cours ne seront pas supprimés)')) return
+         
+         try {
+           const response = await fetch(`/parcours/${id}`, {
+             method: 'DELETE',
+             headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+             }
+           })
+           if (response.ok) window.location.reload()
+         } catch (e) {
+            alert('Erreur lors de la suppression')
+         }
+       }
+    </script>
   @end
 @end

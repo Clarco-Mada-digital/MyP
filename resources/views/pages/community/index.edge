@@ -1,0 +1,451 @@
+@app({ title: 'Communauté - My Professor' })
+@slot('main')
+    <main class="max-w-7xl mx-auto px-6 py-12">
+      
+      {{-- Hero Section --}}
+      <div class="relative mb-16 rounded-[3rem] overflow-hidden bg-gradient-to-br from-primary-600 via-primary-700 to-indigo-800 p-12 text-white shadow-2xl">
+        <div class="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 -mb-20 -ml-20 w-96 h-96 bg-primary-400/20 rounded-full blur-3xl"></div>
+        
+        <div class="relative z-10 max-w-2xl">
+          <h1 class="text-5xl font-black mb-6 leading-tight">Explorez le savoir partagé par la communauté</h1>
+          <p class="text-primary-100 text-xl mb-10 leading-relaxed">
+            Découvrez les parcours d'apprentissage créés par d'autres passionnés et enrichissez votre propre bibliothèque d'un simple clic.
+          </p>
+          
+          <div class="flex flex-col md:flex-row gap-4">
+            <div class="flex-1 relative">
+              <input type="text" id="communitySearch" placeholder="Qu'est-ce qui vous passionne ?" 
+                     class="w-full pl-14 pr-6 py-5 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-primary-200 focus:outline-none focus:ring-2 focus:ring-white/50 backdrop-blur-md transition-all">
+              <span class="absolute left-5 top-1/2 -translate-y-1/2 text-2xl">🔍</span>
+            </div>
+            <button onclick="performSearch()" class="bg-white text-primary-700 px-10 py-5 rounded-2xl font-black hover:bg-primary-50 transition-all shadow-xl hover:scale-105 active:scale-95">
+              Rechercher
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col lg:flex-row gap-12" x-data="{ view: 'discover' }">
+        
+        {{-- Navigation & Stats --}}
+        <aside class="lg:w-1/4 space-y-8">
+          <nav class="bg-white rounded-[2rem] p-4 shadow-xl border border-slate-100 space-y-2">
+            <button @click="view = 'discover'; loadDiscovery()" 
+                    :class="view === 'discover' ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'text-slate-600 hover:bg-slate-50'"
+                    class="w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-bold transition-all duration-300">
+              <span class="text-xl">🌟</span>
+              <span>Découvrir</span>
+            </button>
+            <button @click="view = 'trending'; loadTrending()" 
+                    :class="view === 'trending' ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'text-slate-600 hover:bg-slate-50'"
+                    class="w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-bold transition-all duration-300">
+              <span class="text-xl">🔥</span>
+              <span>Tendances</span>
+            </button>
+            <button @click="view = 'myshares'; loadMyShares()" 
+                    :class="view === 'myshares' ? 'bg-primary-600 text-white shadow-lg shadow-primary-200' : 'text-slate-600 hover:bg-slate-50'"
+                    class="w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-bold transition-all duration-300">
+              <span class="text-xl">🔗</span>
+              <span>Mes Partages</span>
+            </button>
+            
+            <div class="pt-4 border-t border-slate-100">
+               <button onclick="openShareModal()" class="w-full flex items-center justify-center gap-2 px-6 py-4 bg-emerald-500 text-white rounded-2xl font-black hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-100">
+                 <span>+</span>
+                 <span>Partager</span>
+               </button>
+            </div>
+          </nav>
+
+          <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-[2rem] p-8 text-white shadow-xl relative overflow-hidden">
+             <div class="relative z-10">
+               <h3 class="text-lg font-bold mb-4">Pourquoi partager ?</h3>
+               <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                 En partageant vos parcours, vous aidez les autres à apprendre plus vite et vous contribuez à créer la plus grande base de connaissances libre.
+               </p>
+               <button onclick="window.location.href='/mes-cours'" class="w-full py-3 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl text-sm font-bold transition-all">
+                 Partager un de mes cours
+               </button>
+             </div>
+          </div>
+        </aside>
+
+        {{-- Content Area --}}
+        <div class="lg:w-3/4">
+          <div class="flex items-center justify-between mb-8">
+            <h2 class="text-3xl font-black text-slate-900" 
+                x-text="view === 'discover' ? 'Nouveautés' : (view === 'trending' ? 'Les plus populaires' : 'Mes contributions')">
+            </h2>
+            <div class="flex gap-2">
+              <select id="categoryFilter" onchange="performSearch()" class="rounded-xl border-slate-200 text-sm font-bold focus:ring-primary-500">
+                <option value="">Toutes catégories</option>
+                <option value="tech">Technologie</option>
+                <option value="science">Sciences</option>
+                <option value="arts">Arts & Design</option>
+                <option value="business">Business</option>
+              </select>
+            </div>
+          </div>
+
+          {{-- Paths Grid --}}
+          <div id="pathsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+             {{-- Loaded via JS --}}
+             <div class="col-span-full py-20 text-center text-slate-400">
+                <div class="animate-spin inline-block w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full mb-4"></div>
+                <p class="text-lg font-medium">Chargement des parcours...</p>
+             </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    {{-- Share Modal --}}
+    <div id="shareModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+      <div class="bg-white rounded-[3rem] p-10 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in duration-300">
+        <div class="flex justify-between items-start mb-8">
+          <h2 class="text-3xl font-black text-slate-900">Partager un Parcours</h2>
+          <button onclick="closeShareModal()" class="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
+        <form id="shareForm" class="space-y-6">
+          <input type="hidden" id="editToken" value="">
+          <div id="lpSelectContainer">
+            <label class="block text-sm font-bold text-slate-700 mb-2 font-black uppercase tracking-widest text-[10px]">Parcours à partager</label>
+            <select name="learningPathId" id="lpSelect" class="w-full p-4 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-primary-500 font-bold">
+              <option value="">Chargement...</option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-bold text-slate-700 mb-2 font-black uppercase tracking-widest text-[10px]">Titre du partage</label>
+            <input type="text" name="title" id="shareTitle" required class="w-full p-4 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-primary-500" placeholder="Ex: Maîtriser Python en 10 jours">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-bold text-slate-700 mb-2 font-black uppercase tracking-widest text-[10px]">Description</label>
+            <textarea name="description" id="shareDescription" rows="4" class="w-full p-4 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-primary-500" placeholder="Pourquoi ce parcours est-il génial ?"></textarea>
+          </div>
+          
+          <div class="flex items-center gap-4 p-4 bg-primary-50 rounded-2xl">
+            <input type="checkbox" name="isPublic" id="isPublic" checked class="w-6 h-6 text-primary-600 rounded-lg focus:ring-primary-500 border-none shadow-sm">
+            <label for="isPublic" class="font-bold text-primary-900">Rendre public (visible par tous)</label>
+          </div>
+          
+          <div class="flex justify-end gap-4 pt-4">
+            <button type="button" onclick="closeShareModal()" class="px-8 py-4 rounded-2xl font-bold text-slate-600 hover:bg-slate-100 transition-all">
+              Annuler
+            </button>
+            <button type="submit" id="shareSubmitBtn" class="bg-primary-600 text-white px-10 py-4 rounded-2xl font-black hover:bg-primary-700 transition-all shadow-xl shadow-primary-100">
+              Confirmer le partage
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    {{-- Templates for JS --}}
+    <template id="pathCardTemplate">
+       <div class="group bg-white rounded-[2.5rem] p-8 shadow-xl hover:shadow-2xl border border-slate-100 transition-all duration-500 hover:-translate-y-2 flex flex-col h-full">
+          <div class="flex justify-between items-start mb-6">
+             <span class="category-badge px-4 py-1.5 rounded-full bg-primary-50 text-primary-600 text-[10px] font-black uppercase tracking-wider">Chargement...</span>
+             <span class="text-slate-400 text-xs date-label">Date inconnue</span>
+          </div>
+          <h3 class="text-2xl font-black text-slate-900 mb-4 group-hover:text-primary-600 transition-colors title-label line-clamp-2">Le titre du parcours</h3>
+          <p class="text-slate-500 mb-8 flex-grow desc-label line-clamp-3 leading-relaxed">Une petite description du parcours pour donner envie aux gens d'aller plus loin.</p>
+          
+          <div class="flex items-center gap-6 p-4 bg-slate-50 rounded-2xl mb-8 stats-row">
+             <div class="flex items-center gap-2" title="Nombre de vues">
+                <span class="text-xl">👁️</span>
+                <span class="text-sm font-bold text-slate-600 views-count">0</span>
+             </div>
+             <div class="flex items-center gap-2" title="Nombre d'importations">
+                <span class="text-xl">📥</span>
+                <span class="text-sm font-bold text-slate-600 shares-count">0</span>
+             </div>
+             <div class="ml-auto flex gap-2 edit-delete-btns hidden">
+                <button onclick="" class="text-slate-400 hover:text-primary-600 p-2 rounded-lg hover:bg-slate-100 transition-colors edit-btn" title="Modifier les infos">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+                <button onclick="" class="text-rose-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 transition-colors delete-btn" title="Supprimer ce partage">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+             </div>
+          </div>
+
+          <div class="flex gap-3">
+             <a href="#" class="flex-1 bg-slate-900 text-white px-6 py-4 rounded-2xl font-bold text-center hover:bg-slate-800 transition-all view-link">
+                Voir détails
+             </a>
+             <button onclick="" class="bg-primary-600 text-white px-6 py-4 rounded-2xl font-bold hover:bg-primary-700 transition-all shadow-lg shadow-primary-100 import-btn">
+                Importer
+             </button>
+          </div>
+       </div>
+    </template>
+
+    <script>
+      async function loadDiscovery(sort = 'recent', search = '') {
+        const grid = document.getElementById('pathsGrid')
+        const template = document.getElementById('pathCardTemplate')
+        
+        try {
+          const response = await fetch(`/api/community/discover?sort=${sort}&search=${search}&_t=${Date.now()}`, {
+            headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+          })
+          const data = await response.json()
+          
+          grid.innerHTML = ''
+          
+          if (data.sharedPaths.length === 0) {
+            grid.innerHTML = `
+              <div class="col-span-full py-20 text-center">
+                 <div class="text-8xl mb-6">👻</div>
+                 <p class="text-2xl font-black text-slate-900">Aucun résultat</p>
+                 <p class="text-slate-500 mt-2">Essayez d'autres mots-clés ou soyez le premier à partager !</p>
+              </div>
+            `
+            return
+          }
+          
+          data.sharedPaths.forEach(path => {
+            const clone = template.content.cloneNode(true)
+            
+            clone.querySelector('.title-label').textContent = path.title
+            clone.querySelector('.desc-label').textContent = path.description || 'Apprenez tout sur ce sujet passionnant.'
+            clone.querySelector('.views-count').textContent = path.viewsCount
+            clone.querySelector('.shares-count').textContent = path.sharesCount
+            clone.querySelector('.view-link').href = `/community/shared/${path.shareToken}`
+            clone.querySelector('.category-badge').textContent = path.user?.fullName || 'Utilisateur'
+            clone.querySelector('.date-label').textContent = new Date(path.createdAt).toLocaleDateString()
+            
+            const importBtn = clone.querySelector('.import-btn')
+            importBtn.setAttribute('onclick', `importPath('${path.shareToken}')`)
+            
+            // Setup detail link
+            clone.querySelector('.view-link').onclick = (e) => {
+               e.preventDefault();
+               window.location.href = `/community/shared/${path.shareToken}`;
+            };
+
+            grid.appendChild(clone)
+          })
+        } catch (error) {
+          console.error('Error loading community:', error)
+        }
+      }
+
+      async function importPath(token) {
+        if (!confirm('Voulez-vous ajouter ce parcours à vos cours personnels ?')) return
+        
+        try {
+          const response = await fetch(`/community/import/${token}`, {
+            method: 'POST',
+            headers: {
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+            }
+          })
+          
+          const result = await response.json()
+          
+          if (result.success) {
+            alert(result.message)
+            window.location.href = result.redirect
+          } else {
+            alert('Erreur : ' + result.error)
+          }
+        } catch (error) {
+          console.error('Import error:', error)
+          alert('Une erreur est survenue lors de l\'importation.')
+        }
+      }
+
+      function performSearch() {
+        const search = document.getElementById('communitySearch').value
+        loadDiscovery('recent', search)
+      }
+
+      function loadTrending() { loadDiscovery('popular') }
+      async function loadMyShares() {
+        const grid = document.getElementById('pathsGrid')
+        const template = document.getElementById('pathCardTemplate')
+        grid.innerHTML = '<div class="col-span-full py-20 text-center text-slate-400"><div class="animate-spin inline-block w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full mb-4"></div><p>Chargement de vos partages...</p></div>'
+        
+        try {
+          const response = await fetch(`/community/my-shares?_t=${Date.now()}`, {
+            headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+          })
+          const data = await response.json()
+          grid.innerHTML = ''
+          
+          if (!data.sharedPaths || data.sharedPaths.length === 0) {
+            grid.innerHTML = '<div class="col-span-full py-20 text-center"><div class="text-8xl mb-6">🔗</div><p class="text-2xl font-black text-slate-900">Vous n\'avez rien partagé</p><p class="text-slate-500 mt-2">Partagez vos parcours pour les voir apparaître ici.</p></div>'
+            return
+          }
+          
+          data.sharedPaths.forEach(path => {
+            const clone = template.content.cloneNode(true)
+            clone.querySelector('.title-label').textContent = path.title
+            clone.querySelector('.desc-label').textContent = path.description || 'Apprenez tout sur ce sujet.'
+            clone.querySelector('.views-count').textContent = path.viewsCount || 0
+            clone.querySelector('.shares-count').textContent = path.sharesCount || 0
+            clone.querySelector('.view-link').href = `/community/shared/${path.shareToken}`
+            clone.querySelector('.category-badge').textContent = path.isPublic ? '🌐 Public' : '🔒 Privé'
+            clone.querySelector('.date-label').textContent = new Date(path.createdAt).toLocaleDateString()
+            
+            // Show and setup buttons
+            const actionsContainer = clone.querySelector('.edit-delete-btns')
+            actionsContainer.classList.remove('hidden')
+            
+            actionsContainer.querySelector('.delete-btn').onclick = () => deleteShare(path.shareToken)
+            actionsContainer.querySelector('.edit-btn').onclick = () => openEditModal(path)
+
+            const importBtn = clone.querySelector('.import-btn')
+            importBtn.onclick = () => importPath(path.shareToken)
+            grid.appendChild(clone)
+          })
+        } catch (e) {
+          console.error(e)
+          grid.innerHTML = '<p class="text-center py-20 text-red-500">Erreur lors du chargement.</p>'
+        }
+      }
+
+      // Share Modal Logic
+      async function openShareModal() {
+        resetShareForm()
+        document.getElementById('shareModal').classList.remove('hidden')
+        document.getElementById('shareModal').querySelector('h2').textContent = 'Partager un Parcours'
+        document.getElementById('lpSelectContainer').classList.remove('hidden')
+        
+        const select = document.getElementById('lpSelect')
+        
+        try {
+          const response = await fetch('/api/parcours?mine=1')
+          const data = await response.json()
+          
+          select.innerHTML = '<option value="">Choisir un parcours...</option>'
+          
+          let paths = data.paths || data.learning_paths || []
+          if (paths.length === 0) {
+            select.innerHTML = '<option value="">Aucun parcours trouvé</option>'
+            return
+          }
+          
+          paths.forEach(p => {
+             const opt = document.createElement('option')
+             opt.value = p.id
+             opt.textContent = p.title || p.name
+             select.appendChild(opt)
+          })
+        } catch (e) {
+          select.innerHTML = '<option value="">Erreur de chargement</option>'
+        }
+      }
+
+      function openEditModal(path) {
+        document.getElementById('shareModal').classList.remove('hidden')
+        document.getElementById('shareModal').querySelector('h2').textContent = 'Modifier le Partage'
+        
+        // Hide selection (we don't change the source LP during edit)
+        document.getElementById('lpSelectContainer').classList.add('hidden')
+        
+        document.getElementById('editToken').value = path.shareToken
+        document.getElementById('shareTitle').value = path.title
+        document.getElementById('shareDescription').value = path.description || ''
+        document.getElementById('isPublic').checked = path.isPublic
+        
+        document.getElementById('shareSubmitBtn').textContent = 'Mettre à jour'
+      }
+
+      function resetShareForm() {
+        document.getElementById('editToken').value = ''
+        document.getElementById('shareForm').reset()
+        document.getElementById('shareSubmitBtn').textContent = 'Confirmer le partage'
+      }
+
+      function closeShareModal() {
+        document.getElementById('shareModal').classList.add('hidden')
+      }
+
+      document.getElementById('shareForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault()
+        const fd = new FormData(e.target)
+        const btn = document.getElementById('shareSubmitBtn')
+        const token = document.getElementById('editToken').value
+        
+        const isUpdate = !!token
+        const url = isUpdate ? `/community/shared/${token}` : '/community/share'
+        const method = isUpdate ? 'PUT' : 'POST'
+
+        btn.disabled = true
+        btn.textContent = isUpdate ? 'Mise à jour...' : 'Partage en cours...'
+        
+        try {
+          const response = await fetch(url, {
+            method: method,
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+            },
+            body: JSON.stringify({
+              learningPathId: fd.get('learningPathId'),
+              title: fd.get('title'),
+              description: fd.get('description'),
+              isPublic: fd.get('isPublic') === 'on'
+            })
+          })
+          
+          const res = await response.json()
+          if (res.success) {
+            alert(res.message || 'Opération réussie !')
+            closeShareModal()
+            if (isUpdate) loadMyShares()
+            else loadDiscovery()
+          } else {
+            alert('Erreur : ' + (res.error || res.message))
+          }
+        } catch (err) {
+          console.error(err)
+          alert('Erreur réseau.')
+        } finally {
+          btn.disabled = false
+          btn.textContent = isUpdate ? 'Mettre à jour' : 'Confirmer le partage'
+        }
+      })
+
+      async function deleteShare(token) {
+        if (!confirm('Êtes-vous sûr de vouloir supprimer ce partage ? Cela ne supprimera pas votre cours, seulement le lien communautaire.')) return
+        
+        try {
+          const response = await fetch(`/community/shared/${token}`, {
+            method: 'DELETE',
+            headers: {
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+            }
+          })
+          
+          const result = await response.json()
+          if (result.success) {
+            alert(result.message)
+            loadMyShares()
+          } else {
+            alert('Erreur : ' + (result.error || result.message))
+          }
+        } catch (e) {
+          console.error(e)
+          alert('Une erreur est survenue.')
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', () => loadDiscovery())
+    </script>
+@endslot
+@end

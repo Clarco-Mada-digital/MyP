@@ -1,0 +1,23 @@
+# Override file for local development with environment variables
+# This file should NOT be committed to version control
+services:
+  app:
+    environment:
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_USER=myp_user
+      - DB_PASSWORD=${DB_PASSWORD:-secure_password_change_me}
+      - DB_DATABASE=myp_db
+      - APP_KEY=${APP_KEY}
+      - HOST=0.0.0.0
+      - NODE_ENV=development
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+
+  db:
+    environment:
+      - MYSQL_DATABASE=myp_db
+      - MYSQL_USER=myp_user
+      - MYSQL_PASSWORD=${DB_PASSWORD:-secure_password_change_me}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-secure_root_password_change_me}

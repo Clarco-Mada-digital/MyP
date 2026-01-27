@@ -75,34 +75,53 @@ export default class DashboardController {
 
     const topics = masterTopicsData.map((t: any) => t.topic_tag)
 
-    // 7. Progression par semaine (pour le graphique)
+    // 7. Progression mensuelle par semaine (pour le graphique)
     const isSQLite = Env.get('DB_CONNECTION') === 'sqlite'
-    let weeklyProgress: any[] = []
+    let monthlyProgress: any[] = []
 
     if (isSQLite) {
-      weeklyProgress = await db.rawQuery(`
+      monthlyProgress = await db.rawQuery(`
         SELECT 
-          strftime('%Y-%W', updated_at) as week,
+          strftime('%Y-%m', updated_at) as month,
+          strftime('%W', updated_at) as week,
           COUNT(DISTINCT course_id) as courses_count
         FROM course_progresses
         WHERE user_id = ?
-          AND updated_at >= date('now', '-56 days')
-        GROUP BY week
+          AND updated_at >= date('now', '-30 days')
+          AND strftime('%Y-%m', updated_at) = strftime('%Y-%m', 'now')
+        GROUP BY month, week
         ORDER BY week ASC
       `, [userId])
     } else {
       // MySQL
       const [rows]: [any[], any] = await db.rawQuery(`
         SELECT 
-          DATE_FORMAT(updated_at, '%Y-%u') as week,
+          DATE_FORMAT(updated_at, '%Y-%m') as month,
+          WEEK(updated_at, 1) as week,
           COUNT(DISTINCT course_id) as courses_count
         FROM course_progresses
         WHERE user_id = ?
-          AND updated_at >= DATE_SUB(NOW(), INTERVAL 56 DAY)
-        GROUP BY week
+          AND updated_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+          AND DATE_FORMAT(updated_at, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')
+        GROUP BY month, week
         ORDER BY week ASC
       `, [userId])
-      weeklyProgress = rows
+      monthlyProgress = rows
+    }
+
+    // Générer toutes les semaines du mois avec 0 pour celles sans activité
+    const currentWeek = new Date().getUTCDate() <= 7 ? 1 :
+      new Date().getUTCDate() <= 14 ? 2 :
+        new Date().getUTCDate() <= 21 ? 3 :
+          new Date().getUTCDate() <= 28 ? 4 : 5
+
+    const allWeeks = []
+    for (let i = 1; i <= currentWeek; i++) {
+      const weekData = monthlyProgress.find(w => parseInt(w.week) === i)
+      allWeeks.push({
+        week: i.toString(),
+        courses_count: weekData ? weekData.courses_count : 0
+      })
     }
 
     // 8. Badges débloqués
@@ -111,6 +130,8 @@ export default class DashboardController {
     if (completedCount >= 5) badges.push({ icon: '🏆', title: 'Apprenant Assidu', description: '5 cours terminés' })
     if (completedCount >= 10) badges.push({ icon: '⭐', title: 'Expert', description: '10 cours terminés' })
     if (totalBookmarks >= 5) badges.push({ icon: '📚', title: 'Collectionneur', description: '5 cours sauvegardés' })
+
+    const userPaths = await auth.user.related('learningPaths').query().preload('courses').limit(3)
 
     return view.render('pages/dashboard/index', {
       stats: {
@@ -121,8 +142,9 @@ export default class DashboardController {
       },
       recentCourses,
       topics,
-      weeklyProgress: weeklyProgress || [],
-      badges
+      weeklyProgress: allWeeks || [],
+      badges,
+      userPaths
     })
   }
 }

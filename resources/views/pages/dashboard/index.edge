@@ -1,7 +1,4 @@
 @app({ title: 'Tableau de Bord - My Professor' })
-  @slot('head')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  @end
 
   @slot('main')
     <main class="max-w-7xl mx-auto px-6 py-12">
@@ -64,12 +61,47 @@
         {{-- Colonne Gauche (2/3) --}}
         <div class="lg:col-span-2 space-y-8">
           
+          {{-- Mes Parcours --}}
+          <div class="bg-white rounded-3xl p-8 shadow-xl border border-slate-100">
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-2xl font-black text-slate-900 flex items-center gap-3">
+                <span class="text-3xl">🎯</span>
+                Mes Parcours
+              </h2>
+              <a href="/mes-cours" class="text-sm font-bold text-primary-600 hover:underline">Voir tout +</a>
+            </div>
+
+            @if(userPaths && userPaths.length > 0)
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @each(path in userPaths)
+                  <a href="/parcours/{{ path.slug }}" class="p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-primary-200 hover:bg-white transition-all group">
+                    <div class="flex items-center gap-3">
+                      <div class="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-xl">
+                        {{ path.icon || '📍' }}
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <h3 class="font-bold text-slate-800 truncate group-hover:text-primary-600">{{ path.title }}</h3>
+                        <p class="text-xs text-slate-400">{{ path.courses.length }} cours</p>
+                      </div>
+                    </div>
+                  </a>
+                @end
+              </div>
+            @else
+              <div class="text-center py-6 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+                <p class="text-sm text-slate-500 mb-4">Créez votre premier parcours pour organiser votre apprentissage.</p>
+                <a href="/mes-cours" class="inline-block px-6 py-2 bg-primary-600 text-white rounded-full font-bold text-xs shadow-md hover:bg-primary-700 transition-all">Créer un parcours</a>
+              </div>
+            @end
+          </div>
+
           {{-- Graphique de progression --}}
           <div class="bg-white rounded-3xl p-8 shadow-xl border border-slate-100">
             <h2 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3">
               <span class="text-3xl">📊</span>
-              Activité Hebdomadaire
+              Activité Mensuelle
             </h2>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
             <canvas id="weeklyChart" data-weekly-progress="{{ JSON.stringify(weeklyProgress) }}" class="max-h-64"></canvas>
           </div>
 
@@ -162,24 +194,32 @@
     </main>
 
     <script>
-      // Graphique de progression hebdomadaire
-      const ctx = document.getElementById('weeklyChart');
-      const weeklyProgressData = JSON.parse(ctx.getAttribute('data-weekly-progress') || '[]');
+      function initChart() {
+        if (typeof Chart === 'undefined') {
+          setTimeout(initChart, 100);
+          return;
+        }
+        
+        // Graphique de progression mensuelle par semaine
+        const ctx = document.getElementById('weeklyChart');
+        if (!ctx) return;
+        
+        const weeklyProgressData = JSON.parse(ctx.getAttribute('data-weekly-progress') || '[]');
       
       let weeklyData = weeklyProgressData;
       
       if (!weeklyData || weeklyData.length === 0) {
-        // Données par défaut pour le débogage
+        // Données par défaut pour le débogage - semaines du mois en cours
         weeklyData = [
-          { week: '2026-01', courses_count: 0 },
-          { week: '2026-02', courses_count: 0 },
-          { week: '2026-03', courses_count: 0 }
+          { week: '1', courses_count: 0 },
+          { week: '2', courses_count: 0 },
+          { week: '3', courses_count: 0 },
+          { week: '4', courses_count: 0 }
         ];
       }
       
       const labels = weeklyData.map(w => {
-        const [year, week] = w.week.split('-');
-        return `S${week}`;
+        return `Semaine ${w.week}`;
       });
       
       const data = weeklyData.map(w => w.courses_count);
@@ -189,7 +229,7 @@
         data: {
           labels: labels,
           datasets: [{
-            label: 'Cours actifs',
+            label: 'Cours actifs cette semaine',
             data: data,
             borderColor: 'rgb(99, 102, 241)',
             backgroundColor: 'rgba(99, 102, 241, 0.1)',
@@ -228,6 +268,9 @@
           }
         }
       });
+    }
+
+      initChart();
     </script>
   @end
 @end

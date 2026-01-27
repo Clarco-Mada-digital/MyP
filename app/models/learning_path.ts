@@ -1,7 +1,8 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, manyToMany } from '@adonisjs/lucid/orm'
-import type { ManyToMany } from '@adonisjs/lucid/types/relations'
+import { BaseModel, column, manyToMany, belongsTo } from '@adonisjs/lucid/orm'
+import type { ManyToMany, BelongsTo } from '@adonisjs/lucid/types/relations'
 import Course from '#models/course'
+import User from '#models/user'
 
 export default class LearningPath extends BaseModel {
   @column({ isPrimary: true })
@@ -34,6 +35,9 @@ export default class LearningPath extends BaseModel {
   @column()
   declare isPublished: boolean
 
+  @column()
+  declare userId: number | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
@@ -46,6 +50,9 @@ export default class LearningPath extends BaseModel {
     pivotTimestamps: true
   })
   declare courses: ManyToMany<typeof Course>
+
+  @belongsTo(() => User)
+  declare user: BelongsTo<typeof User>
 
   // Transient properties for progression tracking
   public completedCount?: number

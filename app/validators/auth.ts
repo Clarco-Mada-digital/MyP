@@ -7,7 +7,7 @@ export const registerValidator = vine.compile(
   vine.object({
     fullName: vine.string().trim().minLength(3),
     email: vine.string().email().normalizeEmail().unique({ table: 'users', column: 'email' }),
-    password: vine.string().minLength(8),
+    password: vine.string().minLength(8).regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/),
   })
 )
 

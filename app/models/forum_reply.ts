@@ -60,17 +60,17 @@ export default class ForumReply extends BaseModel {
 
   async getDepth(): Promise<number> {
     if (!this.parentId) return 0
-    
+
     let depth = 1
-    let current = this
-    
+    let current: ForumReply = this
+
     while (current.parentId) {
       const parent = await ForumReply.find(current.parentId)
       if (!parent || !parent.parentId) break
       depth++
       current = parent
     }
-    
+
     return depth
   }
 }

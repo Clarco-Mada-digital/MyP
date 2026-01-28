@@ -24,6 +24,10 @@ export default class HttpExceptionHandler extends ExceptionHandler {
     '404': (error, { view }) => {
       return view.render('pages/errors/not_found', { error })
     },
+    '429': (_, { view }) => {
+      // In case retryAfter is not provided by the exception
+      return view.render('pages/errors/too_many_requests', { retryAfter: 60 })
+    },
     '500..599': (error, { view }) => {
       return view.render('pages/errors/server_error', { error })
     },

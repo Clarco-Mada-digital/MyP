@@ -24,6 +24,7 @@ export default class CommunityController {
       .preload('user')
       .preload('learningPath', (lpQuery) => {
         lpQuery.preload('courses')
+        lpQuery.preload('user')
       })
 
     // Search filter
@@ -56,7 +57,7 @@ export default class CommunityController {
   /**
    * Show a specific shared path
    */
-  async show({ params, response, view }: HttpContext) {
+  async show({ params, response, view, session }: HttpContext) {
     const { token } = params
 
     const sharedPath = await SharedLearningPath.query()
@@ -64,6 +65,7 @@ export default class CommunityController {
       .preload('user')
       .preload('learningPath', (query) => {
         query.preload('courses')
+        query.preload('user')
       })
       .first()
 
@@ -75,9 +77,14 @@ export default class CommunityController {
       return response.status(410).send('Parcours expiré')
     }
 
-    // Stats
-    sharedPath.viewsCount++
-    await sharedPath.save()
+    // Stats: increment views only once per session
+    const viewedPaths = session.get('viewed_shared_paths', [])
+    if (!viewedPaths.includes(sharedPath.id)) {
+      sharedPath.viewsCount++
+      await sharedPath.save()
+      viewedPaths.push(sharedPath.id)
+      session.put('viewed_shared_paths', viewedPaths)
+    }
 
     return view.render('pages/community/show', { sharedPath })
   }
@@ -89,32 +96,60 @@ export default class CommunityController {
     const user = auth.user! as User
     const { learningPathId, title, description, isPublic } = request.all()
 
-    // Vérifier que le parcours appartient bien à l'utilisateur
-    const learningPath = await LearningPath.query()
-      .where('id', learningPathId)
+    if (!learningPathId) {
+      return response.badRequest({ error: 'Veuillez sélectionner un parcours à partager.' })
+    }
+
+    // 1. Check if path exists first
+    const learningPath = await LearningPath.find(learningPathId)
+
+    if (!learningPath) {
+      return response.status(404).json({ error: 'Parcours introuvable.' })
+    }
+
+    // 2. Check permissions
+    // Admin can share anything. Users can only share their own.
+    if (!user.isAdmin && learningPath.userId !== user.id) {
+      console.warn(`User ${user.id} attempted to share path ${learningPath.id} owned by ${learningPath.userId}`)
+      return response.status(403).json({
+        error: "Vous n'avez pas la permission de partager ce parcours (propriétaire différent)."
+      })
+    }
+
+    // 3. Check if already shared by this user?
+    // Optionally update existing share to avoid duplicates or multiple tokens for same thing
+    let sharedPath = await SharedLearningPath.query()
+      .where('learningPathId', learningPath.id)
       .where('userId', user.id)
       .first()
 
-    if (!learningPath) {
-      return response.status(403).json({ error: "Vous ne pouvez partager que vos propres parcours." })
+    if (sharedPath) {
+      // Update existing share
+      sharedPath.merge({
+        title: title || learningPath.title,
+        description: description || learningPath.description,
+        isPublic: isPublic === 'on' || isPublic === true,
+        updatedAt: DateTime.now()
+      })
+      await sharedPath.save()
+    } else {
+      // Create new share
+      const shareToken = SharedLearningPath.generateShareToken()
+      sharedPath = await SharedLearningPath.create({
+        userId: user.id,
+        learningPathId: learningPath.id,
+        shareToken,
+        title: title || learningPath.title,
+        description: description || learningPath.description,
+        isPublic: isPublic === 'on' || isPublic === true,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now()
+      })
     }
-
-    const shareToken = SharedLearningPath.generateShareToken()
-
-    const sharedPath = await SharedLearningPath.create({
-      userId: user.id,
-      learningPathId,
-      shareToken,
-      title,
-      description,
-      isPublic: isPublic === 'on' || isPublic === true,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now()
-    })
 
     return response.json({
       success: true,
-      shareUrl: `/community/shared/${shareToken}`,
+      shareUrl: `/community/shared/${sharedPath.shareToken}`,
       sharedPath
     })
   }
@@ -128,6 +163,7 @@ export default class CommunityController {
     const sharedPaths = await SharedLearningPath.query()
       .where('userId', user.id)
       .preload('learningPath')
+      .preload('user')
       .orderBy('createdAt', 'desc')
 
     return response.json({ sharedPaths })
@@ -167,7 +203,8 @@ export default class CommunityController {
       isPublished: true,
       icon: sharedPath.learningPath.icon,
       color: sharedPath.learningPath.color,
-      difficulty: sharedPath.learningPath.difficulty
+      difficulty: sharedPath.learningPath.difficulty,
+      originSharedPathId: sharedPath.id
     })
 
     const newCourses: number[] = []

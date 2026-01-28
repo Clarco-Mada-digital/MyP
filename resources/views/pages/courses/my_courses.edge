@@ -102,11 +102,21 @@
                 <div class="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-xl flex items-center justify-center text-2xl">
                   {{ path.icon || '🎯' }}
                 </div>
-                <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                <div class="flex gap-2">
+                   <button onclick="editPath({{ path.id }})" class="p-2 text-indigo-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                   </button>
                    <button onclick="deletePath({{ path.id }})" class="p-2 text-rose-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors">
                       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                    </button>
                 </div>
+              </div>
+              <div class="flex items-center gap-2 mb-2">
+                @if(path.isPublished)
+                  <span class="px-2 py-0.5 bg-emerald-100 text-[9px] text-emerald-600 rounded-md uppercase font-black tracking-widest">🌐 Public</span>
+                @else
+                   <span class="px-2 py-0.5 bg-slate-100 text-[9px] text-slate-500 rounded-md uppercase font-black tracking-widest text-white">🔒 Privé</span>
+                @end
               </div>
               <h3 class="text-xl font-black text-slate-900 mb-2">{{ path.title }}</h3>
               <p class="text-slate-500 text-sm line-clamp-2 mb-6 flex-grow">{{ path.description || 'Pas de description.' }}</p>
@@ -232,13 +242,12 @@
         </div>
       @end
     </main>
-    </main>
 
-    {{-- Create Path Modal --}}
+    {{-- Create/Edit Path Modal --}}
     <div id="pathModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
       <div class="bg-white rounded-[3rem] p-10 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
         <div class="flex justify-between items-center mb-8">
-          <h2 class="text-3xl font-black text-slate-900 tracking-tight">Créer un Parcours</h2>
+          <h2 id="modalTitle" class="text-3xl font-black text-slate-900 tracking-tight">Créer un Parcours</h2>
           <button onclick="closePathModal()" class="p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
@@ -247,31 +256,37 @@
         </div>
         
         <form id="pathForm" class="space-y-6">
+           <input type="hidden" name="id" id="pathId">
            <div>
               <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Nom du parcours</label>
-              <input type="text" name="title" required class="w-full p-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-indigo-500 font-bold" placeholder="Ex: Master Intelligence Artificielle">
+              <input type="text" name="title" id="pathTitle" required class="w-full p-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-indigo-500 font-bold" placeholder="Ex: Master Intelligence Artificielle">
            </div>
            
            <div>
               <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Description rapide</label>
-              <textarea name="description" rows="3" class="w-full p-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-indigo-500 font-bold" placeholder="Quel est l'objectif de ce parcours ?"></textarea>
+              <textarea name="description" id="pathDescription" rows="3" class="w-full p-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-indigo-500 font-bold" placeholder="Quel est l'objectif de ce parcours ?"></textarea>
            </div>
 
            <div>
               <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Sélectionnez vos cours (Maintenez Ctrl pour plusieurs)</label>
-              <select name="courseIds" multiple class="w-full p-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-indigo-500 font-bold h-48">
+              <select name="courseIds" id="pathCourses" multiple class="w-full p-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-indigo-500 font-bold h-48">
                 @each(course in courses)
                   @if(course.status === 'ready')
                     <option value="{{ course.id }}">{{ course.title }}</option>
                   @end
                 @end
               </select>
-              <p class="mt-2 text-[10px] text-slate-400 italic">Seuls les cours terminés ou prêts peuvent être ajoutés.</p>
+              <p class="mt-2 text-[10px] text-slate-400 italic">L'ordre de sélection définit l'ordre du parcours.</p>
+           </div>
+
+           <div class="flex items-center gap-4 p-4 bg-indigo-50 rounded-2xl">
+              <input type="checkbox" id="pathIsPublished" class="w-6 h-6 text-indigo-600 rounded-lg focus:ring-indigo-500 border-none shadow-sm">
+              <label for="pathIsPublished" class="font-bold text-indigo-900">Rendre ce parcours public (visible via lien direct)</label>
            </div>
 
            <div class="flex justify-end gap-4 pt-4">
               <button type="button" onclick="closePathModal()" class="px-8 py-4 rounded-2xl font-bold text-slate-600 hover:bg-slate-100 transition-all">Annuler</button>
-              <button type="submit" class="bg-indigo-600 text-white px-10 py-4 rounded-2xl font-black hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 italic">
+              <button type="submit" id="pathSubmitBtn" class="bg-indigo-600 text-white px-10 py-4 rounded-2xl font-black hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 italic">
                 C'est parti ! 🚀
               </button>
            </div>
@@ -285,20 +300,61 @@
        }
        function closePathModal() {
          document.getElementById('pathModal').classList.add('hidden')
+         document.getElementById('pathForm').reset()
+         document.getElementById('pathId').value = ''
+         document.getElementById('pathIsPublished').checked = false
+         document.getElementById('modalTitle').textContent = 'Créer un Parcours'
+         document.getElementById('pathSubmitBtn').textContent = "C'est parti ! 🚀"
+       }
+
+       async function editPath(id) {
+         try {
+           // Bypassing browser cache with timestamp
+           const response = await fetch(`/parcours/${id}/api?_t=${Date.now()}`, {
+             headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+           })
+           const data = await response.json()
+           const path = data.path
+           
+           document.getElementById('pathId').value = path.id
+           document.getElementById('pathTitle').value = path.title
+           document.getElementById('pathDescription').value = path.description || ''
+           document.getElementById('pathIsPublished').checked = !!path.isPublished
+           document.getElementById('modalTitle').textContent = 'Modifier le Parcours'
+           document.getElementById('pathSubmitBtn').textContent = "Enregistrer les modifications"
+           
+           // Sélectionner les cours existants
+           const select = document.getElementById('pathCourses')
+           const pathCourseIds = path.courses.map(c => String(c.id))
+           
+           Array.from(select.options).forEach(option => {
+             option.selected = pathCourseIds.includes(String(option.value))
+           })
+           
+           openPathModal()
+         } catch (e) {
+           console.error(e)
+           alert('Erreur lors du chargement des données du parcours')
+         }
        }
 
        document.getElementById('pathForm')?.addEventListener('submit', async (e) => {
          e.preventDefault()
          const fd = new FormData(e.target)
-         const courseIds = Array.from(e.target.courseIds.selectedOptions).map(o => o.value)
+         const id = document.getElementById('pathId').value
+         const courseIds = Array.from(document.getElementById('pathCourses').selectedOptions).map(o => o.value)
+         const isPublished = document.getElementById('pathIsPublished').checked
          
-         const btn = e.target.querySelector('button[type="submit"]')
+         const btn = document.getElementById('pathSubmitBtn')
          btn.disabled = true
-         btn.textContent = 'Création...'
+         btn.textContent = id ? 'Mise à jour...' : 'Création...'
 
          try {
-           const response = await fetch('/parcours', {
-             method: 'POST',
+           const url = id ? `/parcours/${id}` : '/parcours'
+           const method = id ? 'PUT' : 'POST'
+           
+           const response = await fetch(url + `?_t=${Date.now()}`, {
+             method: method,
              headers: {
                'Content-Type': 'application/json',
                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
@@ -306,22 +362,23 @@
              body: JSON.stringify({
                title: fd.get('title'),
                description: fd.get('description'),
-               courseIds: courseIds
+               courseIds: courseIds,
+               isPublished: isPublished
              })
            })
 
            const res = await response.json()
-           if (res.success) {
+           if (response.ok) {
              window.location.reload()
            } else {
-             alert('Erreur : ' + res.error)
+             alert('Erreur : ' + (res.error || 'Une erreur est survenue'))
            }
          } catch (err) {
             console.error(err)
             alert('Une erreur réseau est survenue.')
          } finally {
             btn.disabled = false
-            btn.textContent = "C'est parti ! 🚀"
+            btn.textContent = id ? "Enregistrer les modifications" : "C'est parti ! 🚀"
          }
        })
 
@@ -341,5 +398,5 @@
          }
        }
     </script>
-  @end
+  @endslot
 @end

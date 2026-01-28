@@ -1,6 +1,8 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import LearningPath from '#models/learning_path'
 import CourseProgress from '#models/course_progress'
+import SharedLearningPath from '#models/shared_learning_path'
+import { DateTime } from 'luxon'
 
 export default class LearningPathsController {
   /**
@@ -133,6 +135,7 @@ export default class LearningPathsController {
         q.orderBy('learning_path_courses.order', 'asc')
         q.preload('category')
       })
+      .preload('user')
       .firstOrFail()
 
     if (auth.user) {
@@ -152,11 +155,26 @@ export default class LearningPathsController {
       ? path.courses.filter(c => c.isCompleted).length
       : 0
 
-    return view.render('pages/learning_paths/show', { path, completedCount })
+    // Check if current user has shared this path
+    const sharedPath = auth.user
+      ? await SharedLearningPath.query()
+        .where('learningPathId', path.id)
+        .where('userId', auth.user.id)
+        .first()
+      : null
+
+    // If it's an imported path, we want the token of the ORIGINAL shared path for social sharing
+    let sharedPathToken = sharedPath?.shareToken || null
+    if (!sharedPathToken && path.originSharedPathId) {
+      const originalShared = await SharedLearningPath.find(path.originSharedPathId)
+      sharedPathToken = originalShared?.shareToken || null
+    }
+
+    return view.render('pages/learning_paths/show', { path, completedCount, sharedPath, sharedPathToken })
   }
 
   async store({ request, auth, response }: HttpContext) {
-    const { title, description, courseIds } = request.all()
+    const { title, description, courseIds, isPublished } = request.all()
     const { default: string } = await import('@adonisjs/core/helpers/string')
 
     const baseSlug = string.slug(title).toLowerCase()
@@ -172,8 +190,12 @@ export default class LearningPathsController {
       description,
       slug,
       userId: auth.user!.id,
-      isPublished: false
+      isPublished: isPublished === true || isPublished === 'on'
     })
+
+    if (auth.user?.isAdmin && path.isPublished) {
+      await this.syncCommunityShare(path, auth.user.id)
+    }
 
     if (courseIds && courseIds.length > 0) {
       const pivotData: any = {}
@@ -194,5 +216,104 @@ export default class LearningPathsController {
 
     await path.delete()
     return response.json({ success: true })
+  }
+
+  async apiShow({ params, auth, response }: HttpContext) {
+    const path = await LearningPath.query()
+      .where('id', params.id)
+      .where('userId', auth.user!.id)
+      .preload('courses', (q) => q.orderBy('learning_path_courses.order', 'asc'))
+      .firstOrFail()
+
+    return response.json({ path })
+  }
+
+  async update({ params, request, auth, response }: HttpContext) {
+    const { title, description, courseIds, isPublished } = request.all()
+    const path = await LearningPath.query()
+      .where('id', params.id)
+      .where('userId', auth.user!.id)
+      .firstOrFail()
+
+    // Robust boolean conversion
+    const publishedValue = isPublished === true || isPublished === 'true' || isPublished === 'on'
+
+    path.merge({
+      title,
+      description,
+      isPublished: publishedValue
+    })
+    await path.save()
+
+    // Sync community share for ALL users when they unpublish
+    // For admins, it also PUBLISHES automatically
+    await this.syncCommunityShare(path, auth.user!.id)
+
+    if (courseIds) {
+      const pivotData: any = {}
+      courseIds.forEach((id: string, index: number) => {
+        pivotData[id] = { order: index }
+      })
+      await path.related('courses').sync(pivotData)
+    }
+
+    return response.json({ success: true, path })
+  }
+
+  /**
+   * Sync path.isPublished with SharedLearningPath
+   */
+  private async syncCommunityShare(path: LearningPath, userId: number) {
+    const user = await path.related('user').query().first()
+    const isAdmin = user?.isAdmin || false
+
+    if (path.isPublished) {
+      // For Admins ONLY: automatically create/update official community share
+      if (isAdmin) {
+        const existing = await SharedLearningPath.query()
+          .where('learningPathId', path.id)
+          .where('userId', userId)
+          .first()
+
+        if (existing) {
+          existing.merge({
+            title: path.title,
+            description: path.description,
+            isPublic: true,
+            updatedAt: DateTime.now()
+          })
+          await existing.save()
+        } else {
+          await SharedLearningPath.create({
+            learningPathId: path.id,
+            userId: userId,
+            shareToken: SharedLearningPath.generateShareToken(),
+            title: path.title,
+            description: path.description,
+            isPublic: true,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now()
+          })
+        }
+      }
+      // For normal users, we don't auto-share in community, 
+      // but if an existing share exists, maybe we keep it? 
+      // Actually, if it was already shared, it should stay shared.
+    } else {
+      // IF UNPUBLISHED: Force hide/delete any existing community share for this user/path
+      const existing = await SharedLearningPath.query()
+        .where('learningPathId', path.id)
+        .where('userId', userId)
+        .first()
+
+      if (existing) {
+        // Option 1: Delete it (cleaner if they want it private)
+        await existing.delete()
+
+        // Option 2: Just set isPublic to false (preserve stats)
+        // existing.isPublic = false
+        // await existing.save()
+      }
+    }
   }
 }

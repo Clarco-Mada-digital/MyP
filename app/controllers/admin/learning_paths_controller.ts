@@ -1,7 +1,9 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import LearningPath from '#models/learning_path'
 import Course from '#models/course'
+import SharedLearningPath from '#models/shared_learning_path'
 import string from '@adonisjs/core/helpers/string'
+import { DateTime } from 'luxon'
 
 export default class LearningPathsController {
   /**
@@ -30,7 +32,7 @@ export default class LearningPathsController {
   /**
    * Enregistrer un nouveau parcours
    */
-  async store({ request, response, session }: HttpContext) {
+  async store({ request, response, session, auth }: HttpContext) {
     const data = request.only([
       'title',
       'description',
@@ -51,6 +53,10 @@ export default class LearningPathsController {
       isPublished: data.is_published === 'on',
       estimatedHours: data.estimated_hours ? parseInt(data.estimated_hours) : null
     })
+
+    if (path.isPublished) {
+      await this.syncCommunityShare(path, auth.user!.id)
+    }
 
     session.flash('success', 'Parcours créé avec succès !')
     return response.redirect().toRoute('admin.learning_paths.edit', { id: path.id })
@@ -92,7 +98,7 @@ export default class LearningPathsController {
   /**
    * Mettre à jour un parcours
    */
-  async update({ params, request, response, session }: HttpContext) {
+  async update({ params, request, response, session, auth }: HttpContext) {
     const path = await LearningPath.findOrFail(params.id)
 
     const data = request.only([
@@ -115,6 +121,8 @@ export default class LearningPathsController {
     })
 
     await path.save()
+
+    await this.syncCommunityShare(path, auth.user!.id)
 
     session.flash('success', 'Parcours mis à jour !')
     return response.redirect().back()
@@ -232,5 +240,50 @@ export default class LearningPathsController {
 
     session.flash('success', 'Parcours supprimé !')
     return response.redirect().toRoute('admin.learning_paths.index')
+  }
+
+  /**
+   * Sync admin-published paths with the community
+   */
+  private async syncCommunityShare(path: LearningPath, adminId: number) {
+    if (path.isPublished) {
+      // Find or create a shared version
+      const existing = await SharedLearningPath.query()
+        .where('learningPathId', path.id)
+        .where('userId', adminId)
+        .first()
+
+      if (existing) {
+        existing.merge({
+          title: path.title,
+          description: path.description,
+          isPublic: true,
+          updatedAt: DateTime.now()
+        })
+        await existing.save()
+      } else {
+        await SharedLearningPath.create({
+          learningPathId: path.id,
+          userId: adminId,
+          shareToken: SharedLearningPath.generateShareToken(),
+          title: path.title,
+          description: path.description,
+          isPublic: true,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now()
+        })
+      }
+    } else {
+      // If we unpublish, we might want to hide it from community
+      // Only delete if it was shared by an admin to avoid deleting user shares
+      const existing = await SharedLearningPath.query()
+        .where('learningPathId', path.id)
+        .where('userId', adminId)
+        .first()
+
+      if (existing) {
+        await existing.delete()
+      }
+    }
   }
 }

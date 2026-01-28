@@ -116,7 +116,7 @@
           <input type="hidden" id="editToken" value="">
           <div id="lpSelectContainer">
             <label class="block text-sm font-bold text-slate-700 mb-2 font-black uppercase tracking-widest text-[10px]">Parcours à partager</label>
-            <select name="learningPathId" id="lpSelect" class="w-full p-4 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-primary-500 font-bold">
+            <select name="learningPathId" id="lpSelect" required class="w-full p-4 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-primary-500 font-bold">
               <option value="">Chargement...</option>
             </select>
           </div>
@@ -219,12 +219,32 @@
           data.sharedPaths.forEach(path => {
             const clone = template.content.cloneNode(true)
             
+            const isSharerAdmin = path.user?.isAdmin
+            const creator = path.learningPath?.user
+            const isDifferentCreator = creator && creator.id !== path.userId
+
             clone.querySelector('.title-label').textContent = path.title
             clone.querySelector('.desc-label').textContent = path.description || 'Apprenez tout sur ce sujet passionnant.'
             clone.querySelector('.views-count').textContent = path.viewsCount
             clone.querySelector('.shares-count').textContent = path.sharesCount
             clone.querySelector('.view-link').href = `/community/shared/${path.shareToken}`
-            clone.querySelector('.category-badge').textContent = path.user?.fullName || 'Utilisateur'
+            
+            const badgeContainer = clone.querySelector('.category-badge')
+            badgeContainer.textContent = path.user?.fullName || 'Utilisateur'
+            
+            if (isSharerAdmin) {
+              badgeContainer.innerHTML = `<span class="bg-indigo-600 text-white px-2 py-0.5 rounded-md mr-2">OFFICIEL</span> ${path.user?.fullName}`
+              badgeContainer.classList.remove('bg-primary-50', 'text-primary-600')
+              badgeContainer.classList.add('bg-indigo-50', 'text-indigo-700')
+            }
+
+            if (isDifferentCreator) {
+              const creatorDiv = document.createElement('div')
+              creatorDiv.className = 'text-[10px] text-slate-400 font-bold mt-2 uppercase'
+              creatorDiv.textContent = `Créé par : ${creator.fullName}`
+              clone.querySelector('.title-label').after(creatorDiv)
+            }
+
             clone.querySelector('.date-label').textContent = new Date(path.createdAt).toLocaleDateString()
             
             const importBtn = clone.querySelector('.import-btn')
@@ -298,7 +318,19 @@
             clone.querySelector('.views-count').textContent = path.viewsCount || 0
             clone.querySelector('.shares-count').textContent = path.sharesCount || 0
             clone.querySelector('.view-link').href = `/community/shared/${path.shareToken}`
-            clone.querySelector('.category-badge').textContent = path.isPublic ? '🌐 Public' : '🔒 Privé'
+            
+            const badgeContainer = clone.querySelector('.category-badge')
+            const visibilityStr = path.isPublic ? '🌐 Public' : '🔒 Privé'
+            
+            // @ts-ignore (auth is available globally in edge but we are in JS here, we rely on path data or a global flag)
+            const isAdmin = path.user?.isAdmin // We preloaded user in myShares API
+            
+            if (isAdmin) {
+              badgeContainer.innerHTML = `<span class="bg-indigo-600 text-white px-2 py-0.5 rounded-md mr-1 text-[8px]">OFFICIEL</span> ${visibilityStr}`
+            } else {
+              badgeContainer.textContent = visibilityStr
+            }
+
             clone.querySelector('.date-label').textContent = new Date(path.createdAt).toLocaleDateString()
             
             // Show and setup buttons

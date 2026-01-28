@@ -11,8 +11,8 @@ interface RateLimitStore {
 const store: RateLimitStore = {}
 
 export default class RateLimitMiddleware {
-  private static readonly WINDOW_MS = 15 * 60 * 1000 // 15 minutes
-  private static readonly MAX_REQUESTS = 5 // 5 attempts per window
+  private static readonly WINDOW_MS = 1 * 60 * 1000 // 1 minute
+  private static readonly MAX_REQUESTS = 10 // 10 attempts per minute
 
   async handle(ctx: HttpContext, next: NextFn, options: { maxRequests?: number; windowMs?: number } = {}) {
     const maxRequests = options.maxRequests || RateLimitMiddleware.MAX_REQUESTS
@@ -44,10 +44,20 @@ export default class RateLimitMiddleware {
     // Check if limit exceeded
     if (store[key].count > maxRequests) {
       ctx.response.status(429)
-      return ctx.response.json({
-        error: 'Trop de tentatives. Veuillez réessayer plus tard.',
-        retryAfter: Math.ceil((store[key].resetTime - now) / 1000)
+
+      const retryAfter = Math.ceil((store[key].resetTime - now) / 1000)
+
+      if (ctx.request.accepts(['html', 'json']) === 'json') {
+        return ctx.response.json({
+          error: 'Trop de tentatives. Veuillez réessayer plus tard.',
+          retryAfter
+        })
+      }
+
+      const html = await ctx.view.render('pages/errors/too_many_requests', {
+        retryAfter
       })
+      return ctx.response.send(html)
     }
 
     await next()

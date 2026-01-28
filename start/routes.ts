@@ -100,6 +100,8 @@ router.group(() => {
 
   // User Learning Paths
   router.post('/parcours', [LearningPathsController, 'store']).as('learning_paths.store')
+  router.get('/parcours/:id/api', [LearningPathsController, 'apiShow']).as('learning_paths.api.show')
+  router.put('/parcours/:id', [LearningPathsController, 'update']).as('learning_paths.update')
   router.delete('/parcours/:id', [LearningPathsController, 'destroy']).as('learning_paths.destroy')
 
   // Redirects for legacy routes

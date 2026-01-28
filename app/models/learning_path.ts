@@ -38,6 +38,9 @@ export default class LearningPath extends BaseModel {
   @column()
   declare userId: number | null
 
+  @column()
+  declare originSharedPathId: number | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

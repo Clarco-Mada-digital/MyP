@@ -19,10 +19,91 @@
                 </span>
               @end
             </div>
-            <h1 class="text-4xl font-black text-slate-900 mb-3">{{ path.title }}</h1>
+            <div class="flex items-center justify-between mb-3">
+              <h1 class="text-4xl font-black text-slate-900">{{ path.title }}</h1>
+              
+              @if(auth.user && auth.user.id === path.userId)
+                @if(sharedPath)
+                  <a href="/community/shared/{{ sharedPath.shareToken }}" class="flex items-center gap-2 px-6 py-3 bg-emerald-100 text-emerald-700 rounded-2xl font-bold hover:bg-emerald-200 transition-all text-sm border border-emerald-200">
+                    <span>🌐</span>
+                    <span>Déjà partagé</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                  </a>
+                @elseif(path.originSharedPathId)
+                  <button onclick="openSocialModal()" class="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 text-sm">
+                    <span>📢</span>
+                    <span>Partager le lien</span>
+                  </button>
+                @else
+                  <button onclick="openShareModal()" class="flex items-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-2xl font-bold hover:bg-primary-700 transition-all shadow-lg shadow-primary-200 text-sm">
+                    <span>🔗</span>
+                    <span>Partager ce parcours</span>
+                  </button>
+                @end
+              @end
+            </div>
             <p class="text-lg text-slate-600">{{ path.description }}</p>
           </div>
         </div>
+
+        {{-- Share social modal --}}
+        @if(path.originSharedPathId && sharedPathToken)
+          <div id="socialModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+            <div class="bg-white rounded-[3rem] p-10 max-w-md w-full shadow-2xl animate-in zoom-in duration-300">
+              <div class="flex justify-between items-start mb-8">
+                <h2 class="text-2xl font-black text-slate-900">Partager le savoir</h2>
+                <button onclick="closeSocialModal()" class="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <p class="text-slate-600 mb-6 font-medium">Ce parcours a été créé par un autre membre. Partagez le lien original pour lui donner du crédit !</p>
+              
+              <div class="space-y-4">
+                <div class="p-4 bg-slate-50 rounded-2xl flex items-center justify-between border border-slate-100 mb-2">
+                  <span class="text-[10px] font-mono text-slate-400 truncate mr-4">.../shared/{{ sharedPathToken }}</span>
+                  <button onclick="copyShareLink()" class="text-primary-600 font-bold text-sm hover:underline flex-shrink-0">Copier</button>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                   <button onclick="shareSocial('twitter')" class="flex flex-col items-center gap-2 p-4 rounded-2xl bg-[#1DA1F2]/10 hover:bg-[#1DA1F2]/20 transition-all group">
+                      <span class="text-2xl group-hover:scale-110 transition-transform">𝕏</span>
+                      <span class="text-[9px] font-black uppercase tracking-widest text-[#1DA1F2]">Twitter</span>
+                   </button>
+                   <button onclick="shareSocial('facebook')" class="flex flex-col items-center gap-2 p-4 rounded-2xl bg-[#1877F2]/10 hover:bg-[#1877F2]/20 transition-all group">
+                      <span class="text-2xl group-hover:scale-110 transition-transform">📘</span>
+                      <span class="text-[9px] font-black uppercase tracking-widest text-[#1877F2]">Facebook</span>
+                   </button>
+                   <button onclick="shareSocial('whatsapp')" class="flex flex-col items-center gap-2 p-4 rounded-2xl bg-[#25D366]/10 hover:bg-[#25D366]/20 transition-all group">
+                      <span class="text-2xl group-hover:scale-110 transition-transform">💬</span>
+                      <span class="text-[9px] font-black uppercase tracking-widest text-[#25D366]">WhatsApp</span>
+                   </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <script>
+             function openSocialModal() { document.getElementById('socialModal').classList.remove('hidden') }
+             function closeSocialModal() { document.getElementById('socialModal').classList.add('hidden') }
+             function copyShareLink() {
+               const url = window.location.origin + '/community/shared/{{ sharedPathToken }}';
+               navigator.clipboard.writeText(url);
+               alert('Lien de partage copié !');
+             }
+             function shareSocial(platform) {
+                const url = encodeURIComponent(window.location.origin + '/community/shared/{{ sharedPathToken }}');
+                const text = encodeURIComponent('Regardez ce parcours incroyable sur My Professor : {{ path.title }}');
+                let shareUrl = '';
+                if (platform === 'twitter') shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${text}`;
+                if (platform === 'facebook') shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+                if (platform === 'whatsapp') shareUrl = `https://wa.me/?text=${text}%20${url}`;
+                window.open(shareUrl, '_blank');
+             }
+          </script>
+        @end
 
         {{-- Stats du parcours --}}
         <div class="grid grid-cols-3 gap-6 mt-8 pt-8 border-t border-slate-200">
@@ -124,5 +205,99 @@
       @end
 
     </main>
+
+    {{-- Share Modal --}}
+    @if(auth.user && auth.user.id === path.userId)
+      <div id="shareModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+        <div class="bg-white rounded-[3rem] p-10 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in duration-300">
+          <div class="flex justify-between items-start mb-8">
+            <h2 class="text-3xl font-black text-slate-900">Partager un Parcours</h2>
+            <button onclick="closeShareModal()" class="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          
+          <form id="shareForm" class="space-y-6">
+            <input type="hidden" name="learningPathId" value="{{ path.id }}">
+            
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2 font-black uppercase tracking-widest text-[10px]">Titre du partage</label>
+              <input type="text" name="title" id="shareTitle" required class="w-full p-4 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-primary-500" value="{{ path.title }}">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-bold text-slate-700 mb-2 font-black uppercase tracking-widest text-[10px]">Description</label>
+              <textarea name="description" id="shareDescription" rows="4" class="w-full p-4 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-primary-500">{{ path.description || '' }}</textarea>
+            </div>
+            
+            <div class="flex items-center gap-4 p-4 bg-primary-50 rounded-2xl">
+              <input type="checkbox" name="isPublic" id="isPublic" checked class="w-6 h-6 text-primary-600 rounded-lg focus:ring-primary-500 border-none shadow-sm">
+              <label for="isPublic" class="font-bold text-primary-900">Rendre public (visible par tous)</label>
+            </div>
+            
+            <div class="flex justify-end gap-4 pt-4">
+              <button type="button" onclick="closeShareModal()" class="px-8 py-4 rounded-2xl font-bold text-slate-600 hover:bg-slate-100 transition-all">
+                Annuler
+              </button>
+              <button type="submit" id="shareSubmitBtn" class="bg-primary-600 text-white px-10 py-4 rounded-2xl font-black hover:bg-primary-700 transition-all shadow-xl shadow-primary-100">
+                Confirmer le partage
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <script>
+        function openShareModal() {
+          document.getElementById('shareModal').classList.remove('hidden')
+        }
+
+        function closeShareModal() {
+          document.getElementById('shareModal').classList.add('hidden')
+        }
+
+        document.getElementById('shareForm')?.addEventListener('submit', async (e) => {
+          e.preventDefault()
+          const fd = new FormData(e.target)
+          const btn = document.getElementById('shareSubmitBtn')
+          
+          btn.disabled = true
+          btn.textContent = 'Partage en cours...'
+          
+          try {
+            const response = await fetch('/community/share', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+              },
+              body: JSON.stringify({
+                learningPathId: fd.get('learningPathId'),
+                title: fd.get('title'),
+                description: fd.get('description'),
+                isPublic: fd.get('isPublic') === 'on'
+              })
+            })
+            
+            const res = await response.json()
+            if (res.success) {
+              alert('Parcours partagé avec succès !')
+              window.location.reload()
+            } else {
+              alert('Erreur : ' + (res.error || res.message))
+              btn.disabled = false
+              btn.textContent = 'Confirmer le partage'
+            }
+          } catch (err) {
+            console.error(err)
+            alert('Erreur réseau.')
+            btn.disabled = false
+            btn.textContent = 'Confirmer le partage'
+          }
+        })
+      </script>
+    @end
   @end
 @end

@@ -76,6 +76,10 @@
       };
     </script>
     <style>
+      .cloak {
+        display: none;
+      }
+
       .glass {
         background: rgba(255, 255, 255, 0.8);
         backdrop-filter: blur(12px);
@@ -168,7 +172,7 @@
 
           @if(auth.isAuthenticated)
             <div class="relative" x-data="{ open: false }" @click.away="open = false">
-              <button @click="open = !open" class="user-pill hover:bg-slate-200/50 transition-colors focus:outline-none">
+              <button x-cloak @click="open = !open" class="user-pill hover:bg-slate-200/50 transition-colors focus:outline-none">
                 <div class="flex flex-col text-right">
                   <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ auth.user.isAdmin ? 'Administrateur' : 'Étudiant' }}</span>
                   <span class="text-sm font-bold text-slate-900">{{ auth.user.fullName }}</span>
@@ -188,6 +192,7 @@
                 x-transition:leave="transition ease-in duration-75"
                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                 x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+                x-cloak
                 class="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 z-[60] overflow-hidden"
               >
                 <div class="px-4 py-3 border-bottom border-slate-50 bg-slate-50/50 mb-1">

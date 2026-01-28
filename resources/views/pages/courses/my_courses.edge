@@ -1,402 +1,500 @@
 <script>
-      function confirmDeletion(courseTitle) {
-        const confirmation = `⚠️ CONFIRMATION DE SUPPRESSION ⚠️\n\n` +
-          `Cours : "${courseTitle}"\n\n` +
-          `Cette action va envoyer une demande de suppression à l'administrateur.\n\n` +
-          `❗️ Si le cours est utilisé dans un parcours, la demande sera AUTOMATIQUEMENT refusée.\n\n` +
-          `❗️ Si le cours n'est pas dans un parcours, la demande sera envoyée pour validation.\n\n` +
-          `Êtes-vous ABSOLUMENT sûr de vouloir continuer ?\n\n` +
-          `Cliquez sur "OK" pour confirmer, ou "Annuler" pour annuler.`;
-        
-        return confirm(confirmation);
-      }
+  function confirmDeletion(courseTitle) {
+    const confirmation = `⚠️ CONFIRMATION DE SUPPRESSION ⚠️\n\n` +
+      `Cours : "${courseTitle}"\n\n` +
+      `Cette action va envoyer une demande de suppression à l'administrateur.\n\n` +
+      `❗️ Si le cours est utilisé dans un parcours, la demande sera AUTOMATIQUEMENT refusée.\n\n` +
+      `❗️ Si le cours n'est pas dans un parcours, la demande sera envoyée pour validation.\n\n` +
+      `Êtes-vous ABSOLUMENT sûr de vouloir continuer ?\n\n` +
+      `Cliquez sur "OK" pour confirmer, ou "Annuler" pour annuler.`;
+
+    return confirm(confirmation);
+  }
 </script>
 
 @app({ title: 'Mon Dashboard - My Professor' })
-  @slot('main')
-    <main class="max-w-7xl mx-auto px-6 py-12">
-      
-      {{-- Hero Section: Last Played --}}
-      @if(lastPlayed)
-        <div class="mb-12 md:mb-16 relative overflow-hidden rounded-[2rem] md:rounded-[3rem] bg-slate-900 text-white shadow-2xl mx-1 md:mx-0">
-          <div class="absolute inset-0">
-            <img src="{{ lastPlayed.content?.image || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1600&auto=format&fit=crop&q=80' }}" alt="Background" class="w-full h-full object-cover opacity-40 blur-sm" />
-            <div class="absolute inset-0 bg-gradient-to-b md:bg-gradient-to-r from-slate-900 via-slate-900/80 to-transparent"></div>
-          </div>
-          <div class="relative p-8 md:p-16 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-            <div class="max-w-2xl">
-              <span class="inline-block px-3 py-1 bg-primary-500/30 border border-primary-500/50 rounded-full text-primary-300 text-[10px] md:text-sm font-bold mb-4 uppercase tracking-wider backdrop-blur-md">Reprendre l'apprentissage</span>
-              <h1 class="text-3xl md:text-5xl font-extrabold mb-4 leading-tight">{{ lastPlayed.title }}</h1>
-               <p class="text-slate-300 text-base md:text-lg mb-8 line-clamp-2">{{ lastPlayed.description || 'Continuez votre progression vers l\'excellence.' }}</p>
-               
-               <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-                 <a href="/courses/{{ lastPlayed.slug }}" class="w-full sm:w-auto bg-white text-slate-900 px-8 py-3.5 rounded-full font-bold hover:bg-primary-50 hover:text-primary-700 transition-all shadow-lg flex items-center justify-center gap-2">
-                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>
-                   Reprendre le cours
-                 </a>
-                 <div class="text-slate-400 font-medium text-sm">
-                   Progression : <span class="text-primary-400 font-bold">{{ lastPlayed.$extras.progress || 0 }}%</span>
-                 </div>
-               </div>
-            </div>
-          </div>
-        </div>
-      @end
+@slot('main')
+<main class="max-w-7xl mx-auto px-6 py-12">
 
-      {{-- Stats & Badges Grid --}}
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-        {{-- Stat 1 --}}
-        <div class="bg-white rounded-[2rem] p-8 shadow-lg border border-slate-100 flex flex-col items-center justify-center text-center hover:scale-105 transition-transform">
-          <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-3xl mb-4">⏱️</div>
-          <h3 class="text-4xl font-extrabold text-slate-800 mb-2">{{ stats.learningHours }}h</h3>
-          <p class="text-slate-500 font-medium uppercase tracking-wide text-xs">Temps d'apprentissage</p>
-        </div>
-
-        {{-- Stat 2 --}}
-        <div class="bg-white rounded-[2rem] p-8 shadow-lg border border-slate-100 flex flex-col items-center justify-center text-center hover:scale-105 transition-transform">
-           <div class="w-16 h-16 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center text-3xl mb-4">📚</div>
-           <h3 class="text-4xl font-extrabold text-slate-800 mb-2">{{ stats.completedCourses }} <span class="text-lg text-slate-400 font-medium">/ {{ stats.totalCourses }}</span></h3>
-           <p class="text-slate-500 font-medium uppercase tracking-wide text-xs">Cours complétés</p>
-        </div>
-
-        {{-- Badges --}}
-        <div class="bg-gradient-to-br from-primary-600 to-purple-700 text-white rounded-[2rem] p-8 shadow-lg flex flex-col justify-between">
-          <div>
-            <h3 class="font-bold text-xl mb-6 flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-300" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
-              Derniers Succès
-            </h3>
-            <div class="space-y-4">
-              @each(badge in badges)
-                <div class="flex items-center gap-3 bg-white/10 p-2 rounded-xl backdrop-blur-sm">
-                  <span class="text-2xl">{{ badge.icon }}</span>
-                  <div>
-                    <div class="font-bold text-sm">{{ badge.label }}</div>
-                    <div class="text-xs text-primary-200">{{ badge.desc }}</div>
-                  </div>
-                </div>
-              @end
-            </div>
-          </div>
-        </div>
+  {{-- Hero Section: Last Played --}}
+  @if(lastPlayed)
+  <div
+    class="mb-12 md:mb-16 relative overflow-hidden rounded-[2rem] md:rounded-[3rem] bg-slate-900 text-white shadow-2xl mx-1 md:mx-0">
+    <div class="absolute inset-0">
+      <img
+        src="{{ lastPlayed.content?.image || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1600&auto=format&fit=crop&q=80' }}"
+        alt="Background" class="w-full h-full object-cover opacity-40 blur-sm" />
+      <div class="absolute inset-0 bg-gradient-to-b md:bg-gradient-to-r from-slate-900 via-slate-900/80 to-transparent">
       </div>
+    </div>
+    <div class="relative p-8 md:p-16 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+      <div class="max-w-2xl">
+        <span
+          class="inline-block px-3 py-1 bg-primary-500/30 border border-primary-500/50 rounded-full text-primary-300 text-[10px] md:text-sm font-bold mb-4 uppercase tracking-wider backdrop-blur-md">Reprendre
+          l'apprentissage</span>
+        <h1 class="text-3xl md:text-5xl font-extrabold mb-4 leading-tight">{{ lastPlayed.title }}</h1>
+        <p class="text-slate-300 text-base md:text-lg mb-8 line-clamp-2">{{ lastPlayed.description || 'Continuez votre progression vers l\'excellence.' }}</p>
 
-      <div class="flex items-center justify-between mb-8">
-        <h2 class="text-2xl font-bold text-slate-800">Ma Bibliothèque</h2>
-        <div class="flex gap-4">
-          <button onclick="openPathModal()" class="bg-indigo-50 text-indigo-600 px-6 py-2 rounded-full font-bold text-sm hover:bg-indigo-100 transition-all border border-indigo-100">
-            Créer un parcours +
-          </button>
-          <a href="/" class="bg-primary-600 text-white px-6 py-2 rounded-full font-bold text-sm hover:bg-primary-700 transition-all shadow-md">
-            Nouveau cours +
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          <a href="/courses/{{ lastPlayed.slug }}"
+            class="w-full sm:w-auto bg-white text-slate-900 px-8 py-3.5 rounded-full font-bold hover:bg-primary-50 hover:text-primary-700 transition-all shadow-lg flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                clip-rule="evenodd" />
+            </svg>
+            Reprendre le cours
           </a>
+          <div class="text-slate-400 font-medium text-sm">
+            Progression : <span class="text-primary-400 font-bold">{{ lastPlayed.$extras.progress || 0 }}%</span>
+          </div>
         </div>
       </div>
+    </div>
+  </div>
+  @end
 
-      {{-- Mes Parcours Section --}}
-      @if(userPaths && userPaths.length > 0)
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-          @each(path in userPaths)
-            <div class="bg-white rounded-[2rem] p-6 shadow-xl border border-slate-100 flex flex-col hover:border-indigo-300 transition-all group">
-              <div class="flex justify-between items-start mb-4">
-                <div class="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-xl flex items-center justify-center text-2xl">
-                  {{ path.icon || '🎯' }}
-                </div>
-                <div class="flex gap-2">
-                   <button onclick="editPath({{ path.id }})" class="p-2 text-indigo-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                   </button>
-                   <button onclick="deletePath({{ path.id }})" class="p-2 text-rose-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                   </button>
-                </div>
-              </div>
-              <div class="flex items-center gap-2 mb-2">
-                @if(path.isPublished)
-                  <span class="px-2 py-0.5 bg-emerald-100 text-[9px] text-emerald-600 rounded-md uppercase font-black tracking-widest">🌐 Public</span>
-                @else
-                   <span class="px-2 py-0.5 bg-slate-100 text-[9px] text-slate-500 rounded-md uppercase font-black tracking-widest text-white">🔒 Privé</span>
-                @end
-              </div>
-              <h3 class="text-xl font-black text-slate-900 mb-2">{{ path.title }}</h3>
-              <p class="text-slate-500 text-sm line-clamp-2 mb-6 flex-grow">{{ path.description || 'Pas de description.' }}</p>
-              
-              <div class="flex items-center justify-between text-xs font-bold text-slate-400 pt-4 border-t border-slate-50">
-                 <span>{{ path.courses.length }} cours</span>
-                 <a href="/parcours/{{ path.slug }}" class="text-indigo-600 hover:underline">Voir le chemin →</a>
-              </div>
-            </div>
-          @end
-        </div>
-      @end
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-        @each(course in courses)
-          <div class="relative bg-white rounded-[2rem] p-4 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-2 group border border-slate-100">
-            <div class="aspect-video w-full bg-slate-100 rounded-[1.5rem] mb-6 overflow-hidden relative">
-               <img src="{{ course.content?.image || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&auto=format&fit=crop&q=60' }}" alt="{{ course.title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-               <div class="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-primary-700">
-                @if(course.status === 'ready')
-                  {{ course.content?.level || 'Tous niveaux' }}
-                @else
-                  Génération...
-                @end
-               </div>
-
-               {{-- Indicateur de demande de suppression en cours --}}
-               @if(course.$extras.hasPendingDeletion)
-                 <div class="absolute top-2 right-2 bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg z-20 animate-pulse">
-                   ⏳ EN ATTENTE
-                 </div>
-               @end
-
-               <form action="{{ route('courses.requestDeletion', [course.id]) }}" method="POST" class="absolute top-4 right-4 z-10 transition-all opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0">
-                 {{ csrfField() }}
-                 <button type="submit" onclick="return confirmDeletion('{{ course.title }}')" class="bg-white/90 backdrop-blur p-2 rounded-full text-red-500 hover:bg-red-500 hover:text-white transition-colors shadow-lg" title="Demander la suppression">
-                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="M19 11h-6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                 </button>
-               </form>
-            </div>
-            <div class="px-4 pb-4">
-              <h3 class="text-xl font-bold line-clamp-2 mb-2">{{ course.title }}</h3>
-              
-              @if(course.status === 'ready' && course.$extras.progress !== undefined)
-                <div class="mt-4">
-                  <div class="flex justify-between text-xs font-bold mb-1">
-                    <span class="text-slate-400 uppercase">Progression</span>
-                    <span class="text-primary-600">{{ course.$extras.progress }}%</span>
-                  </div>
-                  <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                    <div class="bg-primary-600 h-full transition-all duration-500" style="width: {{ course.$extras.progress }}%"></div>
-                  </div>
-                </div>
-              @else
-                <p class="text-slate-500 mt-2 text-sm line-clamp-2">{{ course.description || 'Votre cours est en cours de préparation par l\'IA...' }}</p>
-              @end
-              
-              <div class="mt-6 flex items-center justify-between">
-                @if(course.status === 'ready')
-                  <span class="text-xs text-slate-400 font-mono">Dernier accès : {{ course.updatedAt.toRelative() }}</span>
-                @elseif(course.status === 'generating')
-                  <span class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold font-bold uppercase animate-pulse">En cours</span>
-                @else
-                  <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold font-bold uppercase">Erreur</span>
-                @end
-              </div>
-            </div>
-            <a href="/courses/{{ course.slug }}" class="absolute inset-0"></a>
-          </div>
-        @else
-          <div class="col-span-full py-20 text-center glass rounded-[3rem] border-dashed border-2">
-            <h3 class="text-xl font-bold mb-4 text-slate-600">Vous n'avez pas encore demandé de cours !</h3>
-            <p class="text-slate-400 mb-8">Utilisez la barre de recherche sur la page d'accueil pour commencer.</p>
-            <a href="/" class="bg-primary-600 text-white px-8 py-3 rounded-full font-bold shadow-lg">Lancer mon premier cours</a>
-          </div>
-        @end
+  {{-- Stats & Badges Grid --}}
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+    {{-- Stat 1 --}}
+    <div
+      class="bg-white rounded-[2rem] p-8 shadow-lg border border-slate-100 flex flex-col items-center justify-center text-center hover:scale-105 transition-transform">
+      <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-3xl mb-4">⏱️
       </div>
+      <h3 class="text-4xl font-extrabold text-slate-800 mb-2">{{ stats.learningHours }}h</h3>
+      <p class="text-slate-500 font-medium uppercase tracking-wide text-xs">Temps d'apprentissage</p>
+    </div>
 
-      @if(bookmarkedCourses && bookmarkedCourses.length > 0)
-        <div class="flex items-center justify-between mb-8 pt-8 border-t border-slate-200">
-          <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
-            <span class="text-amber-500">★</span> Mes Favoris
-          </h2>
-        </div>
+    {{-- Stat 2 --}}
+    <div
+      class="bg-white rounded-[2rem] p-8 shadow-lg border border-slate-100 flex flex-col items-center justify-center text-center hover:scale-105 transition-transform">
+      <div class="w-16 h-16 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center text-3xl mb-4">📚
+      </div>
+      <h3 class="text-4xl font-extrabold text-slate-800 mb-2">{{ stats.completedCourses }} <span
+          class="text-lg text-slate-400 font-medium">/ {{ stats.totalCourses }}</span></h3>
+      <p class="text-slate-500 font-medium uppercase tracking-wide text-xs">Cours complétés</p>
+    </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          @each(course in bookmarkedCourses)
-            <div class="relative bg-white rounded-[2rem] p-4 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-2 group border-2 border-amber-100">
-              <div class="absolute -top-3 -right-3 w-8 h-8 bg-amber-500 text-white flex items-center justify-center rounded-full shadow-lg z-20">
-                ★
-              </div>
-              <div class="aspect-video w-full bg-slate-100 rounded-[1.5rem] mb-6 overflow-hidden relative">
-                 <img src="{{ course.content?.image || 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&auto=format&fit=crop&q=60' }}" alt="{{ course.title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                 <div class="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-primary-700">
-                  {{ course.content?.level || 'Expert' }}
-                 </div>
-              </div>
-              <div class="px-4 pb-4">
-                <h3 class="text-xl font-bold line-clamp-2 mb-2">{{ course.title }}</h3>
-                
-                @if(course.status === 'ready' && course.$extras.progress !== undefined)
-                  <div class="mt-4">
-                    <div class="flex justify-between text-xs font-bold mb-1">
-                      <span class="text-slate-400 uppercase">Progression</span>
-                      <span class="text-primary-600">{{ course.$extras.progress }}%</span>
-                    </div>
-                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                      <div class="bg-primary-600 h-full transition-all duration-500" style="width: {{ course.$extras.progress }}%"></div>
-                    </div>
-                  </div>
-                @end
-                
-                <div class="mt-6 flex items-center justify-between">
-                   <div class="flex items-center gap-2">
-                     <span class="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500">IA</span>
-                     <span class="text-xs text-slate-500 font-medium">Par My Professor</span>
-                   </div>
-                </div>
-              </div>
-              <a href="/courses/{{ course.slug }}" class="absolute inset-0"></a>
+    {{-- Badges --}}
+    <div
+      class="bg-gradient-to-br from-primary-600 to-purple-700 text-white rounded-[2rem] p-8 shadow-lg flex flex-col justify-between">
+      <div>
+        <h3 class="font-bold text-xl mb-6 flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-300" viewBox="0 0 20 20"
+            fill="currentColor">
+            <path fill-rule="evenodd"
+              d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+              clip-rule="evenodd" />
+          </svg>
+          Derniers Succès
+        </h3>
+        <div class="space-y-4">
+          @each(badge in badges)
+          <div class="flex items-center gap-3 bg-white/10 p-2 rounded-xl backdrop-blur-sm">
+            <span class="text-2xl">{{ badge.icon }}</span>
+            <div>
+              <div class="font-bold text-sm">{{ badge.label }}</div>
+              <div class="text-xs text-primary-200">{{ badge.desc }}</div>
             </div>
+          </div>
           @end
         </div>
-      @end
-    </main>
+      </div>
+    </div>
+  </div>
 
-    {{-- Create/Edit Path Modal --}}
-    <div id="pathModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
-      <div class="bg-white rounded-[3rem] p-10 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-        <div class="flex justify-between items-center mb-8">
-          <h2 id="modalTitle" class="text-3xl font-black text-slate-900 tracking-tight">Créer un Parcours</h2>
-          <button onclick="closePathModal()" class="p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+  <div class="flex items-center justify-between mb-8">
+    <h2 class="text-2xl font-bold text-slate-800">Ma Bibliothèque</h2>
+    <div class="flex gap-4">
+      <button onclick="openPathModal()"
+        class="bg-indigo-50 text-indigo-600 px-6 py-2 rounded-full font-bold text-sm hover:bg-indigo-100 transition-all border border-indigo-100">
+        Créer un parcours +
+      </button>
+      <a href="/"
+        class="bg-primary-600 text-white px-6 py-2 rounded-full font-bold text-sm hover:bg-primary-700 transition-all shadow-md">
+        Nouveau cours +
+      </a>
+    </div>
+  </div>
+
+  {{-- Mes Parcours Section --}}
+  @if(userPaths && userPaths.length > 0)
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+    @each(path in userPaths)
+    <div
+      class="bg-white rounded-[2rem] p-6 shadow-xl border border-slate-100 flex flex-col hover:border-indigo-300 transition-all group">
+      <div class="flex justify-between items-start mb-4">
+        <div class="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-xl flex items-center justify-center text-2xl">
+          {{ path.icon || '🎯' }}
+        </div>
+        <div class="flex gap-2">
+          <button onclick="editPath({{ path.id }})"
+            class="p-2 text-indigo-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </button>
+          <button onclick="deletePath({{ path.id }})"
+            class="p-2 text-rose-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
           </button>
         </div>
-        
-        <form id="pathForm" class="space-y-6">
-           <input type="hidden" name="id" id="pathId">
-           <div>
-              <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Nom du parcours</label>
-              <input type="text" name="title" id="pathTitle" required class="w-full p-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-indigo-500 font-bold" placeholder="Ex: Master Intelligence Artificielle">
-           </div>
-           
-           <div>
-              <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Description rapide</label>
-              <textarea name="description" id="pathDescription" rows="3" class="w-full p-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-indigo-500 font-bold" placeholder="Quel est l'objectif de ce parcours ?"></textarea>
-           </div>
+      </div>
+      <div class="flex items-center gap-2 mb-2">
+        @if(path.isPublished)
+        <span
+          class="px-2 py-0.5 bg-emerald-100 text-[9px] text-emerald-600 rounded-md uppercase font-black tracking-widest">🌐
+          Public</span>
+        @else
+        <span
+          class="px-2 py-0.5 bg-slate-100 text-[9px] text-slate-500 rounded-md uppercase font-black tracking-widest text-white">🔒
+          Privé</span>
+        @end
+      </div>
+      <h3 class="text-xl font-black text-slate-900 mb-2">{{ path.title }}</h3>
+      <p class="text-slate-500 text-sm line-clamp-2 mb-6 flex-grow">{{ path.description || 'Pas de description.' }}</p>
 
-           <div>
-              <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Sélectionnez vos cours (Maintenez Ctrl pour plusieurs)</label>
-              <select name="courseIds" id="pathCourses" multiple class="w-full p-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-indigo-500 font-bold h-48">
-                @each(course in courses)
-                  @if(course.status === 'ready')
-                    <option value="{{ course.id }}">{{ course.title }}</option>
-                  @end
-                @end
-              </select>
-              <p class="mt-2 text-[10px] text-slate-400 italic">L'ordre de sélection définit l'ordre du parcours.</p>
-           </div>
-
-           <div class="flex items-center gap-4 p-4 bg-indigo-50 rounded-2xl">
-              <input type="checkbox" id="pathIsPublished" class="w-6 h-6 text-indigo-600 rounded-lg focus:ring-indigo-500 border-none shadow-sm">
-              <label for="pathIsPublished" class="font-bold text-indigo-900">Rendre ce parcours public (visible via lien direct)</label>
-           </div>
-
-           <div class="flex justify-end gap-4 pt-4">
-              <button type="button" onclick="closePathModal()" class="px-8 py-4 rounded-2xl font-bold text-slate-600 hover:bg-slate-100 transition-all">Annuler</button>
-              <button type="submit" id="pathSubmitBtn" class="bg-indigo-600 text-white px-10 py-4 rounded-2xl font-black hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 italic">
-                C'est parti ! 🚀
-              </button>
-           </div>
-        </form>
+      <div class="flex items-center justify-between text-xs font-bold text-slate-400 pt-4 border-t border-slate-50">
+        <span>{{ path.courses.length }} cours</span>
+        <a href="/parcours/{{ path.slug }}" class="text-indigo-600 hover:underline">Voir le chemin →</a>
       </div>
     </div>
+    @end
+  </div>
+  @end
 
-    <script>
-       function openPathModal() {
-         document.getElementById('pathModal').classList.remove('hidden')
-       }
-       function closePathModal() {
-         document.getElementById('pathModal').classList.add('hidden')
-         document.getElementById('pathForm').reset()
-         document.getElementById('pathId').value = ''
-         document.getElementById('pathIsPublished').checked = false
-         document.getElementById('modalTitle').textContent = 'Créer un Parcours'
-         document.getElementById('pathSubmitBtn').textContent = "C'est parti ! 🚀"
-       }
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+    @each(course in courses)
+    <div
+      class="relative bg-white rounded-[2rem] p-4 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-2 group border border-slate-100">
+      <div class="aspect-video w-full bg-slate-100 rounded-[1.5rem] mb-6 overflow-hidden relative">
+        <img
+          src="{{ course.content?.image || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&auto=format&fit=crop&q=60' }}"
+          alt="{{ course.title }}"
+          class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+        <div
+          class="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-primary-700">
+          @if(course.status === 'ready')
+          {{ course.content?.level || 'Tous niveaux' }}
+          @else
+          Génération...
+          @end
+        </div>
 
-       async function editPath(id) {
-         try {
-           // Bypassing browser cache with timestamp
-           const response = await fetch(`/parcours/${id}/api?_t=${Date.now()}`, {
-             headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
-           })
-           const data = await response.json()
-           const path = data.path
-           
-           document.getElementById('pathId').value = path.id
-           document.getElementById('pathTitle').value = path.title
-           document.getElementById('pathDescription').value = path.description || ''
-           document.getElementById('pathIsPublished').checked = !!path.isPublished
-           document.getElementById('modalTitle').textContent = 'Modifier le Parcours'
-           document.getElementById('pathSubmitBtn').textContent = "Enregistrer les modifications"
-           
-           // Sélectionner les cours existants
-           const select = document.getElementById('pathCourses')
-           const pathCourseIds = path.courses.map(c => String(c.id))
-           
-           Array.from(select.options).forEach(option => {
-             option.selected = pathCourseIds.includes(String(option.value))
-           })
-           
-           openPathModal()
-         } catch (e) {
-           console.error(e)
-           alert('Erreur lors du chargement des données du parcours')
-         }
-       }
+        {{-- Indicateur de demande de suppression en cours --}}
+        @if(course.$extras.hasPendingDeletion)
+        <div
+          class="absolute top-2 right-2 bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg z-20 animate-pulse">
+          ⏳ EN ATTENTE
+        </div>
+        @end
 
-       document.getElementById('pathForm')?.addEventListener('submit', async (e) => {
-         e.preventDefault()
-         const fd = new FormData(e.target)
-         const id = document.getElementById('pathId').value
-         const courseIds = Array.from(document.getElementById('pathCourses').selectedOptions).map(o => o.value)
-         const isPublished = document.getElementById('pathIsPublished').checked
-         
-         const btn = document.getElementById('pathSubmitBtn')
-         btn.disabled = true
-         btn.textContent = id ? 'Mise à jour...' : 'Création...'
+        <form action="{{ route('courses.requestDeletion', [course.id]) }}" method="POST"
+          class="absolute top-4 right-4 z-10 transition-all opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0">
+          {{ csrfField() }}
+          <button type="submit" onclick="return confirmDeletion('{{ course.title }}')"
+            class="bg-white/90 backdrop-blur p-2 rounded-full text-red-500 hover:bg-red-500 hover:text-white transition-colors shadow-lg"
+            title="Demander la suppression">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 6h18" />
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2V6" />
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+              <path
+                d="M19 11h-6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </button>
+        </form>
+      </div>
+      <div class="px-4 pb-4">
+        <h3 class="text-xl font-bold line-clamp-2 mb-2">{{ course.title }}</h3>
 
-         try {
-           const url = id ? `/parcours/${id}` : '/parcours'
-           const method = id ? 'PUT' : 'POST'
-           
-           const response = await fetch(url + `?_t=${Date.now()}`, {
-             method: method,
-             headers: {
-               'Content-Type': 'application/json',
-               'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-             },
-             body: JSON.stringify({
-               title: fd.get('title'),
-               description: fd.get('description'),
-               courseIds: courseIds,
-               isPublished: isPublished
-             })
-           })
+        @if(course.status === 'ready' && course.$extras.progress !== undefined)
+        <div class="mt-4">
+          <div class="flex justify-between text-xs font-bold mb-1">
+            <span class="text-slate-400 uppercase">Progression</span>
+            <span class="text-primary-600">{{ course.$extras.progress }}%</span>
+          </div>
+          <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+            <div class="bg-primary-600 h-full transition-all duration-500"
+              style="width: {{ course.$extras.progress }}%"></div>
+          </div>
+        </div>
+        @else
+        <p class="text-slate-500 mt-2 text-sm line-clamp-2">{{ course.description || 'Votre cours est en cours de préparation par l\'IA...' }}</p>
+        @end
 
-           const res = await response.json()
-           if (response.ok) {
-             window.location.reload()
-           } else {
-             alert('Erreur : ' + (res.error || 'Une erreur est survenue'))
-           }
-         } catch (err) {
-            console.error(err)
-            alert('Une erreur réseau est survenue.')
-         } finally {
-            btn.disabled = false
-            btn.textContent = id ? "Enregistrer les modifications" : "C'est parti ! 🚀"
-         }
-       })
+        <div class="mt-6 flex items-center justify-between">
+          @if(course.status === 'ready')
+          <span class="text-xs text-slate-400 font-mono">Dernier accès : {{ course.updatedAt.toRelative() }}</span>
+          @elseif(course.status === 'generating')
+          <span
+            class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold font-bold uppercase animate-pulse">En
+            cours</span>
+          @else
+          <span
+            class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold font-bold uppercase">Erreur</span>
+          @end
+        </div>
+      </div>
+      <a href="/courses/{{ course.slug }}" class="absolute inset-0"></a>
+    </div>
+    @else
+    <div class="col-span-full py-20 text-center glass rounded-[3rem] border-dashed border-2">
+      <h3 class="text-xl font-bold mb-4 text-slate-600">Vous n'avez pas encore demandé de cours !</h3>
+      <p class="text-slate-400 mb-8">Utilisez la barre de recherche sur la page d'accueil pour commencer.</p>
+      <a href="/" class="bg-primary-600 text-white px-8 py-3 rounded-full font-bold shadow-lg">Lancer mon premier
+        cours</a>
+    </div>
+    @end
+  </div>
 
-       async function deletePath(id) {
-         if(!confirm('Supprimer ce parcours ? (Les cours ne seront pas supprimés)')) return
-         
-         try {
-           const response = await fetch(`/parcours/${id}`, {
-             method: 'DELETE',
-             headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-             }
-           })
-           if (response.ok) window.location.reload()
-         } catch (e) {
-            alert('Erreur lors de la suppression')
-         }
-       }
-    </script>
-  @endslot
+  @if(bookmarkedCourses && bookmarkedCourses.length > 0)
+  <div class="flex items-center justify-between mb-8 pt-8 border-t border-slate-200">
+    <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
+      <span class="text-amber-500">★</span> Mes Favoris
+    </h2>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    @each(course in bookmarkedCourses)
+    <div
+      class="relative bg-white rounded-[2rem] p-4 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-2 group border-2 border-amber-100">
+      <div
+        class="absolute -top-3 -right-3 w-8 h-8 bg-amber-500 text-white flex items-center justify-center rounded-full shadow-lg z-20">
+        ★
+      </div>
+      <div class="aspect-video w-full bg-slate-100 rounded-[1.5rem] mb-6 overflow-hidden relative">
+        <img
+          src="{{ course.content?.image || 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&auto=format&fit=crop&q=60' }}"
+          alt="{{ course.title }}"
+          class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+        <div
+          class="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-primary-700">
+          {{ course.content?.level || 'Expert' }}
+        </div>
+      </div>
+      <div class="px-4 pb-4">
+        <h3 class="text-xl font-bold line-clamp-2 mb-2">{{ course.title }}</h3>
+
+        @if(course.status === 'ready' && course.$extras.progress !== undefined)
+        <div class="mt-4">
+          <div class="flex justify-between text-xs font-bold mb-1">
+            <span class="text-slate-400 uppercase">Progression</span>
+            <span class="text-primary-600">{{ course.$extras.progress }}%</span>
+          </div>
+          <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+            <div class="bg-primary-600 h-full transition-all duration-500"
+              style="width: {{ course.$extras.progress }}%"></div>
+          </div>
+        </div>
+        @end
+
+        <div class="mt-6 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span
+              class="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500">IA</span>
+            <span class="text-xs text-slate-500 font-medium">Par My Professor</span>
+          </div>
+        </div>
+      </div>
+      <a href="/courses/{{ course.slug }}" class="absolute inset-0"></a>
+    </div>
+    @end
+  </div>
+  @end
+</main>
+
+{{-- Create/Edit Path Modal --}}
+<div id="pathModal"
+  class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden">
+  <div class="bg-white rounded-[3rem] p-10 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+    <div class="flex justify-between items-center mb-8">
+      <h2 id="modalTitle" class="text-3xl font-black text-slate-900 tracking-tight">Créer un Parcours</h2>
+      <button onclick="closePathModal()" class="p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"
+          stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <form id="pathForm" class="space-y-6">
+      <input type="hidden" name="id" id="pathId">
+      <div>
+        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Nom du
+          parcours</label>
+        <input type="text" name="title" id="pathTitle" required
+          class="w-full p-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-indigo-500 font-bold"
+          placeholder="Ex: Master Intelligence Artificielle">
+      </div>
+
+      <div>
+        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Description
+          rapide</label>
+        <textarea name="description" id="pathDescription" rows="3"
+          class="w-full p-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-indigo-500 font-bold"
+          placeholder="Quel est l'objectif de ce parcours ?"></textarea>
+      </div>
+
+      <div>
+        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Sélectionnez vos cours
+          (Maintenez Ctrl pour plusieurs)</label>
+        <select name="courseIds" id="pathCourses" multiple
+          class="w-full p-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-indigo-500 font-bold h-48">
+          @each(course in courses)
+          @if(course.status === 'ready')
+          <option value="{{ course.id }}">{{ course.title }}</option>
+          @end
+          @end
+        </select>
+        <p class="mt-2 text-[10px] text-slate-400 italic">L'ordre de sélection définit l'ordre du parcours.</p>
+      </div>
+
+      <div class="flex flex-col gap-4">
+        <div class="flex items-center gap-4 p-4 bg-amber-50 rounded-2xl border border-amber-100">
+          <input type="checkbox" id="pathIsSequential"
+            class="w-6 h-6 text-amber-600 rounded-lg focus:ring-amber-500 border-none shadow-sm">
+          <div>
+            <label for="pathIsSequential" class="font-bold text-amber-900 block">Apprentissage Séquentiel 🔒</label>
+            <p class="text-[10px] text-amber-700">Les étudiants doivent terminer le cours précédent avant de passer au
+              suivant.</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-4 p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
+          <input type="checkbox" id="pathIsPublished"
+            class="w-6 h-6 text-indigo-600 rounded-lg focus:ring-indigo-500 border-none shadow-sm">
+          <label for="pathIsPublished" class="font-bold text-indigo-900">Rendre ce parcours public (visible via lien
+            direct)</label>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-4 pt-4">
+        <button type="button" onclick="closePathModal()"
+          class="px-8 py-4 rounded-2xl font-bold text-slate-600 hover:bg-slate-100 transition-all">Annuler</button>
+        <button type="submit" id="pathSubmitBtn"
+          class="bg-indigo-600 text-white px-10 py-4 rounded-2xl font-black hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 italic">
+          C'est parti ! 🚀
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openPathModal() {
+    document.getElementById('pathModal').classList.remove('hidden')
+  }
+  function closePathModal() {
+    document.getElementById('pathModal').classList.add('hidden')
+    document.getElementById('pathForm').reset()
+    document.getElementById('pathId').value = ''
+    document.getElementById('pathIsPublished').checked = false
+    document.getElementById('pathIsSequential').checked = false
+    document.getElementById('modalTitle').textContent = 'Créer un Parcours'
+    document.getElementById('pathSubmitBtn').textContent = "C'est parti ! 🚀"
+  }
+
+  async function editPath(id) {
+    try {
+      // Bypassing browser cache with timestamp
+      const response = await fetch(`/parcours/${id}/api?_t=${Date.now()}`, {
+        headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+      })
+      const data = await response.json()
+      const path = data.path
+
+      document.getElementById('pathId').value = path.id
+      document.getElementById('pathTitle').value = path.title
+      document.getElementById('pathDescription').value = path.description || ''
+      document.getElementById('pathIsPublished').checked = !!path.isPublished
+      document.getElementById('pathIsSequential').checked = !!path.isSequential
+      document.getElementById('modalTitle').textContent = 'Modifier le Parcours'
+      document.getElementById('pathSubmitBtn').textContent = "Enregistrer les modifications"
+
+      // Sélectionner les cours existants
+      const select = document.getElementById('pathCourses')
+      const pathCourseIds = path.courses.map(c => String(c.id))
+
+      Array.from(select.options).forEach(option => {
+        option.selected = pathCourseIds.includes(String(option.value))
+      })
+
+      openPathModal()
+    } catch (e) {
+      console.error(e)
+      alert('Erreur lors du chargement des données du parcours')
+    }
+  }
+
+  document.getElementById('pathForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const fd = new FormData(e.target)
+    const id = document.getElementById('pathId').value
+    const courseIds = Array.from(document.getElementById('pathCourses').selectedOptions).map(o => o.value)
+    const isPublished = document.getElementById('pathIsPublished').checked
+    const isSequential = document.getElementById('pathIsSequential').checked
+
+    const btn = document.getElementById('pathSubmitBtn')
+    btn.disabled = true
+    btn.textContent = id ? 'Mise à jour...' : 'Création...'
+
+    try {
+      const url = id ? `/parcours/${id}` : '/parcours'
+      const method = id ? 'PUT' : 'POST'
+
+      const response = await fetch(url + `?_t=${Date.now()}`, {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+        },
+        body: JSON.stringify({
+          title: fd.get('title'),
+          description: fd.get('description'),
+          courseIds: courseIds,
+          isPublished: isPublished,
+          isSequential: isSequential
+        })
+      })
+
+      const res = await response.json()
+      if (response.ok) {
+        window.location.reload()
+      } else {
+        alert('Erreur : ' + (res.error || 'Une erreur est survenue'))
+      }
+    } catch (err) {
+      console.error(err)
+      alert('Une erreur réseau est survenue.')
+    } finally {
+      btn.disabled = false
+      btn.textContent = id ? "Enregistrer les modifications" : "C'est parti ! 🚀"
+    }
+  })
+
+  async function deletePath(id) {
+    if (!confirm('Supprimer ce parcours ? (Les cours ne seront pas supprimés)')) return
+
+    try {
+      const response = await fetch(`/parcours/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+        }
+      })
+      if (response.ok) window.location.reload()
+    } catch (e) {
+      alert('Erreur lors de la suppression')
+    }
+  }
+</script>
+@endslot
 @end

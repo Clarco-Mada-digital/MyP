@@ -174,7 +174,7 @@ export default class LearningPathsController {
   }
 
   async store({ request, auth, response }: HttpContext) {
-    const { title, description, courseIds, isPublished } = request.all()
+    const { title, description, courseIds, isPublished, isSequential } = request.all()
     const { default: string } = await import('@adonisjs/core/helpers/string')
 
     const baseSlug = string.slug(title).toLowerCase()
@@ -190,7 +190,9 @@ export default class LearningPathsController {
       description,
       slug,
       userId: auth.user!.id,
-      isPublished: isPublished === true || isPublished === 'on'
+      isPublished: isPublished === true || isPublished === 'on',
+      // Allow sequential learning option
+      isSequential: isSequential === true || isSequential === 'on'
     })
 
     if (auth.user?.isAdmin && path.isPublished) {
@@ -200,6 +202,7 @@ export default class LearningPathsController {
     if (courseIds && courseIds.length > 0) {
       const pivotData: any = {}
       courseIds.forEach((id: string, index: number) => {
+        // Ensure index is used for order, preserving selection order from frontend
         pivotData[id] = { order: index }
       })
       await path.related('courses').attach(pivotData)
@@ -229,7 +232,7 @@ export default class LearningPathsController {
   }
 
   async update({ params, request, auth, response }: HttpContext) {
-    const { title, description, courseIds, isPublished } = request.all()
+    const { title, description, courseIds, isPublished, isSequential } = request.all()
     const path = await LearningPath.query()
       .where('id', params.id)
       .where('userId', auth.user!.id)
@@ -237,11 +240,13 @@ export default class LearningPathsController {
 
     // Robust boolean conversion
     const publishedValue = isPublished === true || isPublished === 'true' || isPublished === 'on'
+    const sequentialValue = isSequential === true || isSequential === 'true' || isSequential === 'on'
 
     path.merge({
       title,
       description,
-      isPublished: publishedValue
+      isPublished: publishedValue,
+      isSequential: sequentialValue
     })
     await path.save()
 

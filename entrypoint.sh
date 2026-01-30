@@ -13,10 +13,10 @@ if [ "$DB_CONNECTION" = "mysql" ]; then
 fi
 
 # Force HOST to 0.0.0.0 in production for external access
-if [ "$NODE_ENV" = "production" ] && [ "$HOST" = "localhost" ]; then
-  echo "⚠️ Warning: HOST is set to 'localhost' in production. Forcing 0.0.0.0 for external access."
-  export HOST="0.0.0.0"
-fi
+# if [ "$NODE_ENV" = "production" ] && [ "$HOST" = "localhost" ]; then
+#   echo "⚠️ Warning: HOST is set to 'localhost' in production. Forcing 0.0.0.0 for external access."
+#   export HOST="0.0.0.0"
+# fi
 
 echo "Configuration: HOST=$HOST, PORT=$PORT, NODE_ENV=$NODE_ENV"
 

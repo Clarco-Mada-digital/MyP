@@ -847,12 +847,17 @@
           x-cloak
         >
           {{-- Header --}}
-          <div class="p-6 bg-slate-900 text-white flex items-center gap-4">
-            <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl">🤖</div>
-            <div>
-              <h3 class="font-bold leading-tight">My Professor AI</h3>
-              <p class="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">En ligne • Tuteur Personnel</p>
+          <div class="p-6 bg-slate-900 text-white flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl">🤖</div>
+              <div>
+                <h3 class="font-bold leading-tight">My Professor AI</h3>
+                <p class="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">En ligne • Tuteur Personnel</p>
+              </div>
             </div>
+            <button @click="toggleChat()" class="p-2 hover:bg-white/10 rounded-xl transition-colors" title="Fermer le tutorat">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
           </div>
 
           {{-- Messages --}}

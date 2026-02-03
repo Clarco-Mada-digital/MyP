@@ -83,12 +83,11 @@ export default class DashboardController {
       monthlyProgress = await db.rawQuery(`
         SELECT 
           strftime('%Y-%m', updated_at) as month,
-          strftime('%W', updated_at) as week,
+          ((CAST(strftime('%d', updated_at) AS INTEGER) - 1) / 7 + 1) as week,
           COUNT(DISTINCT course_id) as courses_count
         FROM course_progresses
         WHERE user_id = ?
-          AND updated_at >= date('now', '-30 days')
-          AND strftime('%Y-%m', updated_at) = strftime('%Y-%m', 'now')
+          AND updated_at >= date('now', 'start of month')
         GROUP BY month, week
         ORDER BY week ASC
       `, [userId])
@@ -97,12 +96,11 @@ export default class DashboardController {
       const [rows]: [any[], any] = await db.rawQuery(`
         SELECT 
           DATE_FORMAT(updated_at, '%Y-%m') as month,
-          WEEK(updated_at, 1) as week,
+          FLOOR((DAYOFMONTH(updated_at) - 1) / 7) + 1 as week,
           COUNT(DISTINCT course_id) as courses_count
         FROM course_progresses
         WHERE user_id = ?
-          AND updated_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-          AND DATE_FORMAT(updated_at, '%Y-%m') = DATE_FORMAT(NOW(), '%Y-%m')
+          AND updated_at >= DATE_FORMAT(NOW() ,'%Y-%m-01')
         GROUP BY month, week
         ORDER BY week ASC
       `, [userId])

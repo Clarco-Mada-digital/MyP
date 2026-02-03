@@ -22,13 +22,14 @@ export default class AuthController {
 
       return response.redirect().toPath('/')
     } catch (error) {
+      session.flashAll()
       // Gérer les erreurs de validation avec des messages clairs
       if (error.messages) {
         const formattedErrors = formatValidationErrors(error.messages)
         session.flash('errors', formattedErrors)
       } else {
-        session.flash('errors', { 
-          general: 'Une erreur est survenue lors de l\'inscription. Veuillez réessayer.' 
+        session.flash('errors', {
+          general: 'Une erreur est survenue lors de l\'inscription. Veuillez réessayer.'
         })
       }
       return response.redirect().back()
@@ -52,6 +53,7 @@ export default class AuthController {
       await auth.use('web').login(user)
       return response.redirect().toPath('/')
     } catch (error) {
+      session.flashAll()
       if (error.messages) {
         const formattedErrors = formatValidationErrors(error.messages)
         session.flash('errors', formattedErrors)

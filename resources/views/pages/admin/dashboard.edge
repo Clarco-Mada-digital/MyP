@@ -400,8 +400,18 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       // Data preparation
-      const userTrendMap = Object.fromEntries({{{ JSON.stringify(stats.userTrends) }}}.map(d => [d.date, d.count]));
-      const courseTrendMap = Object.fromEntries({{{ JSON.stringify(stats.courseTrends) }}}.map(d => [d.date, d.count]));
+      const normalizeDate = (d) => {
+        if (!d) return null;
+        if (typeof d === 'string') return d.split('T')[0];
+        try {
+          return new Date(d).toISOString().split('T')[0];
+        } catch (e) {
+          return d;
+        }
+      };
+
+      const userTrendMap = Object.fromEntries({{{ JSON.stringify(stats.userTrends) }}}.map(d => [normalizeDate(d.date), d.count]));
+      const courseTrendMap = Object.fromEntries({{{ JSON.stringify(stats.courseTrends) }}}.map(d => [normalizeDate(d.date), d.count]));
       
       const labels = [];
       const userData = [];

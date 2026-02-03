@@ -47,16 +47,17 @@ export default class AdminController {
 
     // Trends (last 7 days)
     const sevenDaysAgo = DateTime.now().minus({ days: 7 }).toSQLDate()!
+    const isSQLite = Env.get('DB_CONNECTION') === 'sqlite'
 
     const userTrends = await db.from('users')
-      .select(db.raw("date(created_at) as date"))
+      .select(db.raw(isSQLite ? "date(created_at) as date" : "DATE_FORMAT(created_at, '%Y-%m-%d') as date"))
       .count('* as count')
       .where('created_at', '>=', sevenDaysAgo)
       .groupBy('date')
       .orderBy('date', 'asc')
 
     const courseTrends = await db.from('courses')
-      .select(db.raw("date(created_at) as date"))
+      .select(db.raw(isSQLite ? "date(created_at) as date" : "DATE_FORMAT(created_at, '%Y-%m-%d') as date"))
       .count('* as count')
       .where('created_at', '>=', sevenDaysAgo)
       .groupBy('date')

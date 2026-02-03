@@ -1,11 +1,14 @@
 import vine from '@vinejs/vine'
 
 export const authErrorMessages = {
-  'password.minLength': 'Le mot de passe doit contenir au moins 8 caractères',
-  'password.regex': 'Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre et un caractère spécial (@$!%*?&)',
+  'fullName.required': 'Le nom complet est obligatoire',
+  'fullName.minLength': 'Le nom doit contenir au moins 3 caractères',
+  'email.required': 'L\'adresse email est obligatoire',
   'email.email': 'Veuillez entrer une adresse email valide',
   'email.unique': 'Cet email est déjà utilisé',
-  'fullName.minLength': 'Le nom doit contenir au moins 3 caractères',
+  'password.required': 'Le mot de passe est obligatoire',
+  'password.minLength': 'Le mot de passe doit contenir au moins 8 caractères',
+  'password.regex': 'Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre et un caractère spécial (@$!%*?&)',
 }
 
 export const getAuthValidator = () => {
@@ -20,14 +23,17 @@ export const getAuthValidator = () => {
 
 export const formatValidationErrors = (errors: any) => {
   const formattedErrors: any = {}
-  
+
   errors.forEach((error: any) => {
     const field = error.field
-    let message = authErrorMessages[error.rule as keyof typeof authErrorMessages]
-    
+    const rule = error.rule
+
+    // Essayer de trouver un message spécifique au champ et à la règle
+    let message = authErrorMessages[`${field}.${rule}` as keyof typeof authErrorMessages]
+
+    // Sinon essayer de trouver un message générique pour la règle
     if (!message) {
-      // Messages par défaut si pas de traduction
-      switch (error.rule) {
+      switch (rule) {
         case 'required':
           message = `Le champ ${field} est obligatoire`
           break
@@ -44,9 +50,9 @@ export const formatValidationErrors = (errors: any) => {
           message = error.message
       }
     }
-    
+
     formattedErrors[field] = message
   })
-  
+
   return formattedErrors
 }

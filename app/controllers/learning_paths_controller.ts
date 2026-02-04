@@ -26,11 +26,25 @@ export default class LearningPathsController {
       })
     }
 
-    const paths = await query
+    let paths = await query
       .preload('courses', (q) => {
         q.orderBy('learning_path_courses.order', 'asc')
       })
       .orderBy('createdAt', 'desc')
+
+    if (auth.user && !auth.user.isAdmin) {
+      const user = auth.user
+      const importedOriginIds = paths
+        .filter((p) => p.userId === user.id && p.originSharedPathId)
+        .map((p) => p.originSharedPathId as number)
+
+      if (importedOriginIds.length > 0) {
+        const SharedLearningPath = (await import('#models/shared_learning_path')).default
+        const sharedMappings = await SharedLearningPath.query().whereIn('id', importedOriginIds)
+        const toHide = new Set(sharedMappings.map((m) => m.learningPathId))
+        paths = paths.filter((p) => p.userId === user.id || !toHide.has(p.id))
+      }
+    }
 
     if (auth.user) {
       for (const path of paths) {
@@ -78,11 +92,25 @@ export default class LearningPathsController {
       })
     }
 
-    const paths = await query
+    let paths = await query
       .preload('courses', (q) => {
         q.orderBy('learning_path_courses.order', 'asc')
       })
       .orderBy('createdAt', 'desc')
+
+    if (auth.user && !auth.user.isAdmin) {
+      const user = auth.user
+      const importedOriginIds = paths
+        .filter((p) => p.userId === user.id && p.originSharedPathId)
+        .map((p) => p.originSharedPathId as number)
+
+      if (importedOriginIds.length > 0) {
+        const SharedLearningPath = (await import('#models/shared_learning_path')).default
+        const sharedMappings = await SharedLearningPath.query().whereIn('id', importedOriginIds)
+        const toHide = new Set(sharedMappings.map((m) => m.learningPathId))
+        paths = paths.filter((p) => p.userId === user.id || !toHide.has(p.id))
+      }
+    }
 
     if (auth.user) {
       for (const path of paths) {

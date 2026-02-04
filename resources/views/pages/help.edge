@@ -1,0 +1,164 @@
+@component('components/app', { title: 'Aide & Guide d\'utilisation - My Professor' })
+  @slot('main')
+    <div class="bg-white border-b border-slate-100">
+      <div class="max-w-5xl mx-auto px-6 py-16 md:py-24 text-center">
+        <h1 class="text-4xl md:text-6xl font-black text-slate-900 tracking-tight mb-6">
+          Comment utiliser <span class="gradient-text">My Professor</span> ?
+        </h1>
+        <p class="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto font-medium">
+          Tout ce que vous devez savoir pour maîtriser l'apprentissage par l'IA et booster votre savoir.
+        </p>
+      </div>
+    </div>
+
+    <div class="max-w-5xl mx-auto px-6 py-16">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+        
+        {{-- Navigation rapide --}}
+        <div class="md:col-span-1">
+          <div class="sticky top-24 space-y-2">
+            <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Sommaire</h3>
+            <a href="#generation" class="block p-3 rounded-xl hover:bg-primary-50 text-slate-600 font-bold transition-all hover:translate-x-1">🚀 Générer un cours</a>
+            <a href="#models" class="block p-3 rounded-xl hover:bg-primary-50 text-slate-600 font-bold transition-all hover:translate-x-1">🤖 Choisir son modèle IA</a>
+            <a href="#parcours" class="block p-3 rounded-xl hover:bg-primary-50 text-slate-600 font-bold transition-all hover:translate-x-1">🛤️ Créer des Parcours</a>
+            <a href="#commu" class="block p-3 rounded-xl hover:bg-primary-50 text-slate-600 font-bold transition-all hover:translate-x-1">🌌 Communauté & Partage</a>
+            <a href="#tips" class="block p-3 rounded-xl hover:bg-primary-50 text-slate-600 font-bold transition-all hover:translate-x-1">💡 Bonnes pratiques</a>
+          </div>
+        </div>
+
+        {{-- Contenu --}}
+        <div class="md:col-span-2 space-y-20">
+          
+          {{-- Section 1 --}}
+          <section id="generation">
+            <h2 class="text-3xl font-black text-slate-900 mb-6 flex items-center gap-4">
+              <span class="w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center">🚀</span>
+              Générer un cours
+            </h2>
+            <div class="prose prose-slate max-w-none text-slate-600 leading-relaxed">
+              <p>La génération de cours est le cœur de My Professor. Pour commencer :</p>
+              <ol class="space-y-4 my-6">
+                <li class="flex gap-4">
+                  <span class="flex-shrink-0 w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center text-xs font-bold text-slate-500">1</span>
+                  <span>Allez sur la page d'accueil ou "Parcourir" et cliquez sur <strong>"Créer un cours"</strong>.</span>
+                </li>
+                <li class="flex gap-4">
+                  <span class="flex-shrink-0 w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center text-xs font-bold text-slate-500">2</span>
+                  <span>Entrez un sujet précis. Plus vous êtes précis, meilleur sera le cours (ex: <i>"Les bases de Python"</i> vs <i>"Décorateurs avancés en Python"</i>).</span>
+                </li>
+                <li class="flex gap-4">
+                  <span class="flex-shrink-0 w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center text-xs font-bold text-slate-500">3</span>
+                  <span>Choisissez une catégorie ou laissez l'IA classer automatiquement le contenu.</span>
+                </li>
+              </ol>
+              <div class="bg-blue-50 p-6 rounded-[2rem] border border-blue-100">
+                <p class="text-sm text-blue-800 font-medium italic">
+                  <strong>💡 Astuce :</strong> Si un cours similaire existe déjà, le système vous proposera de le consulter au lieu d'en générer un nouveau pour économiser vos quotas.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {{-- Section 2 --}}
+          <section id="models">
+            <h2 class="text-3xl font-black text-slate-900 mb-6 flex items-center gap-4">
+              <span class="w-12 h-12 bg-indigo-100 rounded-2xl flex items-center justify-center">🤖</span>
+              Choisir son modèle IA
+            </h2>
+            <div class="space-y-6 text-slate-600">
+              <p>My Professor vous permet de choisir quel cerveau IA génère vos cours. Vous pouvez configurer cela dans vos <strong>Paramètres</strong> :</p>
+              
+              <div class="grid grid-cols-1 gap-4">
+                <div class="p-6 bg-white border border-slate-200 rounded-3xl shadow-sm">
+                  <h4 class="font-bold text-slate-900 mb-2">Mode Standard (Admin)</h4>
+                  <p class="text-sm">Utilise le modèle par défaut configuré par l'administrateur (souvent Gemini). C'est le plus simple pour commencer.</p>
+                </div>
+                
+                <div class="p-6 bg-white border border-slate-200 rounded-3xl shadow-sm">
+                  <h4 class="font-bold text-slate-900 mb-2">Cerveau Personnel (Clé API)</h4>
+                  <p class="text-sm">Vous pouvez utiliser vos propres clés <strong>Gemini</strong> ou <strong>OpenRouter</strong>. L'avantage est que vous n'êtes pas limité par les quotas du site et vous pouvez choisir des modèles très puissants.</p>
+                </div>
+
+                <div class="p-6 bg-orange-50 border border-orange-100 rounded-3xl shadow-sm">
+                  <h4 class="font-bold text-orange-900 mb-2">Local Ollama (Gratuit & Privé)</h4>
+                  <p class="text-sm text-orange-800">Si vous installez Ollama sur votre ordinateur, My Professor peut l'utiliser ! C'est 100% gratuit, privé et sans limite. Le cours est généré par votre propre machine.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {{-- Section 3 --}}
+          <section id="parcours">
+            <h2 class="text-3xl font-black text-slate-900 mb-6 flex items-center gap-4">
+              <span class="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center">🛤️</span>
+              Créer des Parcours
+            </h2>
+            <div class="space-y-4 text-slate-600">
+              <p>Un parcours est une collection de cours organisée logiquement pour atteindre un objectif global.</p>
+              <ul class="list-disc ml-6 space-y-2">
+                <li><strong>Avantage :</strong> Permet de structurer un apprentissage long (ex: "Devenir Développeur Web" regroupant HTML, CSS et JS).</li>
+                <li><strong>Comment faire :</strong> Dans l'onglet "Parcours", créez un nouveau parcours, donnez-lui une icône et ajoutez les cours que vous avez déjà générés ou trouvés sur le site.</li>
+                <li><strong>Ordre Séquentiel :</strong> Vous pouvez activer une option pour forcer l'étudiant à finir le cours 1 avant de voir le cours 2.</li>
+              </ul>
+            </div>
+          </section>
+
+          {{-- Section 4 --}}
+          <section id="commu">
+            <h2 class="text-3xl font-black text-slate-900 mb-6 flex items-center gap-4">
+              <span class="w-12 h-12 bg-violet-100 rounded-2xl flex items-center justify-center">🌌</span>
+              Communauté & Partage
+            </h2>
+            <div class="space-y-4 text-slate-600">
+              <p>La section Communauté est l'endroit où vous pouvez découvrir les meilleurs parcours créés par les autres utilisateurs.</p>
+              <div class="p-6 bg-slate-900 text-white rounded-[2.5rem] shadow-xl">
+                <h4 class="font-bold mb-4 flex items-center gap-2">Comment partager ?</h4>
+                <p class="text-sm text-slate-300">Sur l'un de vos parcours, cliquez sur "Partager dans la communauté". Votre parcours sera alors visible par tous, et les autres pourront l'importer dans leur propre collection.</p>
+              </div>
+            </div>
+          </section>
+
+          {{-- Section 5 --}}
+          <section id="tips">
+            <h2 class="text-3xl font-black text-slate-900 mb-6 flex items-center gap-4">
+              <span class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center">💡</span>
+              Bonnes pratiques
+            </h2>
+            <div class="space-y-4">
+              <div class="flex gap-4 p-4 rounded-2xl bg-white border border-slate-100 shadow-sm">
+                <span class="text-2xl">📝</span>
+                <div>
+                  <h4 class="font-bold text-slate-900">Prenez des notes</h4>
+                  <p class="text-sm text-slate-500">Utilisez les quiz à la fin de chaque module pour valider vos connaissances.</p>
+                </div>
+              </div>
+              <div class="flex gap-4 p-4 rounded-2xl bg-white border border-slate-100 shadow-sm">
+                <span class="text-2xl">🎙️</span>
+                <div>
+                  <h4 class="font-bold text-slate-900">Écoutez les cours</h4>
+                  <p class="text-sm text-slate-500">Chaque leçon possède une synthèse vocale. Très pratique pour apprendre en faisant autre chose !</p>
+                </div>
+              </div>
+              <div class="flex gap-4 p-4 rounded-2xl bg-white border border-slate-100 shadow-sm">
+                <span class="text-2xl">🔄</span>
+                <div>
+                  <h4 class="font-bold text-slate-900">Mode Révision (Flashcards)</h4>
+                  <p class="text-sm text-slate-500">Consultez les flashcards pour mémoriser sur le long terme les concepts clés grâce à la répétition espacée.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-primary-600 py-16 px-6 text-center text-white">
+      <h2 class="text-3xl font-black mb-4">Prêt à apprendre ?</h2>
+      <p class="text-primary-100 mb-8 max-w-xl mx-auto">Lancez votre première génération maintenant et laissez l'IA devenir votre professeur particulier.</p>
+      <a href="/parcourir" class="inline-block bg-white text-primary-600 px-10 py-4 rounded-2xl font-black hover:scale-105 transition-all shadow-xl">
+        Commencer maintenant
+      </a>
+    </div>
+  @end
+@end

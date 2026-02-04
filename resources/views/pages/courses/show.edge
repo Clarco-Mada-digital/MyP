@@ -1,250 +1,300 @@
 @app({ title: course.title + ' - My Professor' })
-  @slot('head')
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css" />
-    <style>
-      /* Styles GitHub Markdown améliorés */
-      .markdown-body { 
-        background-color: transparent !important; 
-        padding: 0 !important; 
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif !important;
-        font-size: 16px !important;
-        line-height: 1.6 !important;
-        color: #24292f !important;
-        word-wrap: break-word !important;
-      }
-      
-      .markdown-body h1 {
-        font-size: 2.5rem !important;
-        font-weight: 800 !important;
-        margin-bottom: 2rem !important;
-        padding-bottom: 0.3rem !important;
-        border-bottom: 1px solid #d1d9e0 !important;
-      }
-      
-      .markdown-body h2 {
-        font-size: 1.8rem !important;
-        font-weight: 700 !important;
-        margin-top: 3rem !important;
-        margin-bottom: 1.5rem !important;
-        padding-bottom: 0.3rem !important;
-        border-bottom: 1px solid #d1d9e0 !important;
-      }
-      
-      .markdown-body h3 {
-        font-size: 1.4rem !important;
-        font-weight: 600 !important;
-        margin-top: 2rem !important;
-        margin-bottom: 1rem !important;
-      }
-      
-      .markdown-body h4 {
-        font-size: 1.2rem !important;
-        font-weight: 600 !important;
-        margin-top: 1.5rem !important;
-        margin-bottom: 0.8rem !important;
-      }
-      
-      .markdown-body p {
-        margin-bottom: 1.25rem !important;
-        line-height: 1.75 !important;
-        color: #24292f !important;
-      }
-      
-      .markdown-body ul, .markdown-body ol {
-        margin-bottom: 1.5rem !important;
-        padding-left: 2rem !important;
-      }
-      
-      .markdown-body li {
-        margin-bottom: 0.5rem !important;
-        line-height: 1.6 !important;
-      }
-      
-      .markdown-body ul li {
-        list-style-type: disc !important;
-      }
-      
-      .markdown-body ol li {
-        list-style-type: decimal !important;
-      }
-      
-      .markdown-body blockquote {
-        margin: 1rem 0 !important;
-        padding: 0 1rem !important;
-        color: #57606a !important;
-        border-left: 0.25rem solid #d1d9e0 !important;
-        background-color: #f6f8fa !important;
-        border-radius: 0 0.375rem 0.375rem 0 !important;
-      }
-      
-      .markdown-body code {
-        padding: 0.2rem 0.4rem !important;
-        margin: 0 !important;
-        font-size: 85% !important;
-        background-color: rgba(175, 184, 193, 0.2) !important;
-        border-radius: 6px !important;
-        font-family: ui-monospace, SFMono-Regular, SF Mono, Consolas, Liberation Mono, Menlo, monospace !important;
-      }
-      
-      .markdown-body pre {
-        padding: 1rem !important;
-        overflow: auto !important;
-        font-size: 85% !important;
-        line-height: 1.45 !important;
-        background-color: #f6f8fa !important;
-        border-radius: 6px !important;
-        border: 1px solid #d1d9e0 !important;
-        margin-bottom: 1.5rem !important;
-      }
-      
-      .markdown-body pre code {
-        padding: 0 !important;
-        background: none !important;
-        border-radius: 0 !important;
-      }
-      
-      .markdown-body table {
-        border-spacing: 0 !important;
-        border-collapse: collapse !important;
-        margin-bottom: 1.5rem !important;
-        width: 100% !important;
-      }
-      
-      .markdown-body table th, .markdown-body table td {
-        padding: 0.75rem !important;
-        border: 1px solid #d1d9e0 !important;
-      }
-      
-      .markdown-body table th {
-        background-color: #f6f8fa !important;
-        font-weight: 600 !important;
-      }
-      
-      .markdown-body a {
-        color: #0969da !important;
-        text-decoration: none !important;
-      }
-      
-      .markdown-body a:hover {
-        text-decoration: underline !important;
-      }
-      
-      .markdown-body strong {
-        font-weight: 600 !important;
-      }
-      
-      .markdown-body em {
-        font-style: italic !important;
-      }
-      
-      .markdown-body hr {
-        height: 0.25rem !important;
-        padding: 0 !important;
-        margin: 2rem 0 !important;
-        background-color: #d1d9e0 !important;
-        border: 0 !important;
-      }
-      
-      /* Styles spécifiques au contenu de cours */
-      .course-content h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 2rem; }
-      .course-content h2 { font-size: 1.8rem; font-weight: 700; margin-top: 3rem; margin-bottom: 1.5rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; }
-      .course-content h3 { font-size: 1.4rem; font-weight: 600; margin-top: 2rem; margin-bottom: 1rem; }
-      .course-content p { margin-bottom: 1.25rem; line-height: 1.75; color: #475569; }
-      .course-content ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 1.5rem; }
-      
-      .btn-complete.active { background-color: #10b981; color: white !important; border-color: #10b981; }
-      .btn-complete.active .check-icon { display: block; }
-      .btn-complete .check-icon { display: none; }
+@slot('head')
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<link rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css" />
+<style>
+  /* Styles GitHub Markdown améliorés */
+  .markdown-body {
+    background-color: transparent !important;
+    padding: 0 !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif !important;
+    font-size: 16px !important;
+    line-height: 1.6 !important;
+    color: #24292f !important;
+    word-wrap: break-word !important;
+  }
 
-      [x-cloak] { display: none !important; }
+  .markdown-body h1 {
+    font-size: 2.5rem !important;
+    font-weight: 800 !important;
+    margin-bottom: 2rem !important;
+    padding-bottom: 0.3rem !important;
+    border-bottom: 1px solid #d1d9e0 !important;
+  }
 
-      @media (max-width: 640px) {
-        .course-content h1 { font-size: 1.75rem; }
-        .course-content h2 { font-size: 1.5rem; }
-        .chat-window-mobile { 
-          position: fixed !important; 
-          bottom: 0 !important; 
-          left: 0 !important; 
-          right: 0 !important; 
-          width: 100% !important; 
-          height: 80vh !important; 
-          border-radius: 2rem 2rem 0 0 !important;
-          z-index: 200;
-        }
-      }
+  .markdown-body h2 {
+    font-size: 1.8rem !important;
+    font-weight: 700 !important;
+    margin-top: 3rem !important;
+    margin-bottom: 1.5rem !important;
+    padding-bottom: 0.3rem !important;
+    border-bottom: 1px solid #d1d9e0 !important;
+  }
 
-      .tts-highlight {
-        background-color: #fef08a; /* Yellow-200 */
-        transition: background-color 0.2s;
-        border-radius: 4px;
-        padding: 0 2px;
-      }
-      
-      .active-audio-lesson {
-        border-color: #3b82f6 !important;
-        box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
-      }
-    </style>
-    <script>
-      function confirmDeletion(courseTitle) {
-        const confirmation = `⚠️ CONFIRMATION DE SUPPRESSION ⚠️\n\n` +
-          `Cours : "${courseTitle}"\n\n` +
-          `Cette action va envoyer une demande de suppression à l'administrateur.\n\n` +
-          `❗️ Si le cours est utilisé dans un parcours, la demande sera AUTOMATIQUEMENT refusée.\n\n` +
-          `❗️ Si le cours n'est pas dans un parcours, la demande sera envoyée pour validation.\n\n` +
-          `Êtes-vous ABSOLUMENT sûr de vouloir continuer ?\n\n` +
-          `Cliquez sur "OK" pour confirmer, ou "Annuler" pour annuler.`;
-        
-        return confirm(confirmation);
-      }
+  .markdown-body h3 {
+    font-size: 1.4rem !important;
+    font-weight: 600 !important;
+    margin-top: 2rem !important;
+    margin-bottom: 1rem !important;
+  }
 
-      function initQuiz(data) {
-        // Normalisation : On s'assure que la "réponse" stockée est bien le texte complet de l'option
-        // car l'IA renvoie souvent juste "A", "B", "C" alors que les options sont "A. Texte..."
-        const normalizedQuestions = data.map(q => {
-          if (q.answer.length < 5) { // Si c'est juste une lettre ou court
-             const fullAnswer = q.options.find(opt => 
-                opt.trim().startsWith(q.answer + '.') || 
-                opt.trim().startsWith(q.answer + ')') || 
-                opt.trim().startsWith(q.answer + ' ') ||
-                opt.trim() === q.answer
-             );
-             if (fullAnswer) q.answer = fullAnswer;
-          }
-          return q;
+  .markdown-body h4 {
+    font-size: 1.2rem !important;
+    font-weight: 600 !important;
+    margin-top: 1.5rem !important;
+    margin-bottom: 0.8rem !important;
+  }
+
+  .markdown-body p {
+    margin-bottom: 1.25rem !important;
+    line-height: 1.75 !important;
+    color: #24292f !important;
+  }
+
+  .markdown-body ul,
+  .markdown-body ol {
+    margin-bottom: 1.5rem !important;
+    padding-left: 2rem !important;
+  }
+
+  .markdown-body li {
+    margin-bottom: 0.5rem !important;
+    line-height: 1.6 !important;
+  }
+
+  .markdown-body ul li {
+    list-style-type: disc !important;
+  }
+
+  .markdown-body ol li {
+    list-style-type: decimal !important;
+  }
+
+  .markdown-body blockquote {
+    margin: 1rem 0 !important;
+    padding: 0 1rem !important;
+    color: #57606a !important;
+    border-left: 0.25rem solid #d1d9e0 !important;
+    background-color: #f6f8fa !important;
+    border-radius: 0 0.375rem 0.375rem 0 !important;
+  }
+
+  .markdown-body code {
+    padding: 0.2rem 0.4rem !important;
+    margin: 0 !important;
+    font-size: 85% !important;
+    background-color: rgba(175, 184, 193, 0.2) !important;
+    border-radius: 6px !important;
+    font-family: ui-monospace, SFMono-Regular, SF Mono, Consolas, Liberation Mono, Menlo, monospace !important;
+  }
+
+  .markdown-body pre {
+    padding: 1rem !important;
+    overflow: auto !important;
+    font-size: 85% !important;
+    line-height: 1.45 !important;
+    background-color: #f6f8fa !important;
+    border-radius: 6px !important;
+    border: 1px solid #d1d9e0 !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .markdown-body pre code {
+    padding: 0 !important;
+    background: none !important;
+    border-radius: 0 !important;
+  }
+
+  .markdown-body table {
+    border-spacing: 0 !important;
+    border-collapse: collapse !important;
+    margin-bottom: 1.5rem !important;
+    width: 100% !important;
+  }
+
+  .markdown-body table th,
+  .markdown-body table td {
+    padding: 0.75rem !important;
+    border: 1px solid #d1d9e0 !important;
+  }
+
+  .markdown-body table th {
+    background-color: #f6f8fa !important;
+    font-weight: 600 !important;
+  }
+
+  .markdown-body a {
+    color: #0969da !important;
+    text-decoration: none !important;
+  }
+
+  .markdown-body a:hover {
+    text-decoration: underline !important;
+  }
+
+  .markdown-body strong {
+    font-weight: 600 !important;
+  }
+
+  .markdown-body em {
+    font-style: italic !important;
+  }
+
+  .markdown-body hr {
+    height: 0.25rem !important;
+    padding: 0 !important;
+    margin: 2rem 0 !important;
+    background-color: #d1d9e0 !important;
+    border: 0 !important;
+  }
+
+  /* Styles spécifiques au contenu de cours */
+  .course-content h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 2rem;
+  }
+
+  .course-content h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-top: 3rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 0.5rem;
+  }
+
+  .course-content h3 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .course-content p {
+    margin-bottom: 1.25rem;
+    line-height: 1.75;
+    color: #475569;
+  }
+
+  .course-content ul {
+    list-style-type: disc;
+    margin-left: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .btn-complete.active {
+    background-color: #10b981;
+    color: white !important;
+    border-color: #10b981;
+  }
+
+  .btn-complete.active .check-icon {
+    display: block;
+  }
+
+  .btn-complete .check-icon {
+    display: none;
+  }
+
+  [x-cloak] {
+    display: none !important;
+  }
+
+  @media (max-width: 640px) {
+    .course-content h1 {
+      font-size: 1.75rem;
+    }
+
+    .course-content h2 {
+      font-size: 1.5rem;
+    }
+
+    .chat-window-mobile {
+      position: fixed !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      width: 100% !important;
+      height: 80vh !important;
+      border-radius: 2rem 2rem 0 0 !important;
+      z-index: 200;
+    }
+  }
+
+  .tts-highlight {
+    background-color: #fef08a;
+    /* Yellow-200 */
+    transition: background-color 0.2s;
+    border-radius: 4px;
+    padding: 0 2px;
+  }
+
+  .active-audio-lesson {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+  }
+</style>
+<script>
+  function confirmDeletion(courseTitle) {
+    const confirmation = `⚠️ CONFIRMATION DE SUPPRESSION ⚠️\n\n` +
+      `Cours : "${courseTitle}"\n\n` +
+      `Cette action va envoyer une demande de suppression à l'administrateur.\n\n` +
+      `❗️ Si le cours est utilisé dans un parcours, la demande sera AUTOMATIQUEMENT refusée.\n\n` +
+      `❗️ Si le cours n'est pas dans un parcours, la demande sera envoyée pour validation.\n\n` +
+      `Êtes-vous ABSOLUMENT sûr de vouloir continuer ?\n\n` +
+      `Cliquez sur "OK" pour confirmer, ou "Annuler" pour annuler.`;
+
+    return confirm(confirmation);
+  }
+
+  function initQuiz(data) {
+    // Normalisation : On s'assure que la "réponse" stockée est bien le texte complet de l'option
+    // car l'IA renvoie souvent juste "A", "B", "C" alors que les options sont "A. Texte..."
+    const normalizedQuestions = data.map(q => {
+      if (q.answer.length < 5) { // Si c'est juste une lettre ou court
+        const fullAnswer = q.options.find(opt =>
+          opt.trim().startsWith(q.answer + '.') ||
+          opt.trim().startsWith(q.answer + ')') ||
+          opt.trim().startsWith(q.answer + ' ') ||
+          opt.trim() === q.answer
+        );
+        if (fullAnswer) q.answer = fullAnswer;
+      }
+      return q;
+    });
+
+    return {
+      finished: false,
+      score: 0,
+      answers: [],
+      questions: normalizedQuestions,
+      checkAnswer(index, option) {
+        if (this.finished) return;
+        this.answers[index] = option;
+      },
+      finish() {
+        this.score = 0;
+        this.questions.forEach((q, i) => {
+          if (this.answers[i] === q.answer) this.score++;
         });
-
-        return {
-          finished: false,
-          score: 0,
-          answers: [],
-          questions: normalizedQuestions,
-          checkAnswer(index, option) {
-            if (this.finished) return;
-            this.answers[index] = option;
-          },
-          finish() {
-            this.score = 0;
-            this.questions.forEach((q, i) => {
-              if (this.answers[i] === q.answer) this.score++;
-            });
-            this.finished = true;
-          },
-          reset() {
-            this.finished = false;
-            this.score = 0;
-            this.answers = [];
-          }
-        }
+        this.finished = true;
+      },
+      reset() {
+        this.finished = false;
+        this.score = 0;
+        this.answers = [];
       }
-    </script>
-  @end
+    }
+  }
+</script>
+@endslot
 
-  @slot('main')
-    <main class="max-w-5xl mx-auto px-4 sm:px-6 py-6 md:py-12">
-      @if(course.status === 'waiting_local')
-        <div x-data="{
+@slot('main')
+<main class="max-w-5xl mx-auto px-4 sm:px-6 py-6 md:py-12">
+  @if(course.status === 'waiting_local')
+  <div x-data="{
           loading: true,
           error: null,
           progress: 0,
@@ -262,1066 +312,1114 @@
               this.progress = 20;
 
               const prompt = `Agis en tant qu'expert pédagogue.
-              Sujet: \"{{ course.title }}\".
-              Génère un cours COMPLET et structuré (JSON).
-              Objectif: De débutant à expert.
-              Structure: 
-                - 3 à 4 Modules maximum.
-                - 2 à 3 leçons par module.
-                - Un Quiz de validation (3 questions) à la fin de chaque module.
-              Contenu:
-                - Leçons détaillées (environ 300 mots/leçon).
-                - Exemples de code, cas pratiques, explications claires.
-              Format JSON STRICT (Attention: tout guillemet double à l'intérieur d'une chaîne doit être échappé \\\", ou utilise des guillemets simples '' pour le code) :
-              {
-                \"description\": \"Description captivante (min 100 mots)\",
-                \"level\": \"Expert\",
-                \"image\": \"Mots-clés pour l'image d'illustration\",
-                \"sources\": [\"Source fiable\"],
-                \"modules\": [
-                  {
-                    \"title\": \"Titre Module\",
-                    \"lessons\": [
-                      {
-                        \"title\": \"Titre Leçon\",
-                        \"content\": \"Contenu riche en Markdown...\",
-                        \"video_url\": \"\",
-                        \"audio_url\": \"\"
-                      }
-                    ],
-                    \"exercises\": [\"Exercice\"],
-                    \"quiz\": [
-                      {
-                        \"question\": \"Question sur ce module ?\",
-                        \"options\": [\"Choix A\", \"Choix B\", \"Choix C\", \"Choix D\"],
-                        \"answer\": \"Choix A\",
-                        \"explanation\": \"Explication pédagogique complète.\"
-                      }
-                    ]
-                  }
-                ]
-              }`;
+              Sujet: \" {{ course.title }}\". Génère un cours COMPLET et structuré (JSON). Objectif: De débutant à
+    expert. Structure: - 3 à 4 Modules maximum. - 2 à 3 leçons par module. - Un Quiz de validation (3 questions) à la
+    fin de chaque module. Contenu: - Leçons détaillées (environ 300 mots/leçon). - Exemples de code, cas pratiques,
+    explications claires. Format JSON STRICT (Attention: tout guillemet double à l'intérieur d'une chaîne doit être
+    échappé \\\", ou utilise des guillemets simples '' pour le code) : { \"description\": \"Description captivante (min
+    100 mots)\", \"level\": \"Expert\", \"image\": \"Mots-clés pour l'image d'illustration\", \"sources\": [\"Source
+    fiable\"], \"modules\": [ { \"title\": \"Titre Module\", \"lessons\": [ { \"title\": \"Titre Leçon\", \"content\":
+    \"Contenu riche en Markdown...\", \"video_url\": \"\", \"audio_url\": \"\" } ], \"exercises\": [\"Exercice\"],
+    \"quiz\": [ { \"question\": \"Question sur ce module ?\", \"options\": [\"Choix A\", \"Choix B\", \"Choix C\",
+    \"Choix D\"], \"answer\": \"Choix A\", \"explanation\": \"Explication pédagogique complète.\" } ] } ] }`; const
+    response=await fetch('http://localhost:11434/api/generate', { method: 'POST' , headers: { 'Content-Type'
+    : 'application/json' }, body: JSON.stringify({ model: '{{ auth.user.aiModel || "llama3" }}' , prompt: prompt
+    + '\n\nRespond ONLY with valid JSON.' , format: 'json' , stream: false, options: { temperature: 0.7, num_ctx: 4096 }
+    }) }); if (!response.ok) throw new Error('La génération locale (Ollama) a échoué. Vérifiez que l\'application est
+    lancée.'); this.progress=80; this.statusMessage='Finalisation et sauvegarde...' ; const data=await response.json();
+    let courseContent; try { courseContent=typeof data.response==='string' ? JSON.parse(data.response) : data.response;
+    } catch (e) { const match=data.response.match(/\{[\s\S]*\}/); if (match) { try { courseContent=JSON.parse(match[0]);
+    } catch (e2) { throw new Error('Le format JSON généré est corrompu. Réessayez.'); } } else { throw new
+    Error('Impossible de lire le JSON généré par Ollama.'); } } const syncRes=await fetch('{{ route('courses.sync', [course.id]) }}', { method: 'POST' , headers: { 'Content-Type' : 'application/json' , 'X-CSRF-TOKEN'
+    : '{{ csrfToken }}' , 'Accept' : 'application/json' }, body: JSON.stringify({ content: courseContent }) }); if
+    (!syncRes.ok) { const errorData=await syncRes.json(); throw new Error(errorData.message
+    || 'Erreur de synchronisation avec le serveur.' ); } this.progress=100; this.statusMessage='C\' est prêt !
+    Redirection...'; setTimeout(()=> window.location.reload(), 500);
 
-              const response = await fetch('http://localhost:11434/api/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  model: '{{ auth.user.aiModel || "llama3" }}',
-                  prompt: prompt + '\n\nRespond ONLY with valid JSON.',
-                  format: 'json',
-                  stream: false,
-                  options: { temperature: 0.7, num_ctx: 4096 }
-                })
-              });
+    } catch (e) {
+    console.error(e);
+    this.loading = false;
+    this.error = e.message || 'Erreur inconnue lors de la génération.';
+    }
+    }
+    }" class="text-center py-20 bg-white rounded-[3rem] shadow-xl border border-slate-100 max-w-2xl mx-auto px-8">
 
-              if (!response.ok) throw new Error('La génération locale (Ollama) a échoué. Vérifiez que l\'application est lancée.');
-              
-              this.progress = 80;
-              this.statusMessage = 'Finalisation et sauvegarde...';
-              
-              const data = await response.json();
-              let courseContent;
-              
-              try {
-                courseContent = typeof data.response === 'string' ? JSON.parse(data.response) : data.response;
-              } catch (e) {
-                const match = data.response.match(/\{[\s\S]*\}/);
-                if (match) {
-                    try {
-                        courseContent = JSON.parse(match[0]);
-                    } catch (e2) {
-                        throw new Error('Le format JSON généré est corrompu. Réessayez.');
-                    }
-                } else {
-                    throw new Error('Impossible de lire le JSON généré par Ollama.');
-                }
-              }
+    <template x-if="loading">
+      <div>
+        <div class="w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-8 relative">
+          <span class="text-4xl animate-bounce">🦙</span>
+          <div class="absolute inset-0 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+        <h1 class="text-3xl font-black text-slate-800 mb-4" x-text="statusMessage"></h1>
+        <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden mb-6">
+          <div class="bg-orange-500 h-full transition-all duration-500" :style="'width: ' + progress + '%'"></div>
+        </div>
+        <p class="text-slate-500 text-sm">
+          L'IA tourne actuellement sur <strong>votre ordinateur</strong>.<br>
+          Ne fermez pas cette page.
+        </p>
+      </div>
+    </template>
 
-              const syncRes = await fetch('{{ route('courses.sync', [course.id]) }}', {
-                method: 'POST',
-                headers: { 
-                  'Content-Type': 'application/json',
-                  'X-CSRF-TOKEN': '{{ csrfToken }}',
-                  'Accept': 'application/json'
-                },
-                body: JSON.stringify({ content: courseContent })
-              });
+    <template x-if="error">
+      <div class="animate-in fade-in slide-in-from-bottom-4">
+        <div
+          class="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">
+          ⚠️</div>
+        <h2 class="text-2xl font-bold text-slate-800 mb-4">Ollama non détecté</h2>
+        <p class="text-slate-500 mb-8" x-text="error"></p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="/settings"
+            class="px-6 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all shadow-lg">
+            Vérifier mes paramètres
+          </a>
+          <button @click="generateLocally(); loading = true; error = null"
+            class="px-6 py-3 bg-white text-slate-700 border border-slate-200 rounded-xl font-bold hover:bg-slate-50 transition-all">
+            Réessayer
+          </button>
+        </div>
+      </div>
+    </template>
+  </div>
+  @elseif(course.status === 'generating')
+  <div class="text-center py-20 bg-white rounded-[3rem] shadow-xl border border-slate-100">
+    <div class="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-8 animate-spin">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-primary-600" fill="none" viewBox="0 0 24 24"
+        stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+    </div>
+    <h1 class="text-3xl font-extrabold mb-4">L'IA prépare votre cours...</h1>
+    <p class="text-slate-500 max-w-md mx-auto">Nous recherchons les meilleures informations et structurons votre
+      apprentissage. Cette page s'actualisera automatiquement dès que le cours sera prêt.</p>
+    <script>
+      setTimeout(() => window.location.reload(), 5000);
+    </script>
+  </div>
+  @elseif(course.status === 'ready')
+  <article class="bg-white rounded-[2rem] md:rounded-[3rem] shadow-xl border border-slate-100 overflow-hidden">
+    {{-- Podcast Section --}}
+    @if(course.podcastUrl)
+    <div
+      class="bg-gradient-to-r from-primary-600 to-indigo-700 p-6 md:p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 border-b border-white/10">
+      <div class="flex items-center gap-5">
+        <div
+          class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-3xl shadow-inner animate-pulse">
+          🎙️</div>
+        <div>
+          <h2 class="text-xl font-black uppercase tracking-tight">Audio Course Preview</h2>
+          <p class="text-xs text-primary-100 font-medium">Résumé complet généré par My Professor Premium</p>
+        </div>
+      </div>
+      <div class="w-full md:w-auto bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
+        <audio src="{{ course.podcastUrl }}" controls class="course-podcast-player custom-audio"></audio>
+      </div>
+    </div>
+    @else
+    <div class="bg-slate-50 p-4 border-b border-slate-100 flex items-center justify-center gap-3">
+      <span class="animate-spin text-primary-500">⏳</span>
+      <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Le podcast premium est en cours de
+        génération dans nos studios...</p>
+    </div>
+    @end
 
-              if (!syncRes.ok) {
-                const errorData = await syncRes.json();
-                throw new Error(errorData.message || 'Erreur de synchronisation avec le serveur.');
-              }
+    {{-- Hero header --}}
+    <div class="h-48 md:h-64 bg-slate-900 relative">
+      <img src="{{ course.content?.image || 'https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=1200' }}"
+        class="w-full h-full object-cover opacity-40" />
+      <div class="absolute inset-0 flex items-center justify-center p-6 md:p-12 text-center">
+        <h1 class="text-white text-2xl md:text-5xl font-extrabold uppercase tracking-tighter">{{ course.title }}</h1>
+      </div>
+    </div>
 
-              this.progress = 100;
-              this.statusMessage = 'C\'est prêt ! Redirection...';
-              setTimeout(() => window.location.reload(), 500);
-
-            } catch (e) {
-              console.error(e);
-              this.loading = false;
-              this.error = e.message || 'Erreur inconnue lors de la génération.';
-            }
-          }
-        }" class="text-center py-20 bg-white rounded-[3rem] shadow-xl border border-slate-100 max-w-2xl mx-auto px-8">
-          
-          <template x-if="loading">
+    <div class="p-6 md:p-16">
+      <div class="flex flex-col xl:flex-row gap-6 mb-12 border-b border-slate-100 pb-8 justify-between">
+        <div class="flex flex-wrap gap-4">
+          @if(course.category)
+          <div class="px-4 py-2 rounded-2xl flex items-center gap-2"
+            style="background-color: {{ course.category.color }}20; border: 1px solid {{ course.category.color }}40;">
+            <span class="text-lg">{{ course.category.icon }}</span>
             <div>
-              <div class="w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-8 relative">
-                 <span class="text-4xl animate-bounce">🦙</span>
-                 <div class="absolute inset-0 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-              </div>
-              <h1 class="text-3xl font-black text-slate-800 mb-4" x-text="statusMessage"></h1>
-              <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden mb-6">
-                 <div class="bg-orange-500 h-full transition-all duration-500" :style="'width: ' + progress + '%'"></div>
-              </div>
-              <p class="text-slate-500 text-sm">
-                L'IA tourne actuellement sur <strong>votre ordinateur</strong>.<br>
-                Ne fermez pas cette page.
-              </p>
+              <span class="text-xs text-slate-400 block uppercase font-bold tracking-widest">Catégorie</span>
+              <span class="font-bold" style="color: {{ course.category.color }};">{{ course.category.name }}</span>
             </div>
-          </template>
-
-          <template x-if="error">
-            <div class="animate-in fade-in slide-in-from-bottom-4">
-              <div class="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">⚠️</div>
-              <h2 class="text-2xl font-bold text-slate-800 mb-4">Ollama non détecté</h2>
-              <p class="text-slate-500 mb-8" x-text="error"></p>
-              <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="{{ route('settings') }}" class="px-6 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all shadow-lg">
-                  Vérifier mes paramètres
-                </a>
-                <button @click="generateLocally(); loading = true; error = null" class="px-6 py-3 bg-white text-slate-700 border border-slate-200 rounded-xl font-bold hover:bg-slate-50 transition-all">
-                  Réessayer
-                </button>
-              </div>
-            </div>
-          </template>
-        </div>
-      @elseif(course.status === 'generating')
-        <div class="text-center py-20 bg-white rounded-[3rem] shadow-xl border border-slate-100">
-          <div class="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-8 animate-spin">
-             <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-             </svg>
           </div>
-          <h1 class="text-3xl font-extrabold mb-4">L'IA prépare votre cours...</h1>
-          <p class="text-slate-500 max-w-md mx-auto">Nous recherchons les meilleures informations et structurons votre apprentissage. Cette page s'actualisera automatiquement dès que le cours sera prêt.</p>
-          <script>
-            setTimeout(() => window.location.reload(), 5000);
-          </script>
+          @end
+          <div class="px-4 py-2 bg-slate-50 rounded-2xl">
+            <span class="text-xs text-slate-400 block uppercase font-bold tracking-widest">Niveau</span>
+            <span class="font-bold text-slate-700">{{ course.content?.level || 'Tous niveaux' }}</span>
+          </div>
+          <div class="px-4 py-2 bg-slate-50 rounded-2xl">
+            <span class="text-xs text-slate-400 block uppercase font-bold tracking-widest">Progression</span>
+            <span class="font-bold text-primary-600" id="global-progress">0%</span>
+          </div>
+          {{-- <div class="px-4 py-2 bg-slate-50 rounded-2xl">
+            <span class="text-xs text-slate-400 block uppercase font-bold tracking-widest">Certifié par</span>
+            <span class="font-bold text-primary-600">My Professor IA</span>
+          </div> --}}
         </div>
-      @elseif(course.status === 'ready')
-        <article class="bg-white rounded-[2rem] md:rounded-[3rem] shadow-xl border border-slate-100 overflow-hidden">
-          {{-- Podcast Section --}}
-          @if(course.podcastUrl)
-            <div class="bg-gradient-to-r from-primary-600 to-indigo-700 p-6 md:p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 border-b border-white/10">
-              <div class="flex items-center gap-5">
-                <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-3xl shadow-inner animate-pulse">🎙️</div>
-                <div>
-                   <h2 class="text-xl font-black uppercase tracking-tight">Audio Course Preview</h2>
-                   <p class="text-xs text-primary-100 font-medium">Résumé complet généré par My Professor Premium</p>
-                </div>
-              </div>
-              <div class="w-full md:w-auto bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
-                <audio src="{{ course.podcastUrl }}" controls class="course-podcast-player custom-audio"></audio>
-              </div>
-            </div>
-          @else
-            <div class="bg-slate-50 p-4 border-b border-slate-100 flex items-center justify-center gap-3">
-               <span class="animate-spin text-primary-500">⏳</span>
-               <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Le podcast premium est en cours de génération dans nos studios...</p>
-            </div>
+
+        <div class="flex flex-wrap md:flex-nowrap gap-2 md:gap-3">
+          @if(auth.user)
+          <a href="{{ route('courses.flashcards', [course.slug]) }}"
+            class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-violet-100 text-violet-700 font-bold hover:bg-violet-200 transition-all whitespace-nowrap text-xs md:text-sm h-fit shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+            </svg>
+            <span class="hidden sm:inline">Mode Révision</span>
+            <span class="sm:hidden">Réviser</span>
+          </a>
+          <button onclick="toggleBookmark(this)" data-course-id="{{ course.id }}"
+            class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-bold transition-all whitespace-nowrap text-xs md:text-sm h-fit {{ isBookmarked ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}"
+            id="bookmark-btn">
+            <svg xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4 md:h-5 md:w-5 {{ isBookmarked ? 'fill-current' : 'fill-none' }}" viewBox="0 0 24 24"
+              stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+            </svg>
+            <span class="hidden sm:inline">{{ isBookmarked ? 'Sauvegardé' : 'Sauvegarder' }}</span>
+            <span class="sm:hidden">Favori</span>
+          </button>
           @end
 
-          {{-- Hero header --}}
-          <div class="h-48 md:h-64 bg-slate-900 relative">
-             <img src="{{ course.content?.image || 'https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=1200' }}" class="w-full h-full object-cover opacity-40" />
-             <div class="absolute inset-0 flex items-center justify-center p-6 md:p-12 text-center">
-               <h1 class="text-white text-2xl md:text-5xl font-extrabold uppercase tracking-tighter">{{ course.title }}</h1>
-             </div>
-          </div>
+          <div x-data="{ open: false }" class="relative flex-1 md:flex-none">
+            @if(auth.user && auth.user.id === course.userId)
+            <button @click="open = !open" @click.outside="open = false"
+              class="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-indigo-50 text-indigo-700 font-bold hover:bg-indigo-100 transition-all whitespace-nowrap text-xs md:text-sm h-fit">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+              </svg>
+              Gérer
+            </button>
+            @else
+            <button @click="open = !open" @click.outside="open = false"
+              class="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-indigo-50 text-indigo-700 font-bold hover:bg-indigo-100 transition-all whitespace-nowrap text-xs md:text-sm h-fit">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+              </svg>
+              Partager
+            </button>
+            @end
 
-          <div class="p-6 md:p-16">
-            <div class="flex flex-col xl:flex-row gap-6 mb-12 border-b border-slate-100 pb-8 justify-between">
-              <div class="flex flex-wrap gap-4">
-                 @if(course.category)
-                   <div class="px-4 py-2 rounded-2xl flex items-center gap-2" style="background-color: {{ course.category.color }}20; border: 1px solid {{ course.category.color }}40;">
-                     <span class="text-lg">{{ course.category.icon }}</span>
-                     <div>
-                       <span class="text-xs text-slate-400 block uppercase font-bold tracking-widest">Catégorie</span>
-                       <span class="font-bold" style="color: {{ course.category.color }};">{{ course.category.name }}</span>
-                     </div>
-                   </div>
-                 @end
-                 <div class="px-4 py-2 bg-slate-50 rounded-2xl">
-                   <span class="text-xs text-slate-400 block uppercase font-bold tracking-widest">Niveau</span>
-                   <span class="font-bold text-slate-700">{{ course.content?.level || 'Tous niveaux' }}</span>
-                 </div>
-                 <div class="px-4 py-2 bg-slate-50 rounded-2xl">
-                   <span class="text-xs text-slate-400 block uppercase font-bold tracking-widest">Progression</span>
-                   <span class="font-bold text-primary-600" id="global-progress">0%</span>
-                 </div>
-                 {{--  <div class="px-4 py-2 bg-slate-50 rounded-2xl">
-                   <span class="text-xs text-slate-400 block uppercase font-bold tracking-widest">Certifié par</span>
-                   <span class="font-bold text-primary-600">My Professor IA</span>
-                 </div>  --}}
+            <div x-show="open" x-transition:enter="transition ease-out duration-200"
+              x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+              x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+              x-transition:leave="transition ease-in duration-150"
+              x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+              x-transition:leave-end="opacity-0 scale-95 translate-y-2" x-cloak
+              class="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-indigo-50 p-2 z-20 divide-y divide-slate-100">
+
+              <div class="pb-2">
+                <button
+                  @click="navigator.clipboard.writeText(window.location.href); open = false; alert('Lien copié !')"
+                  class="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-50 flex items-center gap-3 transition-colors text-slate-600 font-medium">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                  </svg>
+                  Copier le lien
+                </button>
+
+                <a href="https://twitter.com/intent/tweet?text=Je%20viens%20de%20d%C3%A9couvrir%20ce%20cours%20incroyable%20sur%20{{ course.title }}%20!%20%F0%9F%9A%80&url={{ request.url() }}"
+                  target="_blank"
+                  class="w-full text-left px-4 py-3 rounded-xl hover:bg-sky-50 flex items-center gap-3 transition-colors text-slate-600 font-medium hover:text-sky-600">
+                  <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path
+                      d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
+                  </svg>
+                  Twitter
+                </a>
+
+                <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.url() }}" target="_blank"
+                  class="w-full text-left px-4 py-3 rounded-xl hover:bg-blue-50 flex items-center gap-3 transition-colors text-slate-600 font-medium hover:text-blue-700">
+                  <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path
+                      d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+                  </svg>
+                  LinkedIn
+                </a>
               </div>
 
-              <div class="flex flex-wrap md:flex-nowrap gap-2 md:gap-3">
-                @if(auth.user)
-                  <a href="{{ route('courses.flashcards', [course.slug]) }}" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-violet-100 text-violet-700 font-bold hover:bg-violet-200 transition-all whitespace-nowrap text-xs md:text-sm h-fit shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-                    <span class="hidden sm:inline">Mode Révision</span>
-                    <span class="sm:hidden">Réviser</span>
-                  </a>
-                  <button 
-                    onclick="toggleBookmark(this)"
-                    data-course-id="{{ course.id }}"
-                    class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-bold transition-all whitespace-nowrap text-xs md:text-sm h-fit {{ isBookmarked ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}"
-                    id="bookmark-btn"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5 {{ isBookmarked ? 'fill-current' : 'fill-none' }}" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              @if(auth.user && auth.user.id === course.userId)
+              <div class="pt-2 border-t border-slate-100">
+                <form method="POST" action="{{ route('courses.requestDeletion', [course.id]) }}"
+                  onsubmit="return confirmDeletion('{{ course.title }}')">
+                  {{ csrfField() }}
+                  <button type="submit"
+                    class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 flex items-center gap-3 transition-colors text-red-600 font-medium hover:text-red-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
-                    <span class="hidden sm:inline">{{ isBookmarked ? 'Sauvegardé' : 'Sauvegarder' }}</span>
-                    <span class="sm:hidden">Favori</span>
+                    Demander la suppression
                   </button>
-                @end
+                </form>
+              </div>
+              @end
+              <button onclick="downloadCourse('txt')"
+                class="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-50 flex items-center gap-3 transition-colors text-slate-600 font-bold hover:text-slate-800">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Format Texte
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
 
-                <div x-data="{ open: false }" class="relative flex-1 md:flex-none">
-                  @if(auth.user && auth.user.id === course.userId)
-                    <button @click="open = !open" @click.outside="open = false" class="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-indigo-50 text-indigo-700 font-bold hover:bg-indigo-100 transition-all whitespace-nowrap text-xs md:text-sm h-fit">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
-                      </svg>
-                      Gérer
-                    </button>
-                  @else
-                    <button @click="open = !open" @click.outside="open = false" class="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-indigo-50 text-indigo-700 font-bold hover:bg-indigo-100 transition-all whitespace-nowrap text-xs md:text-sm h-fit">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                      </svg>
-                      Partager
-                    </button>
-                  @end
+      <div class="course-content prose max-w-none">
+        <p class="text-xl font-medium text-slate-700 mb-12">{{ course.description }}</p>
 
-                  <div x-show="open" 
-                        x-transition:enter="transition ease-out duration-200"
-                        x-transition:enter-start="opacity-0 scale-95 translate-y-2"
-                        x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                        x-transition:leave="transition ease-in duration-150"
-                        x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-                        x-transition:leave-end="opacity-0 scale-95 translate-y-2"
-                        x-cloak
-                        class="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-indigo-50 p-2 z-20 divide-y divide-slate-100">
-                  
-                  <div class="pb-2">
-                    <button @click="navigator.clipboard.writeText(window.location.href); open = false; alert('Lien copié !')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-50 flex items-center gap-3 transition-colors text-slate-600 font-medium">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
-                      Copier le lien
-                    </button>
-                    
-                    <a href="https://twitter.com/intent/tweet?text=Je%20viens%20de%20d%C3%A9couvrir%20ce%20cours%20incroyable%20sur%20{{ course.title }}%20!%20%F0%9F%9A%80&url={{ request.url() }}" target="_blank" class="w-full text-left px-4 py-3 rounded-xl hover:bg-sky-50 flex items-center gap-3 transition-colors text-slate-600 font-medium hover:text-sky-600">
-                      <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
-                      Twitter
-                    </a>
-                    
-                    <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.url() }}" target="_blank" class="w-full text-left px-4 py-3 rounded-xl hover:bg-blue-50 flex items-center gap-3 transition-colors text-slate-600 font-medium hover:text-blue-700">
-                      <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
-                      LinkedIn
-                    </a>
+        @each((module, index) in course.content.modules)
+        <div class="mb-16">
+          <h2 class="text-3xl">{{ module.title }}</h2>
+
+          @each((lesson, lessonIndex) in module.lessons)
+          <div class="bg-slate-50 p-8 rounded-3xl mb-6 shadow-sm border border-slate-200/50 relative group">
+            <div class="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
+              <h3 class="text-primary-700 !mt-0 !mb-0 text-xl md:text-2xl">{{ lesson.title }}</h3>
+
+              @let(lessonId = module.title + '|' + lesson.title)
+              @if(auth.user)
+              <button data-course-id="{{ course.id }}" data-module-title="{{ module.title }}"
+                data-lesson-title="{{ lesson.title }}" onclick="toggleLesson(this)"
+                class="btn-complete flex items-center gap-2 px-5 py-2.5 rounded-full border-2 border-slate-200 text-sm font-bold transition-all hover:border-emerald-500 hover:text-emerald-500 {{ completedLessons.includes(lessonId) ? 'active' : 'text-slate-400' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 check-icon" viewBox="0 0 20 20"
+                  fill="currentColor">
+                  <path fill-rule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clip-rule="evenodd" />
+                </svg>
+                <span>{{ completedLessons.includes(lessonId) ? 'Terminé' : 'Marquer comme fini' }}</span>
+              </button>
+              @else
+              <a href="/register"
+                class="flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-100 text-slate-400 text-sm font-bold opacity-60 hover:opacity-100 transition-all border border-transparent hover:border-primary-300 hover:text-primary-600 shadow-sm"
+                title="Créez un compte pour suivre votre progression">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <span>S'inscrire pour valider</span>
+              </a>
+              @end
+            </div>
+
+            @if(lesson.video_url)
+            <div class="mb-6 rounded-2xl overflow-hidden shadow-lg aspect-video bg-black">
+              <video controls class="w-full h-full">
+                <source src="{{ lesson.video_url }}" type="video/mp4">
+              </video>
+            </div>
+            @end
+
+            <div class="markdown-body text-slate-600 mb-8" data-content="{{ lesson.content }}"
+              id="lesson-{{ index }}-{{ lessonIndex }}">
+              {{-- Content will be rendered by JS --}}
+              <div class="whitespace-pre-wrap">{{ lesson.content }}</div>
+            </div>
+
+            {{-- Browser TTS Player --}}
+            <div
+              class="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100/50 flex flex-wrap items-center gap-4 mt-6">
+              <div x-data="{ playing: false, rate: 1, lessonId: 'lesson-{{ index }}-{{ lessonIndex }}' }"
+                x-init="window.addEventListener('audio-status-' + lessonId, (e) => { playing = e.detail.playing })"
+                class="flex items-center flex-wrap gap-4 w-full sm:w-auto">
+                <button @click="toggleAudio(lessonId, $refs.vSel.value)"
+                  class="w-10 h-10 bg-white rounded-full shadow-sm flex items-center justify-center text-primary-600 hover:scale-110 transition-all border border-indigo-100"
+                  :class="playing ? 'bg-indigo-600 !text-white' : ''">
+                  <template x-if="!playing">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+                      viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </template>
+                  <template x-if="playing">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+                      viewBox="0 0 24 24">
+                      <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                    </svg>
+                  </template>
+                </button>
+
+                <div class="flex flex-col gap-2">
+                  <div class="flex items-center gap-3">
+                    <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Voix de
+                      l'enseignant</span>
+                    <select x-ref="vSel" @change="if(playing) { toggleAudio(lessonId, $el.value); }"
+                      class="voice-selector text-[9px] font-bold bg-white border border-indigo-100 rounded px-2 py-0.5 outline-none focus:ring-1 focus:ring-indigo-300"></select>
                   </div>
-                  
-                  @if(auth.user && auth.user.id === course.userId)
-                    <div class="pt-2 border-t border-slate-100">
-                      <form method="POST" action="{{ route('courses.requestDeletion', [course.id]) }}" 
-                            onsubmit="return confirmDeletion('{{ course.title }}')">
-                        {{ csrfField() }}
-                        <button type="submit" class="w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 flex items-center gap-3 transition-colors text-red-600 font-medium hover:text-red-700">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                          Demander la suppression
-                        </button>
-                      </form>
-                    </div>
-                  @end
-                      <button onclick="downloadCourse('txt')" class="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-50 flex items-center gap-3 transition-colors text-slate-600 font-bold hover:text-slate-800">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                        Format Texte
-                      </button>
+
+                  <div class="flex items-center gap-2">
+                    <template x-for="r in [1, 1.25, 1.5]">
+                      <button @click="setAudioRate(r); rate = r"
+                        class="text-[9px] font-bold px-2 py-0.5 rounded transition-colors"
+                        :class="rate === r ? 'bg-indigo-600 text-white' : 'text-indigo-400 bg-white border border-indigo-100'"
+                        x-text="'x' + r"></button>
+                    </template>
+                    <button @click="stopAudio(); playing = false"
+                      class="text-[9px] font-bold text-slate-400 hover:text-red-500 ml-2">Arrêter</button>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div class="course-content prose max-w-none">
-              <p class="text-xl font-medium text-slate-700 mb-12">{{ course.description }}</p>
+            @if(lesson.audio_url)
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-4">
+              <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-primary-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                </svg>
+              </div>
+              <div class="flex-1">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-1">Audio
+                  Transcript</span>
+                <audio controls class="w-full h-8">
+                  <source src="{{ lesson.audio_url }}" type="audio/mpeg">
+                </audio>
+              </div>
+            </div>
+            @end
+          </div>
+          @end
 
-              @each((module, index) in course.content.modules)
-                <div class="mb-16">
-                   <h2 class="text-3xl">{{ module.title }}</h2>
-                   
-                   @each((lesson, lessonIndex) in module.lessons)
-                    <div class="bg-slate-50 p-8 rounded-3xl mb-6 shadow-sm border border-slate-200/50 relative group">
-                      <div class="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
-                        <h3 class="text-primary-700 !mt-0 !mb-0 text-xl md:text-2xl">{{ lesson.title }}</h3>
-                        
-                        @let(lessonId = module.title + '|' + lesson.title)
-                        @if(auth.user)
-                          <button 
-                            data-course-id="{{ course.id }}"
-                            data-module-title="{{ module.title }}"
-                            data-lesson-title="{{ lesson.title }}"
-                            onclick="toggleLesson(this)"
-                            class="btn-complete flex items-center gap-2 px-5 py-2.5 rounded-full border-2 border-slate-200 text-sm font-bold transition-all hover:border-emerald-500 hover:text-emerald-500 {{ completedLessons.includes(lessonId) ? 'active' : 'text-slate-400' }}"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 check-icon" viewBox="0 0 20 20" fill="currentColor">
-                              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                            </svg>
-                            <span>{{ completedLessons.includes(lessonId) ? 'Terminé' : 'Marquer comme fini' }}</span>
-                          </button>
-                        @else
-                          <a href="/register" class="flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-100 text-slate-400 text-sm font-bold opacity-60 hover:opacity-100 transition-all border border-transparent hover:border-primary-300 hover:text-primary-600 shadow-sm" title="Créez un compte pour suivre votre progression">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                            </svg>
-                            <span>S'inscrire pour valider</span>
-                          </a>
-                        @end
-                      </div>
-                      
-                      @if(lesson.video_url)
-                        <div class="mb-6 rounded-2xl overflow-hidden shadow-lg aspect-video bg-black">
-                           <video controls class="w-full h-full">
-                             <source src="{{ lesson.video_url }}" type="video/mp4">
-                           </video>
-                        </div>
-                      @end
+          @if(module.exercises && module.exercises.length > 0)
+          <div class="mt-8 bg-purple-50 p-8 rounded-3xl border border-purple-100">
+            <h4 class="font-bold text-purple-800 flex items-center gap-2 mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
+                <path fill-rule="evenodd"
+                  d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"
+                  clip-rule="evenodd" />
+              </svg>
+              Exercices & Travaux Pratiques
+            </h4>
+            <ul class="space-y-2 text-purple-900">
+              @each(exo in module.exercises)
+              <li class="flex items-start gap-2">
+                <span class="text-purple-400">•</span>
+                <span>{{ exo }}</span>
+              </li>
+              @end
+            </ul>
+          </div>
+          @end
 
-                      <div class="markdown-body text-slate-600 mb-8" data-content="{{ lesson.content }}" id="lesson-{{ index }}-{{ lessonIndex }}">
-                        {{-- Content will be rendered by JS --}}
-                        <div class="whitespace-pre-wrap">{{ lesson.content }}</div>
-                      </div>
+          {{-- QUIZ SECTION --}}
+          @if(module.quiz && module.quiz.length > 0)
+          <script>
+            window.quizData_{{ index }} = {{{ JSON.stringify(module.quiz).replace(/<\/script>/g, '<\\/script>') }}};
+          </script>
+          <div x-data="initQuiz(window.quizData_{{ index }})"
+            class="mt-12 bg-indigo-50 rounded-[2.5rem] p-8 md:p-12 border border-indigo-100 shadow-inner">
 
-                      {{-- Browser TTS Player --}}
-                      <div class="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100/50 flex flex-wrap items-center gap-4 mt-6">
-                        <div x-data="{ playing: false, rate: 1, lessonId: 'lesson-{{ index }}-{{ lessonIndex }}' }" 
-                             x-init="window.addEventListener('audio-status-' + lessonId, (e) => { playing = e.detail.playing })"
-                             class="flex items-center flex-wrap gap-4 w-full sm:w-auto">
-                          <button 
-                            @click="toggleAudio(lessonId, $refs.vSel.value)" 
-                            class="w-10 h-10 bg-white rounded-full shadow-sm flex items-center justify-center text-primary-600 hover:scale-110 transition-all border border-indigo-100"
-                            :class="playing ? 'bg-indigo-600 !text-white' : ''"
-                          >
-                            <template x-if="!playing">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                            </template>
-                            <template x-if="playing">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                            </template>
-                          </button>
-                          
-                          <div class="flex flex-col gap-2">
-                             <div class="flex items-center gap-3">
-                                <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Voix de l'enseignant</span>
-                                <select 
-                                   x-ref="vSel"
-                                   @change="if(playing) { toggleAudio(lessonId, $el.value); }"
-                                   class="voice-selector text-[9px] font-bold bg-white border border-indigo-100 rounded px-2 py-0.5 outline-none focus:ring-1 focus:ring-indigo-300"
-                                ></select>
-                             </div>
-                             
-                             <div class="flex items-center gap-2">
-                                <template x-for="r in [1, 1.25, 1.5]">
-                                   <button 
-                                      @click="setAudioRate(r); rate = r" 
-                                      class="text-[9px] font-bold px-2 py-0.5 rounded transition-colors"
-                                      :class="rate === r ? 'bg-indigo-600 text-white' : 'text-indigo-400 bg-white border border-indigo-100'"
-                                      x-text="'x' + r"
-                                   ></button>
-                                </template>
-                                <button @click="stopAudio(); playing = false" class="text-[9px] font-bold text-slate-400 hover:text-red-500 ml-2">Arrêter</button>
-                             </div>
-                          </div>
-                        </div>
-                      </div>
+            <div class="flex items-center justify-between mb-8">
+              <h4 class="text-2xl font-black text-indigo-900 flex items-center gap-3">
+                <span class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm">🧠</span>
+                Quiz de Validation
+              </h4>
+              <template x-if="finished">
+                <button @click="reset()"
+                  class="text-sm font-bold text-indigo-600 hover:text-indigo-800 bg-white px-4 py-2 rounded-xl shadow-sm transition-all hover:scale-105">
+                  🔄 Recommencer
+                </button>
+              </template>
+            </div>
 
-                      @if(lesson.audio_url)
-                        <div class="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-4">
-                           <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-primary-600">
-                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                             </svg>
-                           </div>
-                           <div class="flex-1">
-                             <span class="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-1">Audio Transcript</span>
-                             <audio controls class="w-full h-8">
-                               <source src="{{ lesson.audio_url }}" type="audio/mpeg">
-                             </audio>
-                           </div>
-                        </div>
-                      @end
-                    </div>
-                   @end
+            <template x-for="(q, qIndex) in questions" :key="qIndex">
+              <div class="mb-6 p-6 md:p-8 bg-white rounded-[2rem] shadow-sm transition-all border border-transparent"
+                :class="{ 'border-emerald-100 bg-emerald-50/30': finished && answers[qIndex] === q.answer, 'border-rose-100 bg-rose-50/30': finished && answers[qIndex] !== q.answer }">
+                <p class="font-bold text-lg mb-6 text-slate-800 flex gap-3">
+                  <span class="text-indigo-300" x-text="(qIndex + 1) + '.'"></span>
+                  <span x-text="q.question"></span>
+                </p>
 
-                   @if(module.exercises && module.exercises.length > 0)
-                    <div class="mt-8 bg-purple-50 p-8 rounded-3xl border border-purple-100">
-                      <h4 class="font-bold text-purple-800 flex items-center gap-2 mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg>
-                        Exercices & Travaux Pratiques
-                      </h4>
-                      <ul class="space-y-2 text-purple-900">
-                        @each(exo in module.exercises)
-                          <li class="flex items-start gap-2">
-                            <span class="text-purple-400">•</span>
-                            <span>{{ exo }}</span>
-                          </li>
-                        @end
-                      </ul>
-                    </div>
-                   @end
-
-            {{-- QUIZ SECTION --}}
-            @if(module.quiz && module.quiz.length > 0)
-              <script>
-                window.quizData_{{ index }} = {{{ JSON.stringify(module.quiz).replace(/<\/script>/g, '<\\/script>') }}};
-              </script>
-              <div x-data="initQuiz(window.quizData_{{ index }})" class="mt-12 bg-indigo-50 rounded-[2.5rem] p-8 md:p-12 border border-indigo-100 shadow-inner">
-                
-                <div class="flex items-center justify-between mb-8">
-                  <h4 class="text-2xl font-black text-indigo-900 flex items-center gap-3">
-                    <span class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm">🧠</span> 
-                    Quiz de Validation
-                  </h4>
-                  <template x-if="finished">
-                    <button @click="reset()" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 bg-white px-4 py-2 rounded-xl shadow-sm transition-all hover:scale-105">
-                      🔄 Recommencer
-                    </button>
-                  </template>
-                </div>
-
-                <template x-for="(q, qIndex) in questions" :key="qIndex">
-                  <div class="mb-6 p-6 md:p-8 bg-white rounded-[2rem] shadow-sm transition-all border border-transparent"
-                       :class="{ 'border-emerald-100 bg-emerald-50/30': finished && answers[qIndex] === q.answer, 'border-rose-100 bg-rose-50/30': finished && answers[qIndex] !== q.answer }">
-                    <p class="font-bold text-lg mb-6 text-slate-800 flex gap-3">
-                      <span class="text-indigo-300" x-text="(qIndex + 1) + '.'"></span>
-                      <span x-text="q.question"></span>
-                    </p>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <template x-for="option in q.options">
-                        <button 
-                          @click="checkAnswer(qIndex, option)"
-                          :class="{
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <template x-for="option in q.options">
+                    <button @click="checkAnswer(qIndex, option)" :class="{
                             'w-full text-left p-4 rounded-2xl border-2 transition-all font-semibold relative overflow-hidden': true,
                             'border-slate-100 bg-slate-50/50 hover:border-indigo-200 hover:bg-white': !answers[qIndex] && !finished,
                             'border-indigo-500 bg-indigo-50 text-indigo-700 shadow-md': answers[qIndex] === option && !finished,
                             'border-emerald-500 bg-emerald-50 text-emerald-700': finished && option === q.answer,
                             'border-rose-500 bg-rose-50 text-rose-700': finished && answers[qIndex] === option && option !== q.answer,
                             'border-slate-100 opacity-40 grayscale': finished && option !== q.answer && answers[qIndex] !== option
-                          }"
-                          :disabled="finished"
-                        >
-                          <div class="flex items-center justify-between">
-                            <span x-text="option"></span>
-                            <template x-if="finished && option === q.answer">
-                              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
-                            </template>
-                          </div>
-                        </button>
-                      </template>
-                    </div>
-
-                    <div x-show="finished" class="mt-6 p-4 bg-slate-50 rounded-2xl text-sm leading-relaxed text-slate-600 border border-slate-100 flex gap-3 animate-in fade-in slide-in-from-top-2">
-                      <span class="text-primary-500 font-bold">💡 Explication :</span>
-                      <span x-text="q.explanation"></span>
-                    </div>
-                  </div>
-                </template>
-
-                <div x-show="!finished" class="mt-10 text-center">
-                  <button 
-                    @click="finish()" 
-                    :disabled="answers.filter(a => a).length < questions.length"
-                    class="bg-indigo-600 text-white font-black py-4 px-12 rounded-2xl shadow-xl shadow-indigo-200 enabled:hover:bg-indigo-700 enabled:hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest text-sm"
-                  >
-                    Vérifier mes réponses
-                  </button>
-                  <p class="mt-4 text-xs font-bold text-indigo-300 uppercase tracking-widest" x-show="answers.filter(a => a).length < questions.length">
-                    Répondez à toutes les questions (<span x-text="answers.filter(a => a).length"></span>/<span x-text="questions.length"></span>)
-                  </p>
+                          }" :disabled="finished">
+                      <div class="flex items-center justify-between">
+                        <span x-text="option"></span>
+                        <template x-if="finished && option === q.answer">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-500" viewBox="0 0 20 20"
+                            fill="currentColor">
+                            <path fill-rule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clip-rule="evenodd" />
+                          </svg>
+                        </template>
+                      </div>
+                    </button>
+                  </template>
                 </div>
 
-                <div x-show="finished" class="text-center bg-white p-10 rounded-[2.5rem] shadow-2xl mt-12 border-4 border-indigo-50 animate-in zoom-in duration-500" id="quiz-results">
-                  <div class="text-6xl mb-6">
-                    <span x-show="score === questions.length">🏆</span>
-                    <span x-show="score < questions.length && score >= (questions.length / 2)">👏</span>
-                    <span x-show="score < (questions.length / 2)">📚</span>
-                  </div>
-                  <h3 class="text-3xl font-black text-slate-900 mb-2">
-                    Votre Score : <span class="text-indigo-600" x-text="score"></span><span class="text-slate-300">/</span><span x-text="questions.length"></span>
-                  </h3>
-                  <div class="w-48 h-2 bg-slate-100 rounded-full mx-auto mb-8 overflow-hidden">
-                    <div class="h-full bg-indigo-600 transition-all duration-1000" :style="'width: ' + (score/questions.length*100) + '%'"></div>
-                  </div>
-                  
-                  <p class="text-slate-500 text-lg mb-8 max-w-md mx-auto">
-                    <span x-show="score === questions.length">Parfait ! Vous avez une maîtrise totale du sujet.</span>
-                    <span x-show="score < questions.length && score >= (questions.length / 2)">C'est très bien ! Vous avez compris l'essentiel.</span>
-                    <span x-show="score < (questions.length / 2)">Prenez le temps de relire le module pour mieux assimiler les concepts.</span>
-                  </p>
-                  
-                  <button @click="reset()" 
-                          class="bg-slate-900 text-white font-bold py-4 px-10 rounded-2xl hover:bg-slate-800 transition-all shadow-lg">
-                    Recommencer le quiz
-                  </button>
-                </div>
-
-              </div>
-            @end
-          @end
-      </div>
-
-       {{-- Sources Section --}}
-      @if(course.content.sources && course.content.sources.length > 0)
-        <div class="mt-16 pt-8 border-t border-slate-200">
-           <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-             <span>📚</span> Sources & Références
-           </h3>
-           <p class="text-sm text-slate-500 mb-4 italic">Ce cours a été généré par une IA en se basant sur les connaissances générales provenant des sources suivantes :</p>
-           <ul class="grid grid-cols-1 md:grid-cols-2 gap-4">
-             @each(source in course.content.sources)
-               <li class="flex items-center gap-3 bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-                 <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 flex-shrink-0">
-                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                 </div>
-                 @if(source.includes('http'))
-                   <a href="{{ source }}" target="_blank" rel="noopener noreferrer" class="font-medium text-primary-600 hover:text-primary-800 hover:underline truncate flex-1" title="{{ source }}">
-                     {{ source.replace(/^https?:\/\//, '').replace(/\/$/, '') }}
-                   </a>
-                 @else
-                   <a href="https://www.google.com/search?q={{ encodeURIComponent(source) }}" target="_blank" rel="noopener noreferrer" class="font-medium text-primary-600 hover:text-primary-800 hover:underline truncate flex-1" title="Rechercher {{ source }} sur Google">
-                     {{ source }}
-                   </a>
-                 @end
-               </li>
-             @end
-           </ul>
-        </div>
-      @end
-    </div>
-  </article>
-      @else
-        <div class="text-center py-20 bg-white rounded-[3rem] shadow-xl border border-slate-100 text-red-600">
-          <h1 class="text-3xl font-extrabold mb-4">Oops! Erreur de génération</h1>
-          <p class="text-slate-500">L'IA n'a pas pu générer ce cours. Veuillez réessayer.</p>
-          <a href="/" class="mt-8 inline-block bg-primary-600 text-white px-8 py-3 rounded-full font-bold">Retour</a>
-        </div>
-      @end
-    </main>
-    
-    {{-- IA Chat Tutor Component --}}
-    @if(auth.user && course.status === 'ready')
-      <div x-data="aiTutor({{ course.id }})" class="fixed bottom-8 right-8 z-[100]">
-        {{-- Chat Bubble Button --}}
-        <button 
-          @click="toggleChat()"
-          class="w-16 h-16 bg-primary-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-primary-700 transition-all hover:scale-110 active:scale-95 group relative"
-        >
-          <div class="absolute -top-1 -right-1 w-5 h-5 bg-emerald-500 border-2 border-white rounded-full animate-pulse"></div>
-          <svg x-show="!isOpen" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="animate-in zoom-in duration-300"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          <svg x-show="isOpen" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="animate-in rotate-180 duration-300"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </button>
-
-        {{-- Chat Window --}}
-        <div 
-          x-show="isOpen"
-          x-transition:enter="transition ease-out duration-300"
-          x-transition:enter-start="opacity-0 scale-90 translate-y-10"
-          x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-          x-transition:leave="transition ease-in duration-200"
-          x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-          x-transition:leave-end="opacity-0 scale-90 translate-y-10"
-          class="absolute bottom-20 right-0 w-[calc(100vw-2rem)] sm:w-[380px] md:w-[450px] h-[70vh] sm:h-[600px] bg-white rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl border border-slate-100 flex flex-col overflow-hidden chat-window-mobile"
-          x-cloak
-        >
-          {{-- Header --}}
-          <div class="p-6 bg-slate-900 text-white flex items-center justify-between">
-            <div class="flex items-center gap-4">
-              <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl">🤖</div>
-              <div>
-                <h3 class="font-bold leading-tight">My Professor AI</h3>
-                <p class="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">En ligne • Tuteur Personnel</p>
-              </div>
-            </div>
-            <button @click="toggleChat()" class="p-2 hover:bg-white/10 rounded-xl transition-colors" title="Fermer le tutorat">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
-          </div>
-
-          {{-- Messages --}}
-          <div class="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50" id="chat-messages" x-ref="messages">
-            <template x-for="msg in messages">
-              <div :class="msg.role === 'user' ? 'flex justify-end' : 'flex justify-start'">
-                <div 
-                  :class="msg.role === 'user' ? 'bg-primary-600 text-white rounded-2xl rounded-tr-none' : 'bg-white text-slate-700 border border-slate-100 shadow-sm rounded-2xl rounded-tl-none'"
-                  class="max-w-[85%] p-4 text-sm font-medium"
-                >
-                  <div class="markdown-message prose-sm" x-html="renderMsg(msg.content)"></div>
-                  <p :class="msg.role === 'user' ? 'text-blue-200' : 'text-slate-400'" class="text-[9px] mt-1 text-right" x-text="formatDate(msg.createdAt)"></p>
+                <div x-show="finished"
+                  class="mt-6 p-4 bg-slate-50 rounded-2xl text-sm leading-relaxed text-slate-600 border border-slate-100 flex gap-3 animate-in fade-in slide-in-from-top-2">
+                  <span class="text-primary-500 font-bold">💡 Explication :</span>
+                  <span x-text="q.explanation"></span>
                 </div>
               </div>
             </template>
-            
-            {{-- Loading State --}}
-            <div x-show="isLoading" class="flex justify-start">
-              <div class="bg-white border border-slate-100 shadow-sm rounded-2xl rounded-tl-none p-4 flex gap-2 items-center">
-                <div class="w-2 h-2 bg-slate-300 rounded-full animate-bounce"></div>
-                <div class="w-2 h-2 bg-slate-300 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                <div class="w-2 h-2 bg-slate-300 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-              </div>
-            </div>
-          </div>
 
-          {{-- Input --}}
-          <div class="p-4 bg-white border-t border-slate-100">
-            <div class="relative flex items-start">
-              <textarea 
-                x-model="userInput" 
-                @keydown.enter.prevent="if(!event.shiftKey) send()"
-                placeholder="Posez une question sur ce cours..."
-                rows="1"
-                class="w-full pl-4 pr-12 py-3 bg-slate-100 rounded-2xl border-none focus:ring-2 focus:ring-primary-500 text-sm font-medium outline-none resize-none overflow-hidden min-h-[48px] max-h-32"
-                x-ref="chatInput"
-                x-init="$watch('userInput', () => { $el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px' })"
-              ></textarea>
-              <button 
-                @click="send()"
-                :disabled="!userInput.trim() || isLoading"
-                class="absolute right-2 top-2 p-2 bg-primary-600 text-white rounded-xl disabled:opacity-50 transition-all hover:bg-primary-700"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            <div x-show="!finished" class="mt-10 text-center">
+              <button @click="finish()" :disabled="answers.filter(a => a).length < questions.length"
+                class="bg-indigo-600 text-white font-black py-4 px-12 rounded-2xl shadow-xl shadow-indigo-200 enabled:hover:bg-indigo-700 enabled:hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest text-sm">
+                Vérifier mes réponses
+              </button>
+              <p class="mt-4 text-xs font-bold text-indigo-300 uppercase tracking-widest"
+                x-show="answers.filter(a => a).length < questions.length">
+                Répondez à toutes les questions (<span x-text="answers.filter(a => a).length"></span>/<span
+                  x-text="questions.length"></span>)
+              </p>
+            </div>
+
+            <div x-show="finished"
+              class="text-center bg-white p-10 rounded-[2.5rem] shadow-2xl mt-12 border-4 border-indigo-50 animate-in zoom-in duration-500"
+              id="quiz-results">
+              <div class="text-6xl mb-6">
+                <span x-show="score === questions.length">🏆</span>
+                <span x-show="score < questions.length && score >= (questions.length / 2)">👏</span>
+                <span x-show="score < (questions.length / 2)">📚</span>
+              </div>
+              <h3 class="text-3xl font-black text-slate-900 mb-2">
+                Votre Score : <span class="text-indigo-600" x-text="score"></span><span
+                  class="text-slate-300">/</span><span x-text="questions.length"></span>
+              </h3>
+              <div class="w-48 h-2 bg-slate-100 rounded-full mx-auto mb-8 overflow-hidden">
+                <div class="h-full bg-indigo-600 transition-all duration-1000"
+                  :style="'width: ' + (score/questions.length*100) + '%'"></div>
+              </div>
+
+              <p class="text-slate-500 text-lg mb-8 max-w-md mx-auto">
+                <span x-show="score === questions.length">Parfait ! Vous avez une maîtrise totale du sujet.</span>
+                <span x-show="score < questions.length && score >= (questions.length / 2)">C'est très bien ! Vous avez
+                  compris l'essentiel.</span>
+                <span x-show="score < (questions.length / 2)">Prenez le temps de relire le module pour mieux assimiler
+                  les concepts.</span>
+              </p>
+
+              <button @click="reset()"
+                class="bg-slate-900 text-white font-bold py-4 px-10 rounded-2xl hover:bg-slate-800 transition-all shadow-lg">
+                Recommencer le quiz
               </button>
             </div>
-            <p class="text-[9px] text-center text-slate-400 mt-2 font-medium">L'IA peut faire des erreurs. Vérifiez les informations.</p>
+
           </div>
+          @end
+          @end
+        </div>
+
+        {{-- Sources Section --}}
+        @if(course.content.sources && course.content.sources.length > 0)
+        <div class="mt-16 pt-8 border-t border-slate-200">
+          <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+            <span>📚</span> Sources & Références
+          </h3>
+          <p class="text-sm text-slate-500 mb-4 italic">Ce cours a été généré par une IA en se basant sur les
+            connaissances générales provenant des sources suivantes :</p>
+          <ul class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            @each(source in course.content.sources)
+            <li
+              class="flex items-center gap-3 bg-white p-4 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+              <div
+                class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                </svg>
+              </div>
+              @if(source.includes('http'))
+              <a href="{{ source }}" target="_blank" rel="noopener noreferrer"
+                class="font-medium text-primary-600 hover:text-primary-800 hover:underline truncate flex-1"
+                title="{{ source }}">
+                {{ source.replace(/^https?:\/\//, '').replace(/\/$/, '') }}
+              </a>
+              @else
+              <a href="https://www.google.com/search?q={{ encodeURIComponent(source) }}" target="_blank"
+                rel="noopener noreferrer"
+                class="font-medium text-primary-600 hover:text-primary-800 hover:underline truncate flex-1"
+                title="Rechercher {{ source }} sur Google">
+                {{ source }}
+              </a>
+              @end
+            </li>
+            @end
+          </ul>
+        </div>
+        @end
+      </div>
+  </article>
+  @else
+  <div class="text-center py-20 bg-white rounded-[3rem] shadow-xl border border-slate-100 max-w-2xl mx-auto px-8">
+    <div class="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">
+      ⚠️</div>
+    <h1 class="text-3xl font-extrabold mb-4 text-slate-800">Oops! Erreur de génération</h1>
+
+    <div class="bg-red-50 border border-red-100 rounded-2xl p-6 mb-8 text-left">
+      <p class="text-red-800 font-bold mb-2">Détails de l'erreur :</p>
+      <p class="text-red-600 text-sm font-medium">
+        {{ course.errorMessage || 'L\'IA n\'a pas pu générer ce cours pour une raison inconnue.' }}
+      </p>
+    </div>
+
+    <div class="space-y-4">
+      <p class="text-slate-500 text-sm">
+        Cela peut arriver à cause d'un problème de quota API, d'un modèle surchargé, ou d'une erreur de formatage.
+        Vous pouvez essayer de changer de modèle dans vos paramètres ou de relancer la génération.
+      </p>
+
+      <div class="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+        <a href="/settings"
+          class="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all shadow-lg">
+          Changer de modèle
+        </a>
+        <form action="/courses/generate" method="POST">
+          {{ csrfField() }}
+          <input type="hidden" name="topic" value="{{ course.topicTag || course.title }}">
+          <input type="hidden" name="force_create" value="true">
+          <button type="submit"
+            class="w-full sm:w-auto px-8 py-3 bg-white text-slate-700 border border-slate-200 rounded-xl font-bold hover:bg-slate-50 transition-all">
+            Réessayer la génération
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <a href="/" class="mt-8 inline-block text-slate-400 hover:text-slate-600 text-sm font-bold">Retour à l'accueil</a>
+  </div>
+  @end
+</main>
+
+{{-- IA Chat Tutor Component --}}
+@if(auth.user && course.status === 'ready')
+<div x-data="aiTutor({{ course.id }})" class="fixed bottom-8 right-8 z-[100]">
+  {{-- Chat Bubble Button --}}
+  <button @click="toggleChat()"
+    class="w-16 h-16 bg-primary-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:bg-primary-700 transition-all hover:scale-110 active:scale-95 group relative">
+    <div class="absolute -top-1 -right-1 w-5 h-5 bg-emerald-500 border-2 border-white rounded-full animate-pulse"></div>
+    <svg x-show="!isOpen" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+      class="animate-in zoom-in duration-300">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    </svg>
+    <svg x-show="isOpen" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+      class="animate-in rotate-180 duration-300">
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+  </button>
+
+  {{-- Chat Window --}}
+  <div x-show="isOpen" x-transition:enter="transition ease-out duration-300"
+    x-transition:enter-start="opacity-0 scale-90 translate-y-10"
+    x-transition:enter-end="opacity-100 scale-100 translate-y-0" x-transition:leave="transition ease-in duration-200"
+    x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+    x-transition:leave-end="opacity-0 scale-90 translate-y-10"
+    class="absolute bottom-20 right-0 w-[calc(100vw-2rem)] sm:w-[380px] md:w-[450px] h-[70vh] sm:h-[600px] bg-white rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl border border-slate-100 flex flex-col overflow-hidden chat-window-mobile"
+    x-cloak>
+    {{-- Header --}}
+    <div class="p-6 bg-slate-900 text-white flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl">🤖</div>
+        <div>
+          <h3 class="font-bold leading-tight">My Professor AI</h3>
+          <p class="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">En ligne • Tuteur Personnel</p>
         </div>
       </div>
+      <button @click="toggleChat()" class="p-2 hover:bg-white/10 rounded-xl transition-colors"
+        title="Fermer le tutorat">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
 
-      <script>
-        function aiTutor(courseId) {
-          return {
-            isOpen: false,
-            isLoading: false,
-            userInput: '',
-            messages: [],
-            
-            async init() {
-              // Load history
-              try {
-                const res = await fetch(`/courses/${courseId}/chat/history`);
-                this.messages = await res.json();
-                if (this.messages.length === 0) {
-                  this.messages.push({
-                    role: 'assistant',
-                    content: 'Bonjour ! Je suis votre tuteur IA pour ce cours. Comment puis-je vous aider aujourd\'hui ?',
-                    createdAt: new Date().toISOString()
-                  });
-                }
-                this.$nextTick(() => this.scrollToBottom());
-              } catch (e) {
-                console.error('Failed to load history');
-              }
-            },
+    {{-- Messages --}}
+    <div class="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50" id="chat-messages" x-ref="messages">
+      <template x-for="msg in messages">
+        <div :class="msg.role === 'user' ? 'flex justify-end' : 'flex justify-start'">
+          <div
+            :class="msg.role === 'user' ? 'bg-primary-600 text-white rounded-2xl rounded-tr-none' : 'bg-white text-slate-700 border border-slate-100 shadow-sm rounded-2xl rounded-tl-none'"
+            class="max-w-[85%] p-4 text-sm font-medium">
+            <div class="markdown-message prose-sm" x-html="renderMsg(msg.content)"></div>
+            <p :class="msg.role === 'user' ? 'text-blue-200' : 'text-slate-400'" class="text-[9px] mt-1 text-right"
+              x-text="formatDate(msg.createdAt)"></p>
+          </div>
+        </div>
+      </template>
 
-            toggleChat() {
-              this.isOpen = !this.isOpen;
-              if (this.isOpen) {
-                this.$nextTick(() => {
-                  this.scrollToBottom();
-                });
-              }
-            },
+      {{-- Loading State --}}
+      <div x-show="isLoading" class="flex justify-start">
+        <div class="bg-white border border-slate-100 shadow-sm rounded-2xl rounded-tl-none p-4 flex gap-2 items-center">
+          <div class="w-2 h-2 bg-slate-300 rounded-full animate-bounce"></div>
+          <div class="w-2 h-2 bg-slate-300 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+          <div class="w-2 h-2 bg-slate-300 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+        </div>
+      </div>
+    </div>
 
-            async send() {
-              if (!this.userInput.trim() || this.isLoading) return;
+    {{-- Input --}}
+    <div class="p-4 bg-white border-t border-slate-100">
+      <div class="relative flex items-start">
+        <textarea x-model="userInput" @keydown.enter.prevent="if(!event.shiftKey) send()"
+          placeholder="Posez une question sur ce cours..." rows="1"
+          class="w-full pl-4 pr-12 py-3 bg-slate-100 rounded-2xl border-none focus:ring-2 focus:ring-primary-500 text-sm font-medium outline-none resize-none overflow-hidden min-h-[48px] max-h-32"
+          x-ref="chatInput"
+          x-init="$watch('userInput', () => { $el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px' })"></textarea>
+        <button @click="send()" :disabled="!userInput.trim() || isLoading"
+          class="absolute right-2 top-2 p-2 bg-primary-600 text-white rounded-xl disabled:opacity-50 transition-all hover:bg-primary-700">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13" />
+            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+          </svg>
+        </button>
+      </div>
+      <p class="text-[9px] text-center text-slate-400 mt-2 font-medium">L'IA peut faire des erreurs. Vérifiez les
+        informations.</p>
+    </div>
+  </div>
+</div>
 
-              const text = this.userInput;
-              this.userInput = '';
-              
-              const userMsg = {
-                role: 'user',
-                content: text,
-                createdAt: new Date().toISOString()
-              };
-              
-              this.messages.push(userMsg);
-              this.isLoading = true;
-              this.$nextTick(() => this.scrollToBottom());
+<script>
+  function aiTutor(courseId) {
+    return {
+      isOpen: false,
+      isLoading: false,
+      userInput: '',
+      messages: [],
 
-              try {
-                const response = await fetch('/courses/chat', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrfToken }}'
-                  },
-                  body: JSON.stringify({ course_id: courseId, message: text })
-                });
-
-                if (!response.ok) throw new Error();
-                const data = await response.json();
-                
-                this.messages.push(data);
-              } catch (e) {
-                this.messages.push({
-                  role: 'assistant',
-                  content: 'Désolé, je rencontre une petite difficulté. Réessayez dans un instant.',
-                  createdAt: new Date().toISOString()
-                });
-              } finally {
-                this.isLoading = false;
-                this.$nextTick(() => this.scrollToBottom());
-              }
-            },
-
-            scrollToBottom() {
-              const el = this.$refs.messages;
-              if (el) el.scrollTop = el.scrollHeight;
-            },
-
-            renderMsg(content) {
-              return marked.parse(content);
-            },
-
-            formatDate(dateStr) {
-              const date = new Date(dateStr);
-              return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            }
-          }
-        }
-      </script>
-    @end
-
-    <script>
-      async function toggleLesson(btn) {
-        const { courseId, moduleTitle, lessonTitle } = btn.dataset;
-        
+      async init() {
+        // Load history
         try {
-          const response = await fetch('/progress/toggle', {
+          const res = await fetch(`/courses/${courseId}/chat/history`);
+          this.messages = await res.json();
+          if (this.messages.length === 0) {
+            this.messages.push({
+              role: 'assistant',
+              content: 'Bonjour ! Je suis votre tuteur IA pour ce cours. Comment puis-je vous aider aujourd\'hui ?',
+              createdAt: new Date().toISOString()
+            });
+          }
+          this.$nextTick(() => this.scrollToBottom());
+        } catch (e) {
+          console.error('Failed to load history');
+        }
+      },
+
+      toggleChat() {
+        this.isOpen = !this.isOpen;
+        if (this.isOpen) {
+          this.$nextTick(() => {
+            this.scrollToBottom();
+          });
+        }
+      },
+
+      async send() {
+        if (!this.userInput.trim() || this.isLoading) return;
+
+        const text = this.userInput;
+        this.userInput = '';
+
+        const userMsg = {
+          role: 'user',
+          content: text,
+          createdAt: new Date().toISOString()
+        };
+
+        this.messages.push(userMsg);
+        this.isLoading = true;
+        this.$nextTick(() => this.scrollToBottom());
+
+        try {
+          const response = await fetch('/courses/chat', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               'X-CSRF-TOKEN': '{{ csrfToken }}'
             },
-            body: JSON.stringify({ courseId, moduleTitle, lessonTitle })
+            body: JSON.stringify({ course_id: courseId, message: text })
           });
-          
-          if (!response.ok) throw new Error('Erreur serveur');
-          
-          const result = await response.json();
-          
-          if (result.status === 'completed') {
-            btn.classList.add('active');
-            btn.classList.remove('text-slate-400');
-            btn.querySelector('span').innerText = 'Terminé';
-          } else {
-            btn.classList.remove('active');
-            btn.classList.add('text-slate-400');
-            btn.querySelector('span').innerText = 'Marquer comme fini';
-          }
-          
-          updateProgressBar();
-        } catch (err) {
-          console.error('Erreur:', err);
-          alert('Impossible de mettre à jour la progression. Vérifiez votre connexion.');
+
+          if (!response.ok) throw new Error();
+          const data = await response.json();
+
+          this.messages.push(data);
+        } catch (e) {
+          this.messages.push({
+            role: 'assistant',
+            content: 'Désolé, je rencontre une petite difficulté. Réessayez dans un instant.',
+            createdAt: new Date().toISOString()
+          });
+        } finally {
+          this.isLoading = false;
+          this.$nextTick(() => this.scrollToBottom());
         }
+      },
+
+      scrollToBottom() {
+        const el = this.$refs.messages;
+        if (el) el.scrollTop = el.scrollHeight;
+      },
+
+      renderMsg(content) {
+        return marked.parse(content);
+      },
+
+      formatDate(dateStr) {
+        const date = new Date(dateStr);
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       }
+    }
+  }
+</script>
+@end
 
-      function updateProgressBar() {
-        const buttons = document.querySelectorAll('.btn-complete');
-        const completed = document.querySelectorAll('.btn-complete.active').length;
-        const total = buttons.length;
-        const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-        
-        const progressEl = document.getElementById('global-progress');
-        if (progressEl) {
-          progressEl.innerText = percentage + '%';
-        }
-      }
+<script>
+  async function toggleLesson(btn) {
+    const { courseId, moduleTitle, lessonTitle } = btn.dataset;
 
-      // --- Smart Audio Logic ---
-      let synth = window.speechSynthesis;
-      let utterance = null;
-      let currentLessonId = null;
-      let audioRate = 1;
-      let voices = [];
-      let selectedVoiceName = null;
-
-      // Initialiser et peupler les listes de voix (Version Robuste)
-      function loadVoices(attempt = 0) {
-         voices = synth.getVoices();
-         
-         // Si la liste est vide (commun sur Vivaldi/Linux au démarrage), on réessaie 5 fois
-         if (voices.length === 0 && attempt < 5) {
-            setTimeout(() => loadVoices(attempt + 1), 1000);
-            return;
-         }
-
-         const frVoices = voices.filter(v => v.lang.startsWith('fr'));
-         document.querySelectorAll('.voice-selector').forEach(select => {
-            const currentVal = select.value;
-            select.innerHTML = '';
-            
-            if (frVoices.length === 0) {
-               const option = document.createElement('option');
-               option.textContent = "Aucune voix FR détectée";
-               select.appendChild(option);
-               return;
-            }
-
-            frVoices.forEach(voice => {
-               const option = document.createElement('option');
-               option.value = voice.name;
-               option.textContent = voice.name + (voice.name.includes('Google') ? ' ✨' : '');
-               select.appendChild(option);
-            });
-
-            if (currentVal) select.value = currentVal;
-            else if (!selectedVoiceName && frVoices.length > 0) {
-               const best = frVoices.find(v => v.name.includes('Google') || v.name.includes('Natural')) || frVoices[0];
-               selectedVoiceName = best.name;
-               select.value = best.name;
-            }
-         });
-      }
-
-      if (speechSynthesis.onvoiceschanged !== undefined) {
-         speechSynthesis.onvoiceschanged = () => loadVoices();
-      }
-      // Premier chargement immédiat + un délai pour les navigateurs lents
-      loadVoices();
-      setTimeout(loadVoices, 100); 
-
-      function toggleAudio(lessonId, voiceNameFromSelect) {
-        if (voiceNameFromSelect) selectedVoiceName = voiceNameFromSelect;
-
-        // Gestion de la PAUSE / REPRISE (Fix spécial Firefox)
-        if (synth.speaking && currentLessonId === lessonId) {
-          if (synth.paused) {
-            synth.resume();
-            window.dispatchEvent(new CustomEvent('audio-status-' + lessonId, { detail: { playing: true } }));
-          } else {
-            synth.pause();
-            // Petit hack Firefox : il arrive que pause() s'exécute mais synth.paused reste false un court instant
-            setTimeout(() => {
-               window.dispatchEvent(new CustomEvent('audio-status-' + lessonId, { detail: { playing: false } }));
-            }, 10);
-          }
-          return;
-        }
-
-        // Nouvelle lecture
-        stopAudio();
-        
-        currentLessonId = lessonId;
-        const container = document.getElementById(lessonId);
-        container.closest('.group').classList.add('active-audio-lesson');
-        
-        const text = container.innerText;
-        utterance = new SpeechSynthesisUtterance(text);
-        
-        if (selectedVoiceName) {
-           const voice = voices.find(v => v.name === selectedVoiceName);
-           if (voice) utterance.voice = voice;
-        }
-        
-        utterance.lang = 'fr-FR';
-        utterance.rate = audioRate;
-
-        utterance.onboundary = (event) => {
-           if (event.name === 'word') {
-              highlightWordInRange(container, event.charIndex, event.charLength);
-           }
-        };
-
-        utterance.onend = () => {
-           stopAudio();
-        };
-
-        utterance.onerror = (e) => {
-           console.error('TTS Error:', e);
-           stopAudio();
-        };
-
-        // On annule tout avant de lancer pour éviter les blocages de file d'attente
-        synth.cancel();
-        
-        // Petit délai pour laisser le temps au navigateur de "reset"
-        setTimeout(() => {
-           synth.speak(utterance);
-           window.dispatchEvent(new CustomEvent('audio-status-' + lessonId, { detail: { playing: true } }));
-        }, 50);
-      }
-
-      function stopAudio() {
-        if (currentLessonId) {
-           const id = currentLessonId; // Save for the event
-           synth.cancel();
-           window.getSelection().removeAllRanges();
-           const container = document.getElementById(id);
-           if (container) {
-              container.closest('.group').classList.remove('active-audio-lesson');
-           }
-           window.dispatchEvent(new CustomEvent('audio-status-' + id, { detail: { playing: false } }));
-           currentLessonId = null;
-        }
-      }
-
-      function setAudioRate(rate) {
-        audioRate = rate;
-        if (synth.speaking) {
-           const id = currentLessonId;
-           stopAudio();
-           // On ne relance pas automatiquement pour ne pas surprendre l'utilisateur
-        }
-      }
-
-      function stopAudio() {
-        synth.cancel();
-        window.getSelection().removeAllRanges();
-        if (currentLessonId) {
-           const container = document.getElementById(currentLessonId);
-           if (container) {
-              container.closest('.group').classList.remove('active-audio-lesson');
-           }
-        }
-        currentLessonId = null;
-      }
-
-      function setAudioRate(rate) {
-        audioRate = rate;
-        if (synth.speaking) {
-           // On sauvegarde la leçon actuelle, on coupe et on relance si besoin, 
-           // mais il est préférable de laisser l'utilisateur ré-appuyer sur Play.
-           stopAudio();
-           alert("Vitesse réglée sur x" + rate + ". Ré-appuyez sur Play pour reprendre.");
-        }
-      }
-
-      // Fonction Magique pour surligner sans casser le HTML (Markdown)
-      function highlightWordInRange(container, charIndex, charLength) {
-         try {
-            const selection = window.getSelection();
-            selection.removeAllRanges();
-            
-            const range = findRangeAtOffset(container, charIndex, charIndex + charLength);
-            if (range) {
-               selection.addRange(range);
-            }
-         } catch (e) {
-            // Silently fail if calculation is off
-         }
-      }
-
-      function findRangeAtOffset(rootNode, start, end) {
-         let current = 0;
-         const range = document.createRange();
-         let startNode, startOffset, endNode, endOffset;
-
-         function traverse(node) {
-            if (node.nodeType === 3) { // Text Node
-               const len = node.textContent.length;
-               if (!startNode && current + len >= start) {
-                  startNode = node;
-                  startOffset = start - current;
-               }
-               if (current + len >= end) {
-                  endNode = node;
-                  endOffset = end - current;
-                  return true;
-               }
-               current += len;
-            } else {
-               for (let child of node.childNodes) {
-                  if (traverse(child)) return true;
-               }
-            }
-            return false;
-         }
-
-         traverse(rootNode);
-         if (startNode && endNode) {
-            range.setStart(startNode, startOffset);
-            range.setEnd(endNode, endOffset);
-            return range;
-         }
-         return null;
-      }
-
-      function renderMarkdown() {
-        document.querySelectorAll('.markdown-body').forEach(el => {
-          const content = el.dataset.content;
-          if (content) {
-            el.innerHTML = marked.parse(content);
-          }
-        });
-      }
-
-      document.addEventListener('DOMContentLoaded', () => {
-        updateProgressBar();
-        renderMarkdown();
+    try {
+      const response = await fetch('/progress/toggle', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': '{{ csrfToken }}'
+        },
+        body: JSON.stringify({ courseId, moduleTitle, lessonTitle })
       });
 
-      async function toggleBookmark(btn) {
-        const courseId = btn.dataset.courseId;
-        
-        try {
-          const response = await fetch(`/courses/${courseId}/bookmark`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-CSRF-TOKEN': '{{ csrfToken }}'
-            }
-          });
-          
-          if (!response.ok) throw new Error('Erreur serveur');
-          
-          const result = await response.json();
-          const span = btn.querySelector('span');
-          const svog = btn.querySelector('svg');
-          
-          if (result.status === 'added') {
-            btn.classList.remove('bg-slate-100', 'text-slate-600', 'hover:bg-slate-200');
-            btn.classList.add('bg-amber-100', 'text-amber-700');
-            span.innerText = 'Sauvegardé';
-            svog.classList.remove('fill-none');
-            svog.classList.add('fill-current');
-          } else {
-            btn.classList.add('bg-slate-100', 'text-slate-600', 'hover:bg-slate-200');
-            btn.classList.remove('bg-amber-100', 'text-amber-700');
-            span.innerText = 'Sauvegarder';
-            svog.classList.add('fill-none');
-            svog.classList.remove('fill-current');
-          }
-          
-        } catch (err) {
-          console.error('Erreur:', err);
-          alert('Impossible de modifier les favoris.');
-        }
+      if (!response.ok) throw new Error('Erreur serveur');
+
+      const result = await response.json();
+
+      if (result.status === 'completed') {
+        btn.classList.add('active');
+        btn.classList.remove('text-slate-400');
+        btn.querySelector('span').innerText = 'Terminé';
+      } else {
+        btn.classList.remove('active');
+        btn.classList.add('text-slate-400');
+        btn.querySelector('span').innerText = 'Marquer comme fini';
       }
 
-      @if(course.status === 'ready')
-      function downloadCourse(format) {
-         const title = "{{ course.title }}";
-         const description = "{{ course.description }}";
-         // We construct the content based on the page structure
-         let content = "";
-         const filename = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      updateProgressBar();
+    } catch (err) {
+      console.error('Erreur:', err);
+      alert('Impossible de mettre à jour la progression. Vérifiez votre connexion.');
+    }
+  }
 
-         if (format === 'html') {
-            const css = `
+  function updateProgressBar() {
+    const buttons = document.querySelectorAll('.btn-complete');
+    const completed = document.querySelectorAll('.btn-complete.active').length;
+    const total = buttons.length;
+    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+    const progressEl = document.getElementById('global-progress');
+    if (progressEl) {
+      progressEl.innerText = percentage + '%';
+    }
+  }
+
+  // --- Smart Audio Logic ---
+  let synth = window.speechSynthesis;
+  let utterance = null;
+  let currentLessonId = null;
+  let audioRate = 1;
+  let voices = [];
+  let selectedVoiceName = null;
+
+  // Initialiser et peupler les listes de voix (Version Robuste)
+  function loadVoices(attempt = 0) {
+    voices = synth.getVoices();
+
+    // Si la liste est vide (commun sur Vivaldi/Linux au démarrage), on réessaie 5 fois
+    if (voices.length === 0 && attempt < 5) {
+      setTimeout(() => loadVoices(attempt + 1), 1000);
+      return;
+    }
+
+    const frVoices = voices.filter(v => v.lang.startsWith('fr'));
+    document.querySelectorAll('.voice-selector').forEach(select => {
+      const currentVal = select.value;
+      select.innerHTML = '';
+
+      if (frVoices.length === 0) {
+        const option = document.createElement('option');
+        option.textContent = "Aucune voix FR détectée";
+        select.appendChild(option);
+        return;
+      }
+
+      frVoices.forEach(voice => {
+        const option = document.createElement('option');
+        option.value = voice.name;
+        option.textContent = voice.name + (voice.name.includes('Google') ? ' ✨' : '');
+        select.appendChild(option);
+      });
+
+      if (currentVal) select.value = currentVal;
+      else if (!selectedVoiceName && frVoices.length > 0) {
+        const best = frVoices.find(v => v.name.includes('Google') || v.name.includes('Natural')) || frVoices[0];
+        selectedVoiceName = best.name;
+        select.value = best.name;
+      }
+    });
+  }
+
+  if (speechSynthesis.onvoiceschanged !== undefined) {
+    speechSynthesis.onvoiceschanged = () => loadVoices();
+  }
+  // Premier chargement immédiat + un délai pour les navigateurs lents
+  loadVoices();
+  setTimeout(loadVoices, 100);
+
+  function toggleAudio(lessonId, voiceNameFromSelect) {
+    if (voiceNameFromSelect) selectedVoiceName = voiceNameFromSelect;
+
+    // Gestion de la PAUSE / REPRISE (Fix spécial Firefox)
+    if (synth.speaking && currentLessonId === lessonId) {
+      if (synth.paused) {
+        synth.resume();
+        window.dispatchEvent(new CustomEvent('audio-status-' + lessonId, { detail: { playing: true } }));
+      } else {
+        synth.pause();
+        // Petit hack Firefox : il arrive que pause() s'exécute mais synth.paused reste false un court instant
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('audio-status-' + lessonId, { detail: { playing: false } }));
+        }, 10);
+      }
+      return;
+    }
+
+    // Nouvelle lecture
+    stopAudio();
+
+    currentLessonId = lessonId;
+    const container = document.getElementById(lessonId);
+    container.closest('.group').classList.add('active-audio-lesson');
+
+    const text = container.innerText;
+    utterance = new SpeechSynthesisUtterance(text);
+
+    if (selectedVoiceName) {
+      const voice = voices.find(v => v.name === selectedVoiceName);
+      if (voice) utterance.voice = voice;
+    }
+
+    utterance.lang = 'fr-FR';
+    utterance.rate = audioRate;
+
+    utterance.onboundary = (event) => {
+      if (event.name === 'word') {
+        highlightWordInRange(container, event.charIndex, event.charLength);
+      }
+    };
+
+    utterance.onend = () => {
+      stopAudio();
+    };
+
+    utterance.onerror = (e) => {
+      console.error('TTS Error:', e);
+      stopAudio();
+    };
+
+    // On annule tout avant de lancer pour éviter les blocages de file d'attente
+    synth.cancel();
+
+    // Petit délai pour laisser le temps au navigateur de "reset"
+    setTimeout(() => {
+      synth.speak(utterance);
+      window.dispatchEvent(new CustomEvent('audio-status-' + lessonId, { detail: { playing: true } }));
+    }, 50);
+  }
+
+  function stopAudio() {
+    if (currentLessonId) {
+      const id = currentLessonId; // Save for the event
+      synth.cancel();
+      window.getSelection().removeAllRanges();
+      const container = document.getElementById(id);
+      if (container) {
+        container.closest('.group').classList.remove('active-audio-lesson');
+      }
+      window.dispatchEvent(new CustomEvent('audio-status-' + id, { detail: { playing: false } }));
+      currentLessonId = null;
+    }
+  }
+
+  function setAudioRate(rate) {
+    audioRate = rate;
+    if (synth.speaking) {
+      const id = currentLessonId;
+      stopAudio();
+      // On ne relance pas automatiquement pour ne pas surprendre l'utilisateur
+    }
+  }
+
+  function stopAudio() {
+    synth.cancel();
+    window.getSelection().removeAllRanges();
+    if (currentLessonId) {
+      const container = document.getElementById(currentLessonId);
+      if (container) {
+        container.closest('.group').classList.remove('active-audio-lesson');
+      }
+    }
+    currentLessonId = null;
+  }
+
+  function setAudioRate(rate) {
+    audioRate = rate;
+    if (synth.speaking) {
+      // On sauvegarde la leçon actuelle, on coupe et on relance si besoin, 
+      // mais il est préférable de laisser l'utilisateur ré-appuyer sur Play.
+      stopAudio();
+      alert("Vitesse réglée sur x" + rate + ". Ré-appuyez sur Play pour reprendre.");
+    }
+  }
+
+  // Fonction Magique pour surligner sans casser le HTML (Markdown)
+  function highlightWordInRange(container, charIndex, charLength) {
+    try {
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+
+      const range = findRangeAtOffset(container, charIndex, charIndex + charLength);
+      if (range) {
+        selection.addRange(range);
+      }
+    } catch (e) {
+      // Silently fail if calculation is off
+    }
+  }
+
+  function findRangeAtOffset(rootNode, start, end) {
+    let current = 0;
+    const range = document.createRange();
+    let startNode, startOffset, endNode, endOffset;
+
+    function traverse(node) {
+      if (node.nodeType === 3) { // Text Node
+        const len = node.textContent.length;
+        if (!startNode && current + len >= start) {
+          startNode = node;
+          startOffset = start - current;
+        }
+        if (current + len >= end) {
+          endNode = node;
+          endOffset = end - current;
+          return true;
+        }
+        current += len;
+      } else {
+        for (let child of node.childNodes) {
+          if (traverse(child)) return true;
+        }
+      }
+      return false;
+    }
+
+    traverse(rootNode);
+    if (startNode && endNode) {
+      range.setStart(startNode, startOffset);
+      range.setEnd(endNode, endOffset);
+      return range;
+    }
+    return null;
+  }
+
+  function renderMarkdown() {
+    document.querySelectorAll('.markdown-body').forEach(el => {
+      const content = el.dataset.content;
+      if (content) {
+        el.innerHTML = marked.parse(content);
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    updateProgressBar();
+    renderMarkdown();
+  });
+
+  async function toggleBookmark(btn) {
+    const courseId = btn.dataset.courseId;
+
+    try {
+      const response = await fetch(`/courses/${courseId}/bookmark`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': '{{ csrfToken }}'
+        }
+      });
+
+      if (!response.ok) throw new Error('Erreur serveur');
+
+      const result = await response.json();
+      const span = btn.querySelector('span');
+      const svog = btn.querySelector('svg');
+
+      if (result.status === 'added') {
+        btn.classList.remove('bg-slate-100', 'text-slate-600', 'hover:bg-slate-200');
+        btn.classList.add('bg-amber-100', 'text-amber-700');
+        span.innerText = 'Sauvegardé';
+        svog.classList.remove('fill-none');
+        svog.classList.add('fill-current');
+      } else {
+        btn.classList.add('bg-slate-100', 'text-slate-600', 'hover:bg-slate-200');
+        btn.classList.remove('bg-amber-100', 'text-amber-700');
+        span.innerText = 'Sauvegarder';
+        svog.classList.add('fill-none');
+        svog.classList.remove('fill-current');
+      }
+
+    } catch (err) {
+      console.error('Erreur:', err);
+      alert('Impossible de modifier les favoris.');
+    }
+  }
+
+  @if (course.status === 'ready')
+    function downloadCourse(format) {
+      const title = "{{ course.title }}";
+      const description = "{{ course.description }}";
+      // We construct the content based on the page structure
+      let content = "";
+      const filename = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+      if (format === 'html') {
+        const css = `
                body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
                h1 { color: #2563eb; border-bottom: 2px solid #eee; padding-bottom: 10px; }
                h2 { color: #1e293b; margin-top: 30px; }
@@ -1331,19 +1429,19 @@
                .quiz { background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 20px; }
                .source { font-size: 0.9em; color: #64748b; font-style: italic; }
             `;
-            
-            content += `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title><style>${css}</style></head><body>`;
-            content += `<h1>${title}</h1>`;
-            content += `<p><strong>Description:</strong> ${description}</p>`;
-            content += `<hr>`;
-            
-            // Modules loop
-            @each(module in course.content.modules)
-               content += `<h2>{{ module.title }}</h2>`;
-               @each(lesson in module.lessons)
-                  content += `<h3>{{ lesson.title }}</h3>`;
-                  // We use marked.parse for the body, assuming the user wants rendered HTML
-                  content += marked.parse(`{{{ lesson.content.replace(/`/g, '\\`').replace(/\$/g, '\\$') }}}`);
+
+        content += `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title><style>${css}</style></head><body>`;
+        content += `<h1>${title}</h1>`;
+        content += `<p><strong>Description:</strong> ${description}</p>`;
+        content += `<hr>`;
+
+        // Modules loop
+        @each(module in course.content.modules)
+        content += `<h2>{{ module.title }}</h2>`;
+        @each(lesson in module.lessons)
+        content += `<h3>{{ lesson.title }}</h3>`;
+        // We use marked.parse for the body, assuming the user wants rendered HTML
+        content += marked.parse({{{ JSON.stringify(lesson.content) }}});
                @end
                
                @if(module.quiz && module.quiz.length > 0)
@@ -1375,11 +1473,11 @@
                   content += `LEÇON: {{ lesson.title }}\n`;
                   content += `--------------------\n`;
                   // Raw markdown content
-                  content += `{{{ lesson.content.replace(/`/g, '\\`').replace(/\$/g, '\\$') }}}\n\n`;
+                  content += {{{ JSON.stringify(lesson.content) }}} + "\n\n";
                @end
                
                @if(module.quiz && module.quiz.length > 0)
-                  content += `QUIZ:\n`;
+                  content += `QUIZ: \n`;
                   @each(q in module.quiz)
                      content += `Q: {{ q.question }}\n`;
                      @each(opt in q.options)
@@ -1407,6 +1505,6 @@
          window.URL.revokeObjectURL(url);
          document.body.removeChild(a);
       }
-    </script>
+</script>
 @end
 @end

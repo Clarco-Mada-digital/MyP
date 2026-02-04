@@ -33,14 +33,14 @@ router.group(() => {
 
 router.group(() => {
   router.get('/mes-cours', [CoursesController, 'myCourses'])
-  router.post('/courses/generate', [CoursesController, 'generate'])
+  router.post('/courses/generate', [CoursesController, 'generate']).as('courses.generate')
   router.get('/courses/confirm', [CoursesController, 'confirm']).as('courses.confirm')
   router.post('/courses/:id/delete', [CoursesController, 'destroy'])
   router.post('/courses/:id/request-deletion', [CoursesController, 'requestDeletion']).as('courses.requestDeletion')
   router.post('/progress/toggle', [ProgressesController, 'toggle'])
   router.post('/courses/:id/sync', [CoursesController, 'syncLocalContent']).as('courses.sync')
   router.post('/courses/:id/bookmark', [CoursesController, 'toggleBookmark']).as('courses.bookmark')
-  router.get('/settings', [SettingsController, 'index'])
+  router.get('/settings', [SettingsController, 'index']).as('settings')
   router.post('/settings', [SettingsController, 'update'])
   router.post('/settings/profile', [SettingsController, 'updateProfile'])
   router.post('/settings/password', [SettingsController, 'updatePassword'])
@@ -122,4 +122,5 @@ router.group(() => {
   router.on('/conditions').render('pages/legal/terms')
   router.on('/confidentialite').render('pages/legal/privacy')
   router.on('/a-propos').render('pages/legal/about')
-})
+  router.on('/aide').render('pages/help')
+}).use(middleware.auth({ silent: true }))

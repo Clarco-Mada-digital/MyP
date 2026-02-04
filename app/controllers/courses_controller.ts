@@ -515,8 +515,10 @@ export default class CoursesController {
       // Lancement de la génération du podcast en arrière-plan (Premium)
       PodcastService.generatePodcast(course, user).catch(e => console.error('Podcast gen failed', e))
 
-    } catch (error) {
+    } catch (error: any) {
+      console.error('[CoursesController] Generation failure:', error)
       course.status = 'error'
+      course.errorMessage = error.message || 'Une erreur inconnue est survenue lors de la génération.'
       await course.save()
     }
   }

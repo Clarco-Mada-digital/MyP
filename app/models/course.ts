@@ -38,6 +38,9 @@ export default class Course extends BaseModel {
   @column()
   declare podcastUrl: string | null
 
+  @column()
+  declare errorMessage: string | null
+
   @column.dateTime()
   declare lastReviewedAt: DateTime | null
 

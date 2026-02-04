@@ -23,8 +23,8 @@ echo "Configuration: HOST=$HOST, PORT=$PORT, NODE_ENV=$NODE_ENV"
 echo "Running migrations..."
 node ace.js migration:run --force || echo "Migrations failed or already run"
 
-echo "Running cleanup (Remove after first run)..."
-node ace.js cleanup:duplicates || echo "Cleanup failed"
+# echo "Running cleanup (Remove after first run)..."
+# node ace.js cleanup:duplicates || echo "Cleanup failed"
 
 echo "Starting server..."
 # Using exec means the node process becomes PID 1 and receives signals correctly

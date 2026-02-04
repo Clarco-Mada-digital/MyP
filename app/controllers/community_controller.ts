@@ -3,6 +3,7 @@ import { DateTime } from 'luxon'
 import User from '#models/user'
 import LearningPath from '#models/learning_path'
 import SharedLearningPath from '#models/shared_learning_path'
+import db from '@adonisjs/lucid/services/db'
 
 export default class CommunityController {
   /**
@@ -50,7 +51,27 @@ export default class CommunityController {
 
     const sharedPaths = await query.limit(Number(limit))
 
-    return response.json({ sharedPaths })
+    // --- DÉDOUBLONNAGE ---
+    // Si l'utilisateur est connecté, on peut marquer ou masquer les parcours déjà importés
+    const auth = request.ctx?.auth
+    let filteredPaths = sharedPaths
+    if (auth && auth.user) {
+      const user = auth.user
+      const importedOriginIds = await db
+        .from('learning_paths')
+        .where('user_id', user.id)
+        .whereNotNull('origin_shared_path_id')
+        .select('origin_shared_path_id')
+        .then(rows => rows.map(r => r.origin_shared_path_id))
+
+      const importedSet = new Set(importedOriginIds)
+
+      // On peut soit les filtrer complètement, soit ajouter un flag 'isImported'
+      // Le USER semble vouloir éviter les doublons visuels, donc on filtre comme pour la page parcours.
+      filteredPaths = sharedPaths.filter(sp => !importedSet.has(sp.id))
+    }
+
+    return response.json({ sharedPaths: filteredPaths })
   }
 
   /**

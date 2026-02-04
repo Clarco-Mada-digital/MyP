@@ -181,7 +181,27 @@ export default class CoursesController {
   async myCourses({ auth, view }: HttpContext) {
     await auth.check()
     const user = auth.user! as User
-    const courses = await user.related('courses').query().orderBy('createdAt', 'desc')
+
+    // 1. Get owned courses
+    const ownedCourses = await user.related('courses').query().orderBy('createdAt', 'desc')
+
+    // 2. Get courses from user's learning paths (including imported ones)
+    const userPaths = await user.related('learningPaths').query().preload('courses')
+    const coursesFromPaths = userPaths.flatMap((p) => p.courses)
+
+    // 3. Merge and deduplicate
+    const allCoursesMap = new Map<number, Course>()
+    ownedCourses.forEach((c) => allCoursesMap.set(c.id, c))
+    coursesFromPaths.forEach((c) => {
+      if (!allCoursesMap.has(c.id)) {
+        allCoursesMap.set(c.id, c)
+      }
+    })
+
+    const courses = Array.from(allCoursesMap.values()).sort(
+      (a, b) => b.createdAt.toMillis() - a.createdAt.toMillis()
+    )
+
     await this.attachProgress(courses, user)
 
     const lastPlayed = courses
@@ -627,12 +647,37 @@ export default class CoursesController {
    */
   async destroy({ params, auth, response, session }: HttpContext) {
     const course = await Course.findOrFail(params.id)
-    if (course.userId !== auth.user!.id) {
+    const user = auth.user! as User
+
+    if (course.userId !== user.id) {
       session.flash('notification', { type: 'error', message: 'Non autorisé' })
       return response.redirect().back()
     }
-    await course.delete()
-    session.flash('notification', { type: 'success', message: 'Supprimé' })
+
+    // Protection: check if other users are using this course via learning paths
+    const usage = await db
+      .from('learning_path_courses')
+      .join('learning_paths', 'learning_path_courses.learning_path_id', 'learning_paths.id')
+      .where('learning_path_courses.course_id', course.id)
+      .whereNot('learning_paths.user_id', user.id)
+      .count('* as total')
+
+    const isUsedByOthers = Number((usage[0] as any).total) > 0
+
+    if (isUsedByOthers) {
+      // If used by others, we don't delete it, we just orphan it from the current owner
+      course.userId = null
+      await course.save()
+      session.flash('notification', {
+        type: 'success',
+        message: 'Cours retiré de votre bibliothèque (conservé car utilisé par d\'autres utilisateurs).',
+      })
+    } else {
+      // No one else is using it, safe to delete
+      await course.delete()
+      session.flash('notification', { type: 'success', message: 'Cours supprimé définitivement.' })
+    }
+
     return response.redirect().back()
   }
 

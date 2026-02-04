@@ -243,8 +243,6 @@ export default class CoursesController {
     const bookmarkedCourses = bookmarks.map(b => b.course).filter(c => c)
     await this.attachProgress(bookmarkedCourses, user)
 
-    const userPaths = await user.related('learningPaths').query().preload('courses')
-
     return view.render('pages/courses/my_courses', {
       courses,
       stats: { totalCourses, completedCourses, learningHours, totalLessons: totalCompletedLessons },

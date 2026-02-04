@@ -133,6 +133,7 @@ export default class CleanupDuplicates extends BaseCommand {
         )
 
         if (original && original.id !== importedCourse.id) {
+          // A. TRANSFÉRER LA PROGRESSION
           try {
             const existingProgress = await db.from('course_progresses')
               .where('user_id', ownerId)
@@ -152,16 +153,47 @@ export default class CleanupDuplicates extends BaseCommand {
             }
           } catch (e) { }
 
-          await db.from('bookmarks')
-            .where('user_id', ownerId)
-            .where('course_id', importedCourse.id)
-            .update({ course_id: original.id }).catch(() => { })
+          // B. TRANSFÉRER LES FAVORIS
+          try {
+            const existingBookmark = await db.from('bookmarks')
+              .where('user_id', ownerId)
+              .where('course_id', original.id)
+              .first()
 
-          await db.from('learning_path_courses')
+            if (!existingBookmark) {
+              await db.from('bookmarks')
+                .where('user_id', ownerId)
+                .where('course_id', importedCourse.id)
+                .update({ course_id: original.id })
+            } else {
+              await db.from('bookmarks')
+                .where('user_id', ownerId)
+                .where('course_id', importedCourse.id)
+                .delete()
+            }
+          } catch (e) { }
+
+          // C. METTRE À JOUR LE LIEN DANS LE PARCOURS (PIVOT TABLE)
+          // On vérifie d'abord si le cours original est déjà présent dans ce parcours
+          const alreadyLinked = await db.from('learning_path_courses')
             .where('learning_path_id', path.id)
-            .where('course_id', importedCourse.id)
-            .update({ course_id: original.id })
+            .where('course_id', original.id)
+            .first()
 
+          if (!alreadyLinked) {
+            await db.from('learning_path_courses')
+              .where('learning_path_id', path.id)
+              .where('course_id', importedCourse.id)
+              .update({ course_id: original.id })
+          } else {
+            // Si l'original et le duplicata étaient tous deux dans le parcours, on supprime le lien du duplicata
+            await db.from('learning_path_courses')
+              .where('learning_path_id', path.id)
+              .where('course_id', importedCourse.id)
+              .delete()
+          }
+
+          // D. SUPPRIMER LE COURS DUPLICATA S'IL N'EST PLUS UTILISÉ
           const usage = await db.from('learning_path_courses')
             .where('course_id', importedCourse.id)
             .count('* as total')

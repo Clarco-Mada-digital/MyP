@@ -341,7 +341,7 @@
             actionsContainer.querySelector('.edit-btn').onclick = () => openEditModal(path)
 
             const importBtn = clone.querySelector('.import-btn')
-            importBtn.onclick = () => importPath(path.shareToken)
+            importBtn.classList.add('hidden')
             grid.appendChild(clone)
           })
         } catch (e) {

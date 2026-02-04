@@ -52,11 +52,13 @@ export default class CommunityController {
     const sharedPaths = await query.limit(Number(limit))
 
     // --- DÉDOUBLONNAGE ---
-    // Si l'utilisateur est connecté, on peut marquer ou masquer les parcours déjà importés
+    // Si l'utilisateur est connecté, on masque les parcours déjà importés ou qu'il possède déjà
     const auth = request.ctx?.auth
     let filteredPaths = sharedPaths
     if (auth && auth.user) {
       const user = auth.user
+
+      // Récupérer les IDs des partages originaux déjà importés
       const importedOriginIds = await db
         .from('learning_paths')
         .where('user_id', user.id)
@@ -66,9 +68,14 @@ export default class CommunityController {
 
       const importedSet = new Set(importedOriginIds)
 
-      // On peut soit les filtrer complètement, soit ajouter un flag 'isImported'
-      // Le USER semble vouloir éviter les doublons visuels, donc on filtre comme pour la page parcours.
-      filteredPaths = sharedPaths.filter(sp => !importedSet.has(sp.id))
+      // Filtrer : 
+      // 1. Masquer si sp.id est dans importedSet
+      // 2. Masquer si sp.learningPath.userId est celui de l'utilisateur (il est le créateur)
+      filteredPaths = sharedPaths.filter(sp => {
+        const isAlreadyImported = importedSet.has(sp.id)
+        const isOwner = sp.learningPath?.userId === user.id
+        return !isAlreadyImported && !isOwner
+      })
     }
 
     return response.json({ sharedPaths: filteredPaths })
@@ -77,7 +84,7 @@ export default class CommunityController {
   /**
    * Show a specific shared path
    */
-  async show({ params, response, view, session }: HttpContext) {
+  async show({ params, response, view, session, auth }: HttpContext) {
     const { token } = params
 
     const sharedPath = await SharedLearningPath.query()
@@ -106,7 +113,26 @@ export default class CommunityController {
       session.put('viewed_shared_paths', viewedPaths)
     }
 
-    return view.render('pages/community/show', { sharedPath })
+    // Check if user already owns this or has imported it
+    let isAlreadyOwned = false
+    if (auth.user) {
+      const user = auth.user
+      // 1. Check if user is the original creator
+      if (sharedPath.learningPath?.userId === user.id) {
+        isAlreadyOwned = true
+      } else {
+        // 2. Check if user has already imported it
+        const existingImport = await LearningPath.query()
+          .where('userId', user.id)
+          .where('originSharedPathId', sharedPath.id)
+          .first()
+        if (existingImport) {
+          isAlreadyOwned = true
+        }
+      }
+    }
+
+    return view.render('pages/community/show', { sharedPath, isAlreadyOwned })
   }
 
   /**

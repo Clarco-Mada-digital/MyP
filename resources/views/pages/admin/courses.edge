@@ -15,6 +15,13 @@
           Assigner catégories par défaut
         </button>
       </form>
+      <form action="{{ route('admin.courses.fix-images') }}" method="POST" class="inline-block">
+        {{ csrfField() }}
+        <button type="submit" class="px-4 py-2 bg-indigo-500 text-white font-medium rounded-xl hover:bg-indigo-600 transition-colors shadow-sm flex items-center gap-2" onclick="return confirm('Scanner et réparer toutes les images corrompues de tous les cours ? (Cela peut prendre du temps)')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+           Réparer Images
+        </button>
+      </form>
     </div>
 
     {{-- Search and Filters --}}

@@ -33,6 +33,8 @@ router.group(() => {
 
 router.group(() => {
   router.get('/mes-cours', [CoursesController, 'myCourses'])
+  router.get('/courses/:slug/edit', [CoursesController, 'edit']).as('courses.edit')
+  router.post('/courses/:id/edit', [CoursesController, 'update']).as('courses.update')
   router.post('/courses/generate', [CoursesController, 'generate']).as('courses.generate')
   router.get('/courses/confirm', [CoursesController, 'confirm']).as('courses.confirm')
   router.post('/courses/:id/delete', [CoursesController, 'destroy'])
@@ -53,6 +55,7 @@ router.group(() => {
   router.post('/admin/courses/:id/category', [AdminController, 'updateCourseCategory']).as('admin.courses.category')
   router.post('/admin/courses/:id/delete', [AdminController, 'deleteCourse']).as('admin.courses.delete')
   router.post('/admin/courses/:id/image', [AdminController, 'updateCourseImage']).as('admin.courses.image')
+  router.post('/admin/courses/fix-images', [AdminController, 'fixAllCourseImages']).as('admin.courses.fix-images')
   router.get('/admin/categories', [CategoriesController, 'adminIndex']).as('admin.categories')
   router.get('/admin/categories/create', [CategoriesController, 'create']).as('admin.categories.create')
   router.post('/admin/categories', [CategoriesController, 'store'])

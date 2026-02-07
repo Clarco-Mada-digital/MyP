@@ -243,7 +243,7 @@ export default class CoursesController {
     const bookmarkedCourses = bookmarks.map(b => b.course).filter(c => c)
     await this.attachProgress(bookmarkedCourses, user)
 
-    const userPaths = await user.related('learningPaths').query().preload('courses')
+
 
     return view.render('pages/courses/my_courses', {
       courses,
@@ -527,7 +527,7 @@ export default class CoursesController {
       const content = await AiProviderService.generateJson(prompt, user)
 
       course.description = content.description || ""
-      content.image = await this.verifyAndFixImage(content.image, course.title)
+      content.image = await CoursesController.verifyAndFixImage(content.image, course.title)
       course.content = content
       course.status = 'ready'
       await course.save()
@@ -543,8 +543,7 @@ export default class CoursesController {
     }
   }
 
-  private async verifyAndFixImage(url: string, topic: string): Promise<string> {
-
+  public static async verifyAndFixImage(url: string, topic: string): Promise<string> {
     const isImageAccessible = async (testUrl: string) => {
       try {
         const controller = new AbortController()
@@ -555,23 +554,39 @@ export default class CoursesController {
       } catch { return false }
     }
 
-    // 1. Si c'est déjà une URL valide (Unsplash ou autre)
+    // 1. Check if the provided URL is already valid
     if (url && url.startsWith('http')) {
       if (await isImageAccessible(url)) return url
+      // If broken link, ignore it for generation
+      url = ''
     }
 
-    // 2. Si c'est des mots-clés ou une URL invalide, on utilise Pollinations
-    // On nettoie les mots-clés (enlever les guillemets, "Mots-clés pour...", etc.)
     let keywords = url || topic
     keywords = keywords.replace(/^mots-clés pour.*?:/i, '')
       .replace(/['"]/g, '')
       .trim()
 
-    const pollinationsUrl = `https://image.pollinations.ai/prompt/professional high quality cover for ${encodeURIComponent(keywords)}, 4k, cinematic?width=1200&height=630&nologo=true`
+    // Fallback to topic if keywords ended up empty
+    if (!keywords || keywords.length < 2) keywords = topic
 
-    // On retourne l'URL Pollinations directement. 
-    // Même si HEAD échoue (certains serveurs bloquent), l'image s'affichera dans le navigateur.
-    return pollinationsUrl
+    const encodedKeywords = encodeURIComponent(keywords)
+
+    // 2. Try Pollinations AI
+    const pollinationsUrl = `https://image.pollinations.ai/prompt/professional high quality cover for ${encodedKeywords}, 4k, cinematic?width=1200&height=630&nologo=true`
+    if (await isImageAccessible(pollinationsUrl)) {
+      return pollinationsUrl
+    }
+
+    // 3. Try LoremFlickr (simple, reliable fallback)
+    const loremUrl = `https://loremflickr.com/800/600/${encodedKeywords}`
+    if (await isImageAccessible(loremUrl)) {
+      return loremUrl
+    }
+
+    // 4. Last resort: UI Avatars (text-based placeholder)
+    // ALWAYS use the topic (course title) for the text, NOT the keywords which might be a long prompt or URL
+    const encodedTopic = encodeURIComponent(topic)
+    return `https://ui-avatars.com/api/?name=${encodedTopic}&background=random&size=512&font-size=0.33`
   }
 
   async toggleBookmark({ params, auth, response }: HttpContext) {
@@ -715,7 +730,7 @@ export default class CoursesController {
       const data = await vine.validate({ schema: contentSchema, data: request.all() })
 
       // Vérifier et corriger l'image si nécessaire avant la sauvegarde
-      const fixedImage = await this.verifyAndFixImage(data.content.image || '', course.title)
+      const fixedImage = await CoursesController.verifyAndFixImage(data.content.image || '', course.title)
       data.content.image = fixedImage
 
       course.description = data.content.description
@@ -726,5 +741,55 @@ export default class CoursesController {
     } catch (error) {
       return response.badRequest({ message: 'Format invalide', errors: error.messages })
     }
+  }
+
+  /**
+   * Edit course page
+   */
+  async edit({ params, view, auth, response }: HttpContext) {
+    await auth.check()
+    const course = await Course.query()
+      .where('slug', params.slug)
+      .where('userId', auth.user!.id)
+      .preload('category')
+      .first()
+
+    if (!course) {
+      return response.notFound("Cours introuvable")
+    }
+
+    return view.render('pages/courses/edit', { course })
+  }
+
+  /**
+   * Update course
+   */
+  async update({ params, request, response, auth, session }: HttpContext) {
+    await auth.check()
+    const course = await Course.findOrFail(params.id)
+
+    if (course.userId !== auth.user!.id) {
+      return response.unauthorized()
+    }
+
+    const title = request.input('title')
+    const description = request.input('description')
+    const image = request.input('image')
+
+    course.title = title
+
+    // Update content JSON safely
+    const content = course.content || {}
+    content.description = description
+    content.image = image
+
+    course.content = content
+    // Also update top-level description field if it exists and is used
+    course.description = description
+
+    await course.save()
+
+    session.flash('notification', { type: 'success', message: 'Cours mis à jour avec succès !' })
+    return response.redirect().toRoute('courses.show', { slug: course.slug })
   }
 }

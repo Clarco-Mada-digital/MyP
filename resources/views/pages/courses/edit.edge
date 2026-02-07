@@ -1,0 +1,60 @@
+@component('components/app', { title: 'Modifier le cours - ' + course.title })
+  <div class="max-w-3xl mx-auto px-6 py-12">
+    <div class="mb-8">
+      <a href="{{ route('courses.show', { slug: course.slug }) }}" class="text-sm font-bold text-slate-500 hover:text-primary-600 flex items-center gap-2 mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Retour au cours
+      </a>
+      <h1 class="text-3xl font-extrabold text-slate-900">Modifier le cours</h1>
+    </div>
+
+    <form action="{{ route('courses.update', { id: course.id }) }}" method="POST" class="bg-white rounded-3xl shadow-xl border border-slate-100 p-8 space-y-6">
+      {{ csrfField() }}
+      
+      <div>
+        <label class="block text-sm font-bold text-slate-700 mb-2">Titre du cours</label>
+        <input type="text" name="title" value="{{ course.title }}" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all outline-none font-bold text-lg" required />
+      </div>
+
+      <div>
+        <label class="block text-sm font-bold text-slate-700 mb-2">Image de couverture (URL)</label>
+        <div class="flex gap-4 items-start">
+             <div class="flex-1">
+                <input type="url" name="image" value="{{ course.content?.image || '' }}" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all outline-none" placeholder="https://..." />
+                <p class="text-xs text-slate-400 mt-2">Lien direct vers une image (Unsplash, etc.)</p>
+             </div>
+             @if(course.content?.image)
+                <div class="w-24 h-16 rounded-lg overflow-hidden border border-slate-200 shrink-0">
+                    <img src="{{ course.content.image }}" class="w-full h-full object-cover" onerror="this.src='https://ui-avatars.com/api/?name={{ course.title }}&background=random'" />
+                </div>
+             @end
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-bold text-slate-700 mb-2">Description</label>
+        <textarea name="description" rows="5" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all outline-none resize-y" required>{{ course.content?.description || course.description || '' }}</textarea>
+      </div>
+
+      <div class="pt-6 border-t border-slate-100 flex justify-end gap-4">
+        <a href="{{ route('courses.show', { slug: course.slug }) }}" class="px-6 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-colors">
+            Annuler
+        </a>
+        <button type="submit" class="px-8 py-3 bg-primary-600 text-white font-bold rounded-xl hover:bg-primary-700 shadow-lg shadow-primary-200 hover:scale-105 transition-all">
+            Enregistrer les modifications
+        </button>
+      </div>
+    </form>
+    
+    <div class="mt-8 bg-amber-50 rounded-2xl p-6 border border-amber-100">
+        <h3 class="font-bold text-amber-800 mb-2 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Modification avancée
+        </h3>
+        <p class="text-amber-700 text-sm">
+            Pour modifier le contenu des leçons, les quiz ou la structure du cours, cette fonctionnalité sera disponible prochainement. 
+            Vous pouvez actuellement régénérer le cours si le contenu ne vous convient pas (attention, cela écrasera tout).
+        </p>
+    </div>
+  </div>
+@end

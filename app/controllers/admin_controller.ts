@@ -12,6 +12,7 @@ import { DateTime } from 'luxon'
 import ApplicationSetting from '#models/application_setting'
 import GeminiService from '#services/gemini_service'
 import OpenRouterService from '#services/openrouter_service'
+import CoursesController from '#controllers/courses_controller'
 
 export default class AdminController {
   async index({ view, auth, response }: HttpContext) {
@@ -450,5 +451,50 @@ export default class AdminController {
     await ApplicationSetting.setValue('active_cloud_provider', provider)
     session.flash('notification', { type: 'success', message: 'Configuration IA mise à jour' })
     return response.redirect().back()
+  }
+
+  /**
+   * Fix all course images (bulk)
+   */
+  async fixAllCourseImages({ auth, response, session }: HttpContext) {
+    if (!auth.user?.isAdmin) {
+      return response.unauthorized('Accès réservé aux administrateurs')
+    }
+
+    try {
+      const courses = await Course.query().where('status', 'ready').orWhere('status', 'error')
+      let fixedCount = 0
+
+      for (const course of courses) {
+        if (!course.content) continue;
+
+        // Verify and potentially fix the image
+        const currentImage = course.content.image || ''
+        const fixedImage = await CoursesController.verifyAndFixImage(currentImage, course.title)
+
+        if (fixedImage !== currentImage) {
+          const newContent = { ...course.content }
+          newContent.image = fixedImage
+          course.content = newContent
+          // If it was in error, maybe set it to ready? Not necessarily, error might be due to other things.
+          await course.save()
+          fixedCount++
+        }
+      }
+
+      session.flash('notification', {
+        type: 'success',
+        message: `${fixedCount} images de cours ont été réparées/mises à jour !`
+      })
+      return response.redirect().back()
+
+    } catch (error) {
+      console.error(error)
+      session.flash('notification', {
+        type: 'error',
+        message: 'Erreur lors de la réparation des images.'
+      })
+      return response.redirect().back()
+    }
   }
 }

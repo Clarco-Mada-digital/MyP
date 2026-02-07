@@ -9,20 +9,46 @@
         <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">Vue d'ensemble Admin</h1>
         <p class="text-slate-500 font-medium text-sm md:text-base">Analyse des performances et de l'activité du système.</p>
       </div>
-      <div class="grid grid-cols-3 md:flex gap-2 min-w-0">
-        <div class="px-3 md:px-5 py-2 md:py-3 bg-white border border-slate-200 rounded-xl md:rounded-2xl shadow-sm text-center md:text-left flex-1 min-w-0">
-          <p class="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 truncate">Membres</p>
-          <p class="text-base md:text-xl font-black text-slate-800 leading-none">{{ stats.totalUsers }}</p>
-        </div>
-        <div class="px-3 md:px-5 py-2 md:py-3 bg-white border border-slate-200 rounded-xl md:rounded-2xl shadow-sm text-center md:text-left flex-1 min-w-0">
-          <p class="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 truncate">Cours</p>
-          <p class="text-base md:text-xl font-black text-slate-800 leading-none">{{ stats.totalCourses }}</p>
-        </div>
-        <div class="px-3 md:px-5 py-2 md:py-3 bg-white border border-slate-200 rounded-xl md:rounded-2xl shadow-sm text-center md:text-left flex-1 min-w-0">
-          <p class="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 truncate">Parcours</p>
-          <p class="text-base md:text-xl font-black text-slate-800 leading-none">{{ stats.totalPaths }}</p>
-        </div>
+      <div class="hidden md:flex gap-4">
+        <a href="{{ route('admin.settings') }}" class="p-3 bg-white border border-slate-200 rounded-xl text-slate-600 hover:text-primary-600 hover:shadow-md transition-all">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </a>
       </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div class="p-6 rounded-[2.5rem] bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-xl shadow-blue-200/50 hover:scale-[1.02] transition-transform relative overflow-hidden group">
+          <div class="absolute right-0 top-0 p-6 opacity-10 group-hover:scale-125 transition-transform">
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <p class="text-xs font-bold text-blue-200 uppercase tracking-widest mb-2">Total Membres</p>
+          <p class="text-5xl font-black">{{ stats.totalUsers }}</p>
+          <div class="mt-6 flex items-center justify-between text-blue-100/90 text-sm font-medium">
+             <span class="bg-white/20 px-3 py-1 rounded-lg backdrop-blur-sm">Utilisateurs actifs</span>
+          </div>
+        </div>
+
+        <div class="p-6 rounded-[2.5rem] bg-gradient-to-br from-violet-600 to-fuchsia-700 text-white shadow-xl shadow-fuchsia-200/50 hover:scale-[1.02] transition-transform relative overflow-hidden group">
+          <div class="absolute right-0 top-0 p-6 opacity-10 group-hover:scale-125 transition-transform">
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          </div>
+          <p class="text-xs font-bold text-fuchsia-200 uppercase tracking-widest mb-2">Total Cours</p>
+          <p class="text-5xl font-black">{{ stats.totalCourses }}</p>
+           <div class="mt-6 flex items-center justify-between text-fuchsia-100/90 text-sm font-medium">
+             <span class="bg-white/20 px-3 py-1 rounded-lg backdrop-blur-sm">{{ stats.coursesByStatus['ready'] || 0 }} cours prêts</span>
+          </div>
+        </div>
+
+        <div class="p-6 rounded-[2.5rem] bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-xl shadow-emerald-200/50 hover:scale-[1.02] transition-transform relative overflow-hidden group">
+          <div class="absolute right-0 top-0 p-6 opacity-10 group-hover:scale-125 transition-transform">
+             <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+          <p class="text-xs font-bold text-emerald-100 uppercase tracking-widest mb-2">Parcours</p>
+          <p class="text-5xl font-black">{{ stats.totalPaths }}</p>
+          <div class="mt-6 flex items-center justify-between text-emerald-100/90 text-sm font-medium">
+             <span class="bg-white/20 px-3 py-1 rounded-lg backdrop-blur-sm">Séquences d'apprentissage</span>
+          </div>
+        </div>
     </div>
 
     {{-- Activity Charts Row --}}

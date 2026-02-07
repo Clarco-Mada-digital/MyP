@@ -195,6 +195,14 @@
         </div>
         @end
 
+        @if(course.userId === auth.user.id)
+          <a href="{{ route('courses.edit', { slug: course.slug }) }}" 
+             class="absolute top-4 right-14 z-10 transition-all opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 bg-white/90 backdrop-blur p-2 rounded-full text-indigo-500 hover:bg-indigo-500 hover:text-white transition-colors shadow-lg"
+             title="Modifier le cours">
+             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </a>
+        @end
+
         <form action="{{ route('courses.requestDeletion', [course.id]) }}" method="POST"
           class="absolute top-4 right-4 z-10 transition-all opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0">
           {{ csrfField() }}

@@ -1,0 +1,335 @@
+@component('components/app', { title: 'Créer un nouveau cours' })
+  <div class="max-w-7xl mx-auto px-6 py-12">
+    <div class="mb-8">
+      <a href="/mes-cours" class="text-sm font-bold text-slate-500 hover:text-primary-600 flex items-center gap-2 mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Retour à mes cours
+      </a>
+      <h1 class="text-3xl font-extrabold text-slate-900">Créer un nouveau cours <span class="bg-amber-100 text-amber-600 px-3 py-1 rounded-full text-sm align-middle font-bold ml-2">BÊTA</span></h1>
+      <p class="text-slate-500 mt-2">Créez votre propre cours manuellement, sans utiliser l'IA</p>
+    </div>
+
+    <form action="{{ route('courses.store') }}" method="POST" class="space-y-8" x-data="{ 
+        modules: [{ title: 'Module 1', lessons: [{ title: '', content: '' }], exercises: [], quiz: [], resources: [] }],
+        addModule() {
+          this.modules.push({
+            title: `Module ${this.modules.length + 1}`,
+            lessons: [{ title: '', content: '' }],
+            exercises: [],
+            quiz: [],
+            resources: []
+          });
+        },
+        removeModule(index) {
+            if(this.modules.length > 1 && confirm('Voulez-vous vraiment supprimer ce module ?')) {
+                this.modules.splice(index, 1);
+            }
+        },
+        addLesson(mIndex) {
+            this.modules[mIndex].lessons.push({ title: '', content: '' });
+        },
+        addExercise(mIndex) {
+            if (!this.modules[mIndex].exercises) this.modules[mIndex].exercises = [];
+            this.modules[mIndex].exercises.push('');
+        },
+        removeExercise(mIndex, eIndex) {
+            this.modules[mIndex].exercises.splice(eIndex, 1);
+        },
+        addQuestion(mIndex) {
+            if (!this.modules[mIndex].quiz) this.modules[mIndex].quiz = [];
+            this.modules[mIndex].quiz.push({ question: '', options: ['', '', '', ''], answer: '', explanation: '' });
+        },
+        removeQuestion(mIndex, qIndex) {
+            this.modules[mIndex].quiz.splice(qIndex, 1);
+        },
+        addResource(mIndex) {
+            if (!this.modules[mIndex].resources) this.modules[mIndex].resources = [];
+            this.modules[mIndex].resources.push({ title: '', url: '' });
+        },
+        removeResource(mIndex, rIndex) {
+            this.modules[mIndex].resources.splice(rIndex, 1);
+        }
+    }">
+      {{ csrfField() }}
+      
+      <div class="bg-white rounded-3xl shadow-xl border border-slate-100 p-8 space-y-6">
+        <h2 class="text-xl font-bold text-slate-800 border-b border-slate-100 pb-4">Informations Générales</h2>
+        
+        <div>
+          <label class="block text-sm font-bold text-slate-700 mb-2">Titre du cours *</label>
+          <input type="text" name="title" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all outline-none font-bold text-lg" placeholder="Ex: Introduction à Python" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold text-slate-700 mb-2">Catégorie</label>
+          <select name="category_id" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all outline-none">
+            <option value="">Aucune catégorie</option>
+            @each(category in categories)
+              <option value="{{ category.id }}">{{ category.name }}</option>
+            @end
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold text-slate-700 mb-2">Image de couverture (URL)</label>
+          <input type="url" name="image" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all outline-none" placeholder="https://..." />
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold text-slate-700 mb-2">Description *</label>
+          <textarea name="description" rows="5" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all outline-none resize-y" placeholder="Décrivez votre cours..."></textarea>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-3xl shadow-xl border border-slate-100 p-8 space-y-6">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+          <h2 class="text-xl font-bold text-slate-800">Modules et Contenu</h2>
+        </div>
+
+        <template x-for="(module, mIndex) in modules" :key="mIndex">
+          <div class="border border-slate-200 rounded-2xl p-6 space-y-6 mb-6">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3 flex-1">
+                  <span class="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-slate-500 text-sm" x-text="mIndex + 1"></span>
+                  <input type="text" 
+                         :name="`modules[${mIndex}][title]`" 
+                         x-model="module.title"
+                         class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none"
+                         placeholder="Titre du module"
+                         required
+                  />
+              </div>
+              <button type="button" @click="removeModule(mIndex)" class="ml-3 text-slate-400 hover:text-red-500 p-2 rounded-lg hover:bg-slate-50" title="Supprimer le module">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </div>
+
+            <!-- Lessons -->
+            <div class="pl-4 border-l-2 border-indigo-100 ml-4">
+              <h4 class="text-sm font-bold text-indigo-600 uppercase tracking-wide mb-4">Leçons</h4>
+              
+              <template x-for="(lesson, lIndex) in module.lessons" :key="lIndex">
+                <div class="bg-indigo-50/50 rounded-xl p-4 space-y-3 mb-4 border border-indigo-50">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-indigo-400" x-text="lIndex + 1"></span>
+                    <input type="text" 
+                           :name="`modules[${mIndex}][lessons][${lIndex}][title]`" 
+                           x-model="lesson.title"
+                           class="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                           placeholder="Titre de la leçon"
+                           required
+                    />
+                    <button type="button" @click="module.lessons.length > 1 ? module.lessons.splice(lIndex, 1) : alert('Un module doit avoir au moins une leçon')" class="text-slate-400 hover:text-red-500">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+                  <textarea 
+                    :name="`modules[${mIndex}][lessons][${lIndex}][content]`" 
+                    x-model="lesson.content"
+                    rows="4"
+                    class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500 outline-none resize-y"
+                    placeholder="Contenu de la leçon (Markdown supporté)..."
+                    required
+                  ></textarea>
+                </div>
+              </template>
+              
+              <button type="button" @click="addLesson(mIndex)" class="w-full py-2 border-2 border-dashed border-indigo-200 rounded-lg text-indigo-500 font-bold hover:bg-indigo-50 transition-colors text-sm">
+                + Ajouter une leçon
+              </button>
+            </div>
+
+            <!-- Exercises -->
+            <div class="pl-4 border-l-2 border-purple-100 ml-4 pt-4">
+                <h4 class="text-sm font-bold text-purple-600 uppercase tracking-wide mb-3 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" /></svg>
+                    Exercices
+                </h4>
+                <template x-for="(exo, eIndex) in (module.exercises || [])" :key="eIndex">
+                    <div class="flex items-center gap-2 mb-2">
+                      <input type="text" :name="`modules[${mIndex}][exercises][${eIndex}]`"
+                        x-model="module.exercises[eIndex]"
+                        class="flex-1 px-3 py-2 bg-purple-50 border border-purple-100 rounded-lg text-sm text-purple-900 focus:ring-2 focus:ring-purple-500 outline-none"
+                        placeholder="Description de l'exercice..." />
+                      <button type="button" @click="removeExercise(mIndex, eIndex)"
+                        class="text-slate-400 hover:text-red-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                          fill="currentColor">
+                          <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                      </button>
+                    </div>
+                </template>
+                <button type="button" @click="addExercise(mIndex)" class="text-xs font-bold text-purple-600 hover:text-purple-800 flex items-center gap-1 mt-2">
+                    + Ajouter un exercice
+                </button>
+                 <!-- Hidden inputs to ensure empty array is sent if all deleted -->
+                 <template x-if="!module.exercises || module.exercises.length === 0">
+                    <input type="hidden" :name="`modules[${mIndex}][exercises]`" value="" />
+                  </template>
+            </div>
+
+            <!-- Quiz -->
+            <div class="mt-6 pt-6 border-t border-slate-100">
+                <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <span class="bg-indigo-100 text-indigo-600 p-1 rounded-lg">🧠</span>
+                    Quiz du Module
+                </h3>
+                
+                <template x-for="(q, qIndex) in (module.quiz || [])" :key="qIndex">
+                    <div class="bg-slate-50 rounded-xl p-4 mb-4 border border-slate-200">
+                      <div class="flex justify-between items-start mb-3">
+                        <span class="text-xs font-bold text-slate-400 uppercase">Question <span x-text="qIndex + 1"></span></span>
+                        <button type="button" @click="removeQuestion(mIndex, qIndex)" class="text-red-400 hover:text-red-600 text-xs font-bold">Supprimer</button>
+                      </div>
+
+                      <input type="text" :name="`modules[${mIndex}][quiz][${qIndex}][question]`" x-model="q.question"
+                        class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-bold text-slate-700 mb-3 focus:ring-2 focus:ring-indigo-500 outline-none"
+                        placeholder="Votre question..." />
+
+                      <div class="space-y-2 pl-4 border-l-2 border-slate-200">
+                        <template x-for="(opt, oIndex) in q.options" :key="oIndex">
+                          <div class="flex items-center gap-2">
+                            <input type="radio" :name="`modules[${mIndex}][quiz][${qIndex}][answer_index]`"
+                              :value="oIndex" :checked="q.answer === opt && opt !== ''" @change="q.answer = opt"
+                              class="text-indigo-600 focus:ring-indigo-500" />
+                            <input type="text" :name="`modules[${mIndex}][quiz][${qIndex}][options][]`"
+                              x-model="q.options[oIndex]"
+                              @input="if(q.answer === $el.value || $el.previousElementSibling.checked) q.answer = $el.value"
+                              class="flex-1 px-3 py-1 bg-white border border-slate-200 rounded text-sm focus:ring-1 focus:ring-indigo-500 outline-none"
+                              placeholder="Option de réponse" />
+                          </div>
+                        </template>
+                      </div>
+
+                      <div class="mt-3">
+                         <label class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1 block">Explication (optionnelle)</label>
+                         <textarea :name="`modules[${mIndex}][quiz][${qIndex}][explanation]`" x-model="q.explanation"
+                           rows="2"
+                           class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 focus:ring-2 focus:ring-indigo-500 outline-none resize-y"
+                           placeholder="Explication pédagogique..."></textarea>
+                       </div>
+
+                      <input type="hidden" :name="`modules[${mIndex}][quiz][${qIndex}][answer]`" x-model="q.answer">
+                    </div>
+                </template>
+
+                <button type="button" @click="addQuestion(mIndex)"
+                  class="w-full py-2 border-2 border-dashed border-slate-300 rounded-xl text-slate-500 font-bold hover:border-indigo-400 hover:text-indigo-600 transition-colors">
+                  + Ajouter une question au quiz
+                </button>
+            </div>
+
+            <!-- Resources -->
+            <div class="mt-6 pt-6 border-t border-slate-100">
+                <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <span class="bg-teal-100 text-teal-600 p-1 rounded-lg">🔗</span>
+                    Ressources Utiles
+                </h3>
+                
+                <template x-for="(resource, rIndex) in (module.resources || [])" :key="rIndex">
+                    <div class="bg-slate-50 rounded-xl p-4 mb-4 border border-slate-200">
+                      <div class="flex justify-between items-start mb-3">
+                        <span class="text-xs font-bold text-slate-400 uppercase">Ressource <span x-text="rIndex + 1"></span></span>
+                        <button type="button" @click="removeResource(mIndex, rIndex)" class="text-red-400 hover:text-red-600 text-xs font-bold">Supprimer</button>
+                      </div>
+
+                      <div class="space-y-3">
+                        <div>
+                          <label class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1 block">Titre de la ressource</label>
+                          <input type="text" :name="`modules[${mIndex}][resources][${rIndex}][title]`" x-model="resource.title"
+                            class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-bold text-slate-700 focus:ring-2 focus:ring-teal-500 outline-none"
+                            placeholder="Ex: Documentation officielle, Tutoriel vidéo..." />
+                        </div>
+
+                        <div>
+                          <label class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1 block">URL</label>
+                          <input type="url" :name="`modules[${mIndex}][resources][${rIndex}][url]`" x-model="resource.url"
+                            class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-700 focus:ring-2 focus:ring-teal-500 outline-none"
+                            placeholder="https://..." />
+                        </div>
+                      </div>
+                    </div>
+                </template>
+
+                <button type="button" @click="addResource(mIndex)"
+                  class="w-full py-2 border-2 border-dashed border-slate-300 rounded-xl text-slate-500 font-bold hover:border-teal-400 hover:text-teal-600 transition-colors">
+                  + Ajouter une ressource
+                </button>
+            </div>
+
+          </div>
+        </template>
+        
+        <button type="button" @click="addModule()" class="w-full py-4 bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl text-slate-500 font-bold hover:bg-white hover:border-indigo-400 hover:text-indigo-600 transition-all flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+            </svg>
+            Ajouter un nouveau module
+        </button>
+      </div>
+
+      {{-- Sources & Références Section --}}
+      <div class="bg-white rounded-3xl shadow-xl border border-slate-100 p-8 space-y-6 mt-8" x-data="{
+          sources: [],
+          addSource() {
+              this.sources.push('');
+          },
+          removeSource(index) {
+              this.sources.splice(index, 1);
+          }
+      }">
+        <h2 class="text-xl font-bold text-slate-800 border-b border-slate-100 pb-4 flex items-center justify-between">
+          <span class="flex items-center gap-2">
+            <span>📚</span>
+            Sources & Références
+          </span>
+        </h2>
+        <p class="text-sm text-slate-500">
+          Ajoutez les sources et références utilisées pour créer ce cours (optionnel). Ces sources seront affichées en bas de la page du cours.
+        </p>
+
+        <div class="space-y-3">
+          <template x-for="(source, sIndex) in sources" :key="sIndex">
+            <div class="flex gap-3 items-start">
+              <div class="flex-1">
+                <input type="text" :name="`sources[${sIndex}]`" x-model="sources[sIndex]"
+                  class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all outline-none"
+                  placeholder="URL ou nom de la source (ex: https://developer.mozilla.org ou 'Documentation Python officielle')" />
+              </div>
+              <button type="button" @click="removeSource(sIndex)"
+                class="px-4 py-3 bg-red-50 text-red-600 font-bold rounded-xl hover:bg-red-100 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </div>
+          </template>
+
+          <button type="button" @click="addSource()"
+            class="w-full py-3 border-2 border-dashed border-slate-300 rounded-xl text-slate-500 font-bold hover:border-primary-400 hover:text-primary-600 transition-colors flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+            </svg>
+            Ajouter une source
+          </button>
+        </div>
+      </div>
+
+      <div class="pt-6 flex justify-end gap-4 sticky bottom-6 z-20">
+        <div class="bg-white/80 backdrop-blur-md p-2 rounded-2xl shadow-2xl border border-slate-200 flex gap-4">
+          <a href="/mes-cours" class="px-6 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-colors">
+            Annuler
+          </a>
+          <button type="submit" class="px-8 py-3 bg-primary-600 text-white font-bold rounded-xl hover:bg-primary-700 shadow-lg shadow-primary-200 hover:scale-105 transition-all">
+            Créer le cours
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+@end

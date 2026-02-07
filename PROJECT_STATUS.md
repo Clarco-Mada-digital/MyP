@@ -41,6 +41,17 @@ La page "Mes Cours" a été transformée en tableau de bord complet :
 - **Nettoyage** : Suppression des modules inutiles (Forums, Groupes, Mentorat) qui alourdissaient l'application sans valeur ajoutée.
 - **Design Premium** : Refonte visuelle complète pour une expérience utilisateur moderne et fluide.
 
+### 5. Création et Édition Manuelle (BÊTA - 07/02)
+
+- **Mode Créateur** : Possibilité de créer des cours entièrement à la main, sans dépendre de l'IA.
+- **Éditeur Riche** :
+  - Gestion complète des **Modules** (Ajout, suppression, titre).
+  - Gestion des **Leçons** avec contenu Markdown et éditeur visuel.
+  - Ajout d'**Exercices Pratiques** pour chaque module.
+  - Ajout de **Quiz Interactifs** (QCM) avec explications.
+- **Interface Intuitive** : UI moderne avec Alpine.js pour une expérience fluide.
+- **Catégorisation** : Classement des cours par catégories.
+
 ## ⚠️ Problèmes Connus
 
 - **Erreur 429 (Too Many Requests)** : Le quota gratuit de l'API Gemini est limité.

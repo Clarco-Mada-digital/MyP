@@ -11,7 +11,7 @@ const shieldConfig = defineConfig({
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.tailwindcss.com", "https://unpkg.com/", "https://cdn.jsdelivr.net/"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css"],
-      styleSrcElem: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css"],
+      styleSrcElem: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:"],
       mediaSrc: ["'self'", "https://www.soundhelix.com", "https://*.mp3", "https://*.wav", "https://*.ogg"],

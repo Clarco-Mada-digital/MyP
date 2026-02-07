@@ -20,7 +20,13 @@
       rel="stylesheet"
     />
 
-    <script src="https://cdn.tailwindcss.com"></script>
+    @if(process.env.NODE_ENV === 'production')
+      {{-- En production, utiliser le CSS buildé --}}
+      <link rel="stylesheet" href="{{ asset('assets/app.css') }}">
+    @else
+      {{-- En développement, utiliser le CDN --}}
+      <script src="https://cdn.tailwindcss.com"></script>
+    @end
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
     {{-- PWA Manifest & Service Worker --}}
@@ -49,6 +55,7 @@
         });
       }
     </script>
+    @if(process.env.NODE_ENV !== 'production')
     <script>
       tailwind.config = {
         theme: {
@@ -75,18 +82,8 @@
         }
       };
     </script>
+    @end
     <style>
-      .cloak {
-        display: none;
-      }
-
-      .glass {
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-      }
-      
       .gradient-text {
         background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);
         -webkit-background-clip: text;

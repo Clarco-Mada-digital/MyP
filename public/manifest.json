@@ -7,15 +7,16 @@
   "background_color": "#ffffff",
   "theme_color": "#4f46e5",
   "orientation": "portrait-primary",
+  "version": "2.0",
   "icons": [
     {
-      "src": "/icons/icon-192x192.png",
+      "src": "/icons/icon-192x192.png?v=2.0",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/icons/icon-512x512.png",
+      "src": "/icons/icon-512x512.png?v=2.0",
       "sizes": "512x512",
       "type": "image/png"
     }
@@ -24,12 +25,12 @@
     {
       "name": "Recents",
       "url": "/mes-cours",
-      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icons/icon-192x192.png?v=2.0", "sizes": "192x192" }]
     },
     {
       "name": "Parcourir",
       "url": "/parcourir",
-      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icons/icon-192x192.png?v=2.0", "sizes": "192x192" }]
     }
   ]
 }

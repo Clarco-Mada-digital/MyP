@@ -1,7 +1,11 @@
-const CACHE_NAME = 'myp-v1'
+const CACHE_NAME = 'myp-v2'
 const ASSETS_TO_CACHE = [
   '/',
-  '/manifest.json',
+  '/manifest.json?v=2.0',
+  '/icons/icon-192x192.png?v=2.0',
+  '/icons/icon-512x512.png?v=2.0',
+  '/favicon-16x16.png?v=2.0',
+  '/favicon-32x32.png?v=2.0',
   'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap',
   'https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js',
 ]

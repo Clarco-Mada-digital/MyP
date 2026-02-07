@@ -236,21 +236,20 @@
     box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
   }
 </style>
-@verbatim
 <script>
   function confirmDeletion(courseTitle) {
-    const confirmation = `⚠️ CONFIRMATION DE SUPPRESSION ⚠️\n\n` +
-      `Cours : "${courseTitle}"\n\n` +
-      `Cette action va envoyer une demande de suppression à l'administrateur.\n\n` +
-      `❗️ Si le cours est utilisé dans un parcours, la demande sera AUTOMATIQUEMENT refusée.\n\n` +
-      `❗️ Si le cours n'est pas dans un parcours, la demande sera envoyée pour validation.\n\n` +
-      `Êtes-vous ABSOLUMENT sûr de vouloir continuer ?\n\n` +
-      `Cliquez sur "OK" pour confirmer, ou "Annuler" pour annuler.`;
+    const confirmation = '⚠️ CONFIRMATION DE SUPPRESSION ⚠️\n\n' +
+      'Cours : "' + courseTitle + '"\n\n' +
+      'Cette action va envoyer une demande de suppression à l\'administrateur.\n\n' +
+      '❗️ Si le cours est utilisé dans un parcours, la demande sera AUTOMATIQUEMENT refusée.\n\n' +
+      '❗️ Si le cours n\'est pas dans un parcours, la demande sera envoyée pour validation.\n\n' +
+      'Êtes-vous ABSOLUMENT sûr de vouloir continuer ?\n\n' +
+      'Cliquez sur "OK" pour confirmer, ou "Annuler" pour annuler.';
 
     return confirm(confirmation);
   }
 </script>
-@endverbatim
+@endslot
 
 @slot('main')
 <main class="max-w-5xl mx-auto px-4 sm:px-6 py-6 md:py-12">
@@ -1653,5 +1652,5 @@
          document.body.removeChild(a);
       }
 </script>
-@end
-@end
+@endslot
+@endapp

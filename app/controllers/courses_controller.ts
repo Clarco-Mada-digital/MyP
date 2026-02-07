@@ -813,50 +813,49 @@ export default class CoursesController {
           })
         }
 
-        // Update exercises
-        if (inputM.exercises) {
-          const exercisesData = Array.isArray(inputM.exercises) ? inputM.exercises : Object.values(inputM.exercises)
-          m.exercises = exercisesData
-            .map((e: any) => String(e)) // Ensure it's a string
-            .filter((e: string) => e && e.trim() !== '')
-        }
+        // Update exercises - toujours exécuté pour permettre la suppression
+        const exercisesData = inputM.exercises ? 
+          (Array.isArray(inputM.exercises) ? inputM.exercises : Object.values(inputM.exercises)) : []
+        
+        m.exercises = exercisesData
+          .map((e: any) => String(e)) // Ensure it's a string
+          .filter((e: string) => e && e.trim() !== '')
 
-        // Update quiz
-        if (inputM.quiz) {
-          const quizData = Array.isArray(inputM.quiz) ? inputM.quiz : Object.values(inputM.quiz)
+        // Update quiz - toujours exécuté pour permettre la suppression
+        const quizData = inputM.quiz ? 
+          (Array.isArray(inputM.quiz) ? inputM.quiz : Object.values(inputM.quiz)) : []
 
-          m.quiz = quizData.map((q: any) => {
-            const options = q.options ? (Array.isArray(q.options) ? q.options : Object.values(q.options)) : []
-            return {
-              question: q.question,
-              options: options,
-              answer: q.answer,
-              explanation: q.explanation || ''
-            }
-          }).filter((q: any) => q.question && q.question.trim() !== '')
-        }
+        m.quiz = quizData.map((q: any) => {
+          const options = q.options ? (Array.isArray(q.options) ? q.options : Object.values(q.options)) : []
+          return {
+            question: q.question,
+            options: options,
+            answer: q.answer,
+            explanation: q.explanation || ''
+          }
+        }).filter((q: any) => q.question && q.question.trim() !== '')
 
-        // Update resources
-        if (inputM.resources) {
-          const resData = Array.isArray(inputM.resources) ? inputM.resources : Object.values(inputM.resources)
-          m.resources = resData.map((r: any) => ({
-            title: r.title || 'Ressource',
-            url: r.url || '#'
-          })).filter((r: any) => r.url && r.url.trim() !== '' && r.url !== '#')
-        }
+        // Update resources - toujours exécuté pour permettre la suppression
+        const resData = inputM.resources ? 
+          (Array.isArray(inputM.resources) ? inputM.resources : Object.values(inputM.resources)) : []
+        
+        m.resources = resData.map((r: any) => ({
+          title: r.title || 'Ressource',
+          url: r.url || '#'
+        })).filter((r: any) => r.url && r.url.trim() !== '' && r.url !== '#')
 
         return m
       })
     }
 
-    // Update sources if provided
+    // Update sources - toujours exécuté pour permettre la suppression
     const sourcesInput = request.input('sources')
-    if (sourcesInput) {
-      const sourcesData = Array.isArray(sourcesInput) ? sourcesInput : Object.values(sourcesInput)
-      content.sources = sourcesData
-        .map((s: any) => String(s).trim())
-        .filter((s: string) => s !== '')
-    }
+    const sourcesData = sourcesInput ? 
+      (Array.isArray(sourcesInput) ? sourcesInput : Object.values(sourcesInput)) : []
+    
+    content.sources = sourcesData
+      .map((s: any) => String(s).trim())
+      .filter((s: string) => s !== '')
 
     course.content = content
     // Also update top-level description field if it exists and is used

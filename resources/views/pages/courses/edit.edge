@@ -1,4 +1,9 @@
 @component('components/app', { title: 'Modifier le cours - ' + course.title })
+@verbatim
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+@endverbatim
 <div class="max-w-7xl mx-auto px-6 py-12">
   <div class="mb-8">
     <a href="{{ route('courses.show', { slug: course.slug }) }}"

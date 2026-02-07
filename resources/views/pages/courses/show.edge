@@ -236,6 +236,7 @@
     box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
   }
 </style>
+@verbatim
 <script>
   function confirmDeletion(courseTitle) {
     const confirmation = `⚠️ CONFIRMATION DE SUPPRESSION ⚠️\n\n` +
@@ -248,48 +249,8 @@
 
     return confirm(confirmation);
   }
-
-  function initQuiz(data) {
-    // Normalisation : On s'assure que la "réponse" stockée est bien le texte complet de l'option
-    // car l'IA renvoie souvent juste "A", "B", "C" alors que les options sont "A. Texte..."
-    const normalizedQuestions = data.map(q => {
-      if (q.answer.length < 5) { // Si c'est juste une lettre ou court
-        const fullAnswer = q.options.find(opt =>
-          opt.trim().startsWith(q.answer + '.') ||
-          opt.trim().startsWith(q.answer + ')') ||
-          opt.trim().startsWith(q.answer + ' ') ||
-          opt.trim() === q.answer
-        );
-        if (fullAnswer) q.answer = fullAnswer;
-      }
-      return q;
-    });
-
-    return {
-      finished: false,
-      score: 0,
-      answers: [],
-      questions: normalizedQuestions,
-      checkAnswer(index, option) {
-        if (this.finished) return;
-        this.answers[index] = option;
-      },
-      finish() {
-        this.score = 0;
-        this.questions.forEach((q, i) => {
-          if (this.answers[i] === q.answer) this.score++;
-        });
-        this.finished = true;
-      },
-      reset() {
-        this.finished = false;
-        this.score = 0;
-        this.answers = [];
-      }
-    }
-  }
 </script>
-@endslot
+@endverbatim
 
 @slot('main')
 <main class="max-w-5xl mx-auto px-4 sm:px-6 py-6 md:py-12">
@@ -741,7 +702,39 @@
           <script>
             window.quizData_{{ index }} = {{{ JSON.stringify(module.quiz).replace(/<\/script>/g, '<\\/script>') }}};
           </script>
-          <div x-data="initQuiz(window.quizData_{{ index }})"
+          <div x-data="{
+              finished: false,
+              score: 0,
+              answers: [],
+              questions: window.quizData_{{ index }} ? window.quizData_{{ index }}.map(q => {
+                if (q.answer.length < 5) {
+                  const fullAnswer = q.options.find(opt =>
+                    opt.trim().startsWith(q.answer + '.') ||
+                    opt.trim().startsWith(q.answer + ')') ||
+                    opt.trim().startsWith(q.answer + ' ') ||
+                    opt.trim() === q.answer
+                  );
+                  if (fullAnswer) q.answer = fullAnswer;
+                }
+                return q;
+              }) : [],
+              checkAnswer(index, option) {
+                if (this.finished) return;
+                this.answers[index] = option;
+              },
+              finish() {
+                this.score = 0;
+                this.questions.forEach((q, i) => {
+                  if (this.answers[i] === q.answer) this.score++;
+                });
+                this.finished = true;
+              },
+              reset() {
+                this.finished = false;
+                this.score = 0;
+                this.answers = [];
+              }
+            }"
             class="mt-12 bg-indigo-50 rounded-[2.5rem] p-8 md:p-12 border border-indigo-100 shadow-inner">
 
             <div class="flex items-center justify-between mb-8">

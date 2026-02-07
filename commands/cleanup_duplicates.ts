@@ -62,6 +62,10 @@ export default class CleanupDuplicates extends BaseCommand {
       const originalCourses = sharedPath.learningPath.courses
       const importedCourses = path.courses
       const ownerId = path.userId
+      if (!ownerId) {
+        this.logger.warning(`  Skipping path ${path.id} - no owner ID`)
+        continue
+      }
 
       for (const importedCourse of importedCourses) {
         const original = originalCourses.find(oc =>
@@ -75,18 +79,18 @@ export default class CleanupDuplicates extends BaseCommand {
 
           try {
             const existingProgress = await db.from('course_progresses')
-              .where('user_id', ownerId)
+              .where('user_id', ownerId!)
               .where('course_id', original.id)
               .select('id')
 
             if (existingProgress.length === 0) {
               await db.from('course_progresses')
-                .where('user_id', ownerId)
+                .where('user_id', ownerId!)
                 .where('course_id', importedCourse.id)
                 .update({ course_id: original.id })
             } else {
               await db.from('course_progresses')
-                .where('user_id', ownerId)
+                .where('user_id', ownerId!)
                 .where('course_id', importedCourse.id)
                 .delete()
             }
@@ -95,7 +99,7 @@ export default class CleanupDuplicates extends BaseCommand {
           }
 
           await db.from('bookmarks')
-            .where('user_id', ownerId)
+            .where('user_id', ownerId!)
             .where('course_id', importedCourse.id)
             .update({ course_id: original.id }).catch(() => { })
 

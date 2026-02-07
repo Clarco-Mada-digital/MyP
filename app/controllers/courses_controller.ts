@@ -758,7 +758,9 @@ export default class CoursesController {
       return response.notFound("Cours introuvable")
     }
 
-    return view.render('pages/courses/edit', { course })
+    const categories = await Category.all()
+
+    return view.render('pages/courses/edit', { course, categories })
   }
 
   /**
@@ -783,13 +785,165 @@ export default class CoursesController {
     content.description = description
     content.image = image
 
+    // Update modules if provided
+    const modulesInput = request.input('modules')
+    if (modulesInput && content.modules && Array.isArray(content.modules)) {
+      // Handle potential object-like array from form submission
+      // When submitted from form, it might be { '0': { ... }, '1': { ... } }
+      const inputModulesList = Array.isArray(modulesInput) ? modulesInput : Object.values(modulesInput)
+
+      content.modules = content.modules.map((m: any, idx: number) => {
+        const inputM = inputModulesList[idx]
+        if (!inputM) return m
+
+        // Update module title
+        if (inputM.title) m.title = inputM.title
+
+        // Update lessons
+        if (m.lessons && Array.isArray(m.lessons) && inputM.lessons) {
+          const inputLessonsList = Array.isArray(inputM.lessons) ? inputM.lessons : Object.values(inputM.lessons)
+
+          m.lessons = m.lessons.map((l: any, lIdx: number) => {
+            const inputL = inputLessonsList[lIdx]
+            if (inputL) {
+              if (inputL.title) l.title = inputL.title
+              if (inputL.content) l.content = inputL.content
+            }
+            return l
+          })
+        }
+
+        // Update exercises
+        if (inputM.exercises) {
+          const exercisesData = Array.isArray(inputM.exercises) ? inputM.exercises : Object.values(inputM.exercises)
+          m.exercises = exercisesData
+            .map((e: any) => String(e)) // Ensure it's a string
+            .filter((e: string) => e && e.trim() !== '')
+        }
+
+        // Update quiz
+        if (inputM.quiz) {
+          const quizData = Array.isArray(inputM.quiz) ? inputM.quiz : Object.values(inputM.quiz)
+
+          m.quiz = quizData.map((q: any) => {
+            const options = q.options ? (Array.isArray(q.options) ? q.options : Object.values(q.options)) : []
+            return {
+              question: q.question,
+              options: options,
+              answer: q.answer,
+              explanation: q.explanation || ''
+            }
+          }).filter((q: any) => q.question && q.question.trim() !== '')
+        }
+
+        // Update resources
+        if (inputM.resources) {
+          const resData = Array.isArray(inputM.resources) ? inputM.resources : Object.values(inputM.resources)
+          m.resources = resData.map((r: any) => ({
+            title: r.title || 'Ressource',
+            url: r.url || '#'
+          })).filter((r: any) => r.url && r.url.trim() !== '' && r.url !== '#')
+        }
+
+        return m
+      })
+    }
+
+    // Update sources if provided
+    const sourcesInput = request.input('sources')
+    if (sourcesInput) {
+      const sourcesData = Array.isArray(sourcesInput) ? sourcesInput : Object.values(sourcesInput)
+      content.sources = sourcesData
+        .map((s: any) => String(s).trim())
+        .filter((s: string) => s !== '')
+    }
+
     course.content = content
     // Also update top-level description field if it exists and is used
     course.description = description
 
+    // Mark as user-edited and update timestamp
+    course.creationType = 'user_edited'
+    course.lastEditedAt = DateTime.now()
+
     await course.save()
 
     session.flash('notification', { type: 'success', message: 'Cours mis à jour avec succès !' })
+    return response.redirect().toRoute('courses.show', { slug: course.slug })
+  }
+
+  /**
+   * Show manual course creation form
+   */
+  async create({ view, auth }: HttpContext) {
+    await auth.check()
+    const categories = await Category.all()
+    return view.render('pages/courses/create', { categories })
+  }
+
+  /**
+   * Store manually created course
+   */
+  async store({ request, response, auth, session }: HttpContext) {
+    await auth.check()
+
+    const data = request.only(['title', 'description', 'image', 'category_id'])
+    const modulesInput = request.input('modules')
+
+    // Build course content structure
+    const modules = []
+    if (modulesInput) {
+      const modulesList = Array.isArray(modulesInput) ? modulesInput : Object.values(modulesInput)
+
+      for (const moduleData of modulesList) {
+        const lessons = []
+        if (moduleData.lessons) {
+          const lessonsList = Array.isArray(moduleData.lessons) ? moduleData.lessons : Object.values(moduleData.lessons)
+          for (const lessonData of lessonsList) {
+            if (lessonData.title && lessonData.content) {
+              lessons.push({
+                title: lessonData.title,
+                content: lessonData.content
+              })
+            }
+          }
+        }
+
+        if (moduleData.title && lessons.length > 0) {
+          modules.push({
+            title: moduleData.title,
+            lessons: lessons,
+            exercises: [],
+            quiz: []
+          })
+        }
+      }
+    }
+
+    if (modules.length === 0) {
+      session.flash('notification', { type: 'error', message: 'Vous devez ajouter au moins un module avec une leçon.' })
+      return response.redirect().back()
+    }
+
+    const slug = string.slug(data.title, { lower: true })
+
+    const course = await Course.create({
+      userId: auth.user!.id,
+      categoryId: data.category_id || null,
+      title: data.title,
+      slug: slug,
+      description: data.description,
+      content: {
+        description: data.description,
+        image: data.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.title)}&background=random&size=512`,
+        modules: modules,
+        sources: []
+      },
+      status: 'ready',
+      creationType: 'manual'
+    })
+
+    session.flash('notification', { type: 'success', message: 'Cours créé avec succès !' })
     return response.redirect().toRoute('courses.show', { slug: course.slug })
   }
 }

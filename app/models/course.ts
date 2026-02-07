@@ -42,6 +42,12 @@ export default class Course extends BaseModel {
   @column()
   declare errorMessage: string | null
 
+  @column()
+  declare creationType: string
+
+  @column.dateTime()
+  declare lastEditedAt: DateTime | null
+
   @column.dateTime()
   declare lastReviewedAt: DateTime | null
 

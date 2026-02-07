@@ -41,6 +41,10 @@ export default class CleanupDuplicates extends BaseCommand {
       const originalCourses = sharedPath.learningPath.courses
       const importedCourses = path.courses
       const ownerId = path.userId
+      if (!ownerId) {
+        this.logger.warning(`  Skipping path ${path.id} - no owner ID`)
+        continue
+      }
       if (!ownerId) continue
 
       for (const importedCourse of importedCourses) {

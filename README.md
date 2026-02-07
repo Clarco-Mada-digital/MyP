@@ -1,64 +1,96 @@
-# AdonisJS Web Starter Kit
+# My Professor - Plateforme d'Apprentissage Intelligente
 
-This repo contains an AdonisJS application tailored for building a server-side rendered application using the [Edge template engine](https://edgejs.dev).
+Une plateforme d'apprentissage moderne qui combine la puissance de l'IA générative avec des outils de création manuelle pour offrir une expérience d'apprentissage personnalisée et interactive.
 
-## What's included
+## 🌟 Fonctionnalités Principales
 
-- TypeScript setup with commands to run developments server using `ts-node + swc` and create production build.
-- ESLint and Prettier setup extending the [AdonisJS tooling config](https://github.com/adonisjs/tooling-config) presets.
-- Ace command line framework.
-- Everything else you get with the core of AdonisJS.
+### 🤖 Génération de Cours par IA
+- Génération automatique de cours structurés via Google Gemini ou OpenRouter
+- Support de modèles locaux avec Ollama (gratuit et privé)
+- Contenu riche avec modules, leçons, exercices et quiz
 
-On top of the framework core and dev-tooling, the following features are enabled by the web starter kit.
+### ✍️ Création Manuelle (BÊTA)
+- Éditeur complet pour créer vos propres cours
+- Support Markdown avec barre d'outils visuelle
+- Gestion de modules, leçons, exercices pratiques et quiz interactifs
+- Ajout de ressources externes (liens, documentation)
+- Catégorisation des cours
 
-- Lucid ORM ( Installed, but not configured )
-- Auth module ( Installed, but not configured )
-- CSRF protection
-- Edge template engine
-- VineJS for validations
-- Static files server
-- Vite for bundling and serving frontend assets
+### 📚 Gestion de Parcours
+- Création de parcours d'apprentissage personnalisés
+- Mode séquentiel pour un apprentissage progressif
+- Suivi de progression avec badges et statistiques
 
-## Usage
+### 🌐 Communauté
+- Partage de parcours avec la communauté
+- Importation de parcours créés par d'autres utilisateurs
+- Système de découverte avec filtres
 
-You can create a new app using the `web` boilerplate by executing the following command. The command will perform the following steps.
+## 🛠️ Stack Technique
 
-- Clone the repo
-- Install dependencies
-- Copy `.env.example` to `.env`
-- Set app key using `node ace generate:key` command.
-- Configure `@adonisjs/lucid` package.
-- Configure `@adonisjs/auth` package.
+- **Backend**: AdonisJS 6 (TypeScript)
+- **Base de données**: PostgreSQL avec Lucid ORM
+- **Frontend**: Edge Templates + Alpine.js
+- **Styling**: TailwindCSS
+- **IA**: Google Gemini, OpenRouter, Ollama
+- **Build**: Vite
 
-```sh
-npm init adonisjs@latest -- -K=web
+## 📦 Installation
+
+```bash
+# Cloner le repository
+git clone <repo-url>
+cd MyP
+
+# Installer les dépendances
+npm install
+
+# Configurer l'environnement
+cp .env.example .env
+# Éditer .env avec vos clés API
+
+# Lancer les migrations
+node ace migration:run
+
+# Démarrer le serveur de développement
+npm run dev
 ```
 
-### Configuring Lucid database dialect
+## 🔑 Configuration
 
-By default, the `npm init adonisjs@latest` command configures Lucid to use `sqlite`. However, you can define a custom database dialect as follows.
+Configurez les variables d'environnement dans `.env` :
 
-```sh
-npm init adonisjs@latest -- -K=web --db=postgres
+```env
+# Base de données
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=
+DB_DATABASE=myp
+
+# IA (optionnel - au moins une clé requise)
+GEMINI_API_KEY=your_gemini_key
+OPENROUTER_API_KEY=your_openrouter_key
+OLLAMA_BASE_URL=http://localhost:11434
 ```
 
-Available options for the `--db` flag.
+## 📖 Documentation
 
-- sqlite
-- postgres
-- mysql
-- mssql
+Consultez le [Guide d'utilisation](PROJECT_STATUS.md) pour plus de détails sur les fonctionnalités et l'état du projet.
 
-### Configuring Auth package guard
+## 🚀 Roadmap
 
-By default, the `npm init adonisjs@latest` command configures the Auth package to use `session` guard. However, you can define a custom auth guard as follows.
+- [ ] Drag & drop pour réorganiser les modules
+- [ ] Export de cours en PDF
+- [ ] Mode sombre
+- [ ] Système de likes pour les parcours partagés
+- [ ] Notifications en temps réel
 
-```sh
-npm init adonisjs@latest -- -K=web --auth-guard=access_tokens
-```
+## 📄 Licence
 
-Available options for the `--auth-guard` flag.
+Ce projet est sous licence MIT.
 
-- session
-- basic_auth
-- access_tokens
+---
+
+**Version**: 0.5 (Beta)  
+**Dernière mise à jour**: Février 2026

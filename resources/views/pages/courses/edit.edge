@@ -1,60 +1,519 @@
 @component('components/app', { title: 'Modifier le cours - ' + course.title })
-  <div class="max-w-3xl mx-auto px-6 py-12">
-    <div class="mb-8">
-      <a href="{{ route('courses.show', { slug: course.slug }) }}" class="text-sm font-bold text-slate-500 hover:text-primary-600 flex items-center gap-2 mb-4">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-        Retour au cours
-      </a>
-      <h1 class="text-3xl font-extrabold text-slate-900">Modifier le cours</h1>
-    </div>
+<div class="max-w-7xl mx-auto px-6 py-12">
+  <div class="mb-8">
+    <a href="{{ route('courses.show', { slug: course.slug }) }}"
+      class="text-sm font-bold text-slate-500 hover:text-primary-600 flex items-center gap-2 mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12" />
+        <polyline points="12 19 5 12 12 5" />
+      </svg>
+      Retour au cours
+    </a>
+    <h1 class="text-3xl font-extrabold text-slate-900">Modifier le cours <span class="bg-amber-100 text-amber-600 px-3 py-1 rounded-full text-sm align-middle font-bold ml-2">BÊTA</span></h1>
+  </div>
 
-    <form action="{{ route('courses.update', { id: course.id }) }}" method="POST" class="bg-white rounded-3xl shadow-xl border border-slate-100 p-8 space-y-6">
-      {{ csrfField() }}
-      
+  <form action="{{ route('courses.update', { id: course.id }) }}" method="POST" class="space-y-8"
+    x-data="{ activeModule: 0 }">
+    {{ csrfField() }}
+
+    <div class="bg-white rounded-3xl shadow-xl border border-slate-100 p-8 space-y-6">
+      <h2 class="text-xl font-bold text-slate-800 border-b border-slate-100 pb-4">Informations Générales</h2>
       <div>
         <label class="block text-sm font-bold text-slate-700 mb-2">Titre du cours</label>
-        <input type="text" name="title" value="{{ course.title }}" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all outline-none font-bold text-lg" required />
+        <input type="text" name="title" value="{{ course.title }}"
+          class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all outline-none font-bold text-lg"
+          required />
+      </div>
+
+      <div>
+        <label class="block text-sm font-bold text-slate-700 mb-2">Catégorie</label>
+        <select name="category_id" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all outline-none">
+            <option value="">Aucune catégorie</option>
+            @each(category in categories)
+              <option value="{{ category.id }}" {{ course.categoryId === category.id ? 'selected' : '' }}>{{ category.name }}</option>
+            @end
+        </select>
       </div>
 
       <div>
         <label class="block text-sm font-bold text-slate-700 mb-2">Image de couverture (URL)</label>
         <div class="flex gap-4 items-start">
-             <div class="flex-1">
-                <input type="url" name="image" value="{{ course.content?.image || '' }}" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all outline-none" placeholder="https://..." />
-                <p class="text-xs text-slate-400 mt-2">Lien direct vers une image (Unsplash, etc.)</p>
-             </div>
-             @if(course.content?.image)
-                <div class="w-24 h-16 rounded-lg overflow-hidden border border-slate-200 shrink-0">
-                    <img src="{{ course.content.image }}" class="w-full h-full object-cover" onerror="this.src='https://ui-avatars.com/api/?name={{ course.title }}&background=random'" />
-                </div>
-             @end
+          <div class="flex-1">
+            <input type="url" name="image" value="{{ course.content?.image || '' }}"
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all outline-none"
+              placeholder="https://..." />
+            <p class="text-xs text-slate-400 mt-2">Lien direct vers une image (Unsplash, etc.)</p>
+          </div>
+          @if(course.content?.image)
+          <div class="w-24 h-16 rounded-lg overflow-hidden border border-slate-200 shrink-0">
+            <img src="{{ course.content.image }}" class="w-full h-full object-cover"
+              onerror="this.src='https://ui-avatars.com/api/?name={{ course.title }}&background=random'" />
+          </div>
+          @end
         </div>
       </div>
 
       <div>
         <label class="block text-sm font-bold text-slate-700 mb-2">Description</label>
-        <textarea name="description" rows="5" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all outline-none resize-y" required>{{ course.content?.description || course.description || '' }}</textarea>
+        <textarea name="description" rows="5"
+          class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all outline-none resize-y"
+          required>{{ course.content?.description || course.description || '' }}</textarea>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-3xl shadow-xl border border-slate-100 p-8 space-y-6" x-data="{ 
+        modules: {{ JSON.stringify(course.content.modules) }}.map(m => ({
+            ...m,
+            resources: m.resources || []
+        })),
+        removeModule(index) {
+            if(confirm('Voulez-vous vraiment supprimer ce module ?')) {
+                this.modules.splice(index, 1);
+            }
+        },
+        addLesson(mIndex) {
+            this.modules[mIndex].lessons.push({ title: '', content: '' });
+        },
+        addModule() {
+          this.modules.push({
+            title: `Module ${this.modules.length + 1}`,
+            lessons: [{ title: '', content: '' }],
+            exercises: [],
+            quiz: [],
+            resources: []
+          });
+        },
+        addExercise(mIndex) {
+            if (!this.modules[mIndex].exercises) this.modules[mIndex].exercises = [];
+            this.modules[mIndex].exercises.push('');
+        },
+        removeExercise(mIndex, eIndex) {
+            this.modules[mIndex].exercises.splice(eIndex, 1);
+        },
+        addQuestion(mIndex) {
+            if (!this.modules[mIndex].quiz) this.modules[mIndex].quiz = [];
+            this.modules[mIndex].quiz.push({ question: '', options: ['', '', '', ''], answer: '', explanation: '' });
+        },
+        removeQuestion(mIndex, qIndex) {
+            this.modules[mIndex].quiz.splice(qIndex, 1);
+        },
+        addResource(mIndex) {
+            if (!this.modules[mIndex].resources) this.modules[mIndex].resources = [];
+            this.modules[mIndex].resources.push({ title: '', url: '' });
+        },
+        removeResource(mIndex, rIndex) {
+            this.modules[mIndex].resources.splice(rIndex, 1);
+        }
+      }">
+      <h2 class="text-xl font-bold text-slate-800 border-b border-slate-100 pb-4 flex items-center justify-between">
+        <span>Contenu du Cours</span>
+      </h2>
+
+      <div class="space-y-4">
+        <template x-for="(module, mIndex) in modules" :key="mIndex">
+          <div class="border border-slate-200 rounded-2xl overflow-hidden">
+            <div
+              class="bg-slate-50 p-4 flex items-center justify-between cursor-pointer hover:bg-slate-100 transition-colors"
+              @click="activeModule === mIndex ? activeModule = null : activeModule = mIndex">
+              <div class="flex items-center gap-3 flex-1">
+                <span
+                  class="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center font-bold text-slate-500 text-sm"
+                  x-text="mIndex + 1">
+                </span>
+                <input type="text" :name="`modules[${mIndex}][title]`" x-model="module.title"
+                  class="bg-transparent border-none font-bold text-slate-700 focus:ring-0 w-full p-0 hover:bg-white/50 rounded px-2 transaction-colors"
+                  @click.stop />
+              </div>
+              <div class="flex items-center gap-3">
+                  <button type="button" @click.stop="removeModule(mIndex)" class="text-slate-400 hover:text-red-500 p-1" title="Supprimer le module">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                  </button>
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 text-slate-400 transform transition-transform duration-200"
+                    :class="activeModule === mIndex ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+              </div>
+            </div>
+
+            <div x-show="activeModule === mIndex" class="p-4 space-y-6 bg-white border-t border-slate-100">
+              <template x-for="(lesson, lIndex) in module.lessons" :key="lIndex">
+                <div class="pl-4 border-l-2 border-indigo-100 ml-4">
+                  <div class="mb-2 flex items-end gap-2">
+                    <div class="flex-1">
+                        <label class="text-xs font-bold text-indigo-400 uppercase tracking-wide"
+                          x-text="`Leçon ${lIndex + 1}`"></label>
+                        <input type="text" :name="`modules[${mIndex}][lessons][${lIndex}][title]`" x-model="lesson.title"
+                          class="block w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" />
+                    </div>
+                    <button type="button" @click="module.lessons.length > 1 ? module.lessons.splice(lIndex, 1) : alert('Un module doit avoir au moins une leçon')" class="p-2 mb-1 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Supprimer la leçon">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                  </div>
+                  <div>
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wide">Contenu (Markdown)</label>
+                    <div class="relative group" x-data="{ 
+                            insertText(text, cursorOffset = 0) {
+                                const textarea = $refs.mdEditor;
+                                const start = textarea.selectionStart;
+                                const end = textarea.selectionEnd;
+                                const before = textarea.value.substring(0, start);
+                                const after = textarea.value.substring(end);
+                                textarea.value = before + text + after;
+                                textarea.focus();
+                                const newPos = start + text.length + cursorOffset;
+                                textarea.setSelectionRange(newPos, newPos);
+                            }
+                          }">
+                      <div
+                        class="flex items-center gap-1 bg-slate-100 p-1 rounded-t-lg border border-slate-200 border-b-0">
+                        <button type="button" @click="insertText('**Gras**', -2)"
+                          class="p-1 hover:bg-white rounded text-slate-500 hover:text-slate-700" title="Gras">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
+                            <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
+                          </svg>
+                        </button>
+                        <button type="button" @click="insertText('*Italique*', -1)"
+                          class="p-1 hover:bg-white rounded text-slate-500 hover:text-slate-700" title="Italique">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="19" y1="4" x2="10" y2="4"></line>
+                            <line x1="14" y1="20" x2="5" y2="20"></line>
+                            <line x1="15" y1="4" x2="9" y2="20"></line>
+                          </svg>
+                        </button>
+                        <div class="w-px h-4 bg-slate-300 mx-1"></div>
+                        <button type="button" @click="insertText('# Titre 1\n')"
+                          class="p-1 hover:bg-white rounded text-slate-500 hover:text-slate-700 font-bold text-xs"
+                          title="Titre 1">H1</button>
+                        <button type="button" @click="insertText('## Titre 2\n')"
+                          class="p-1 hover:bg-white rounded text-slate-500 hover:text-slate-700 font-bold text-xs"
+                          title="Titre 2">H2</button>
+                        <div class="w-px h-4 bg-slate-300 mx-1"></div>
+                        <button type="button" @click="insertText('- Liste\n- Item 2')"
+                          class="p-1 hover:bg-white rounded text-slate-500 hover:text-slate-700" title="Liste à puces">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="8" y1="6" x2="21" y2="6"></line>
+                            <line x1="8" y1="12" x2="21" y2="12"></line>
+                            <line x1="8" y1="18" x2="21" y2="18"></line>
+                            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                          </svg>
+                        </button>
+                        <button type="button" @click="insertText('1. Liste\n2. Item 2')"
+                          class="p-1 hover:bg-white rounded text-slate-500 hover:text-slate-700"
+                          title="Liste numérotée">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="10" y1="6" x2="21" y2="6"></line>
+                            <line x1="10" y1="12" x2="21" y2="12"></line>
+                            <line x1="10" y1="18" x2="21" y2="18"></line>
+                            <path d="M4 6h1v4"></path>
+                            <path d="M4 10h2"></path>
+                            <path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"></path>
+                          </svg>
+                        </button>
+                        <div class="w-px h-4 bg-slate-300 mx-1"></div>
+                        <button type="button" @click="insertText('[Texte du lien](url)', -1)"
+                          class="p-1 hover:bg-white rounded text-slate-500 hover:text-slate-700" title="Lien">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                          </svg>
+                        </button>
+                        <button type="button" @click="insertText('![Alt texte](image_url)', -1)"
+                          class="p-1 hover:bg-white rounded text-slate-500 hover:text-slate-700" title="Image">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                          </svg>
+                        </button>
+                        <button type="button" @click="insertText('\n```javascript\ncode ici\n```\n', -4)"
+                          class="p-1 hover:bg-white rounded text-slate-500 hover:text-slate-700" title="Code Block">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="16 18 22 12 16 6"></polyline>
+                            <polyline points="8 6 2 12 8 18"></polyline>
+                          </svg>
+                        </button>
+                        <div class="w-px h-4 bg-slate-300 mx-1"></div>
+                        <button type="button" @click="insertText('::: video\nurl_video_ici\n:::\n')"
+                          class="p-1 hover:bg-indigo-50 rounded text-indigo-500 hover:text-indigo-700 bg-indigo-50/50"
+                          title="Insérer Vidéo">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                          </svg>
+                        </button>
+                        <button type="button" @click="insertText('::: audio\nurl_audio_ici\n:::\n')"
+                          class="p-1 hover:bg-indigo-50 rounded text-indigo-500 hover:text-indigo-700 bg-indigo-50/50"
+                          title="Insérer Audio">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                            <line x1="12" y1="19" x2="12" y2="23"></line>
+                            <line x1="8" y1="23" x2="16" y2="23"></line>
+                          </svg>
+                        </button>
+                      </div>
+                      <textarea x-ref="mdEditor" :name="`modules[${mIndex}][lessons][${lIndex}][content]`"
+                        x-model="lesson.content" rows="10"
+                        class="block w-full px-3 py-2 bg-slate-50 border border-slate-200 border-t-0 rounded-b-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-y"></textarea>
+                    </div>
+                  </div>
+
+
+                </div>
+              </template>
+
+              <button type="button" @click="addLesson(mIndex)" class="w-full py-2 border-2 border-dashed border-indigo-100 rounded-lg text-indigo-500 font-bold hover:bg-indigo-50 hover:border-indigo-200 transition-colors text-sm mb-8">
+                + Ajouter une leçon
+              </button>
+
+              <!-- Exercises Section -->
+              <div class="mt-6 pt-6 border-t border-slate-100">
+                <h4 class="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-purple-500" viewBox="0 0 20 20"
+                    fill="currentColor">
+                    <path fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
+                      clip-rule="evenodd" />
+                  </svg>
+                  Exercices
+                </h4>
+                <div x-data="{ 
+                    // Empty local data, reusing parent methods
+                 }">
+                  <template x-for="(exo, eIndex) in (module.exercises || [])" :key="eIndex">
+                    <div class="flex items-center gap-2 mb-2">
+                      <input type="text" :name="`modules[${mIndex}][exercises][${eIndex}]`"
+                        x-model="module.exercises[eIndex]"
+                        class="flex-1 px-3 py-2 bg-purple-50 border border-purple-100 rounded-lg text-sm text-purple-900 focus:ring-2 focus:ring-purple-500 outline-none"
+                        placeholder="Description de l'exercice..." />
+                      <button type="button" @click="removeExercise(mIndex, eIndex)"
+                        class="text-slate-400 hover:text-red-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                          fill="currentColor">
+                          <path fill-rule="evenodd"
+                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                            clip-rule="evenodd" />
+                        </svg>
+                      </button>
+                    </div>
+                  </template>
+                  <button type="button" @click="addExercise(mIndex)"
+                    class="text-xs font-bold text-purple-600 hover:text-purple-800 flex items-center gap-1 mt-2">
+                    + Ajouter un exercice
+                  </button>
+                  <!-- Hidden inputs to ensure empty array is sent if all deleted -->
+                  <template x-if="!module.exercises || module.exercises.length === 0">
+                    <input type="hidden" :name="`modules[${mIndex}][exercises]`" value="" />
+                  </template>
+                </div>
+              </div>
+
+                <!-- Quiz Section for the Module -->
+                <div class="mt-8 pt-8 border-t-2 border-slate-100">
+                  <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <span class="bg-indigo-100 text-indigo-600 p-1 rounded-lg">🧠</span>
+                    Quiz du Module
+                  </h3>
+
+                  <div x-data="{ 
+                     // Empty local data
+                   }">
+                    <template x-for="(q, qIndex) in (module.quiz || [])" :key="qIndex">
+                      <div class="bg-slate-50 rounded-xl p-4 mb-4 border border-slate-200">
+                        <div class="flex justify-between items-start mb-3">
+                          <span class="text-xs font-bold text-slate-400 uppercase">Question <span
+                              x-text="qIndex + 1"></span></span>
+                          <button type="button" @click="removeQuestion(mIndex, qIndex)"
+                            class="text-red-400 hover:text-red-600 text-xs font-bold">Supprimer</button>
+                        </div>
+
+                        <input type="text" :name="`modules[${mIndex}][quiz][${qIndex}][question]`" x-model="q.question"
+                          class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-bold text-slate-700 mb-3 focus:ring-2 focus:ring-indigo-500 outline-none"
+                          placeholder="Votre question..." />
+
+                        <div class="space-y-2 pl-4 border-l-2 border-slate-200">
+                          <template x-for="(opt, oIndex) in q.options" :key="oIndex">
+                            <div class="flex items-center gap-2">
+                              <input type="radio" :name="`modules[${mIndex}][quiz][${qIndex}][answer_index]`"
+                                :value="oIndex" :checked="q.answer === opt && opt !== ''" @change="q.answer = opt"
+                                class="text-indigo-600 focus:ring-indigo-500" />
+                              <input type="text" :name="`modules[${mIndex}][quiz][${qIndex}][options][]`"
+                                x-model="q.options[oIndex]" {{-- Update answer if this option is the selected one --}}
+                                @input="if(q.answer === $el.value || $el.previousElementSibling.checked) q.answer = $el.value"
+                                class="flex-1 px-3 py-1 bg-white border border-slate-200 rounded text-sm focus:ring-1 focus:ring-indigo-500 outline-none"
+                                placeholder="Option de réponse" />
+                            </div>
+                          </template>
+                        </div>
+
+                        <div class="mt-3">
+                          <label class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1 block">Explication
+                            (optionnelle)</label>
+                          <textarea :name="`modules[${mIndex}][quiz][${qIndex}][explanation]`" x-model="q.explanation"
+                            rows="2"
+                            class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 focus:ring-2 focus:ring-indigo-500 outline-none resize-y"
+                            placeholder="Explication pédagogique pour aider à comprendre la bonne réponse..."></textarea>
+                        </div>
+
+                        <input type="hidden" :name="`modules[${mIndex}][quiz][${qIndex}][answer]`" x-model="q.answer">
+                      </div>
+                    </template>
+
+                    <button type="button" @click="addQuestion(mIndex)"
+                      class="w-full py-2 border-2 border-dashed border-slate-300 rounded-xl text-slate-500 font-bold hover:border-indigo-400 hover:text-indigo-600 transition-colors">
+                      + Ajouter une question au quiz
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Resources Section -->
+                <div class="mt-8 pt-8 border-t-2 border-slate-100">
+                  <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <span class="bg-teal-100 text-teal-600 p-1 rounded-lg">🔗</span>
+                    Ressources Utiles
+                  </h3>
+
+                  <div x-data="{}">
+                    <template x-for="(resource, rIndex) in (module.resources || [])" :key="rIndex">
+                      <div class="bg-slate-50 rounded-xl p-4 mb-4 border border-slate-200">
+                        <div class="flex justify-between items-start mb-3">
+                          <span class="text-xs font-bold text-slate-400 uppercase">Ressource <span x-text="rIndex + 1"></span></span>
+                          <button type="button" @click="removeResource(mIndex, rIndex)" class="text-red-400 hover:text-red-600 text-xs font-bold">Supprimer</button>
+                        </div>
+
+                        <div class="space-y-3">
+                          <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1 block">Titre de la ressource</label>
+                            <input type="text" :name="`modules[${mIndex}][resources][${rIndex}][title]`" x-model="resource.title"
+                              class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-bold text-slate-700 focus:ring-2 focus:ring-teal-500 outline-none"
+                              placeholder="Ex: Documentation officielle, Tutoriel vidéo..." />
+                          </div>
+
+                          <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1 block">URL</label>
+                            <input type="url" :name="`modules[${mIndex}][resources][${rIndex}][url]`" x-model="resource.url"
+                              class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-700 focus:ring-2 focus:ring-teal-500 outline-none"
+                              placeholder="https://..." />
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+
+                    <button type="button" @click="addResource(mIndex)"
+                      class="w-full py-2 border-2 border-dashed border-slate-300 rounded-xl text-slate-500 font-bold hover:border-teal-400 hover:text-teal-600 transition-colors">
+                      + Ajouter une ressource
+                    </button>
+                  </div>
+                </div>
+
+            </div>
+          </div>
+        </template>
       </div>
 
-      <div class="pt-6 border-t border-slate-100 flex justify-end gap-4">
-        <a href="{{ route('courses.show', { slug: course.slug }) }}" class="px-6 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-colors">
-            Annuler
-        </a>
-        <button type="submit" class="px-8 py-3 bg-primary-600 text-white font-bold rounded-xl hover:bg-primary-700 shadow-lg shadow-primary-200 hover:scale-105 transition-all">
-            Enregistrer les modifications
+      <button type="button" @click="addModule()"
+        class="w-full py-4 bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl text-slate-500 font-bold hover:bg-white hover:border-indigo-400 hover:text-indigo-600 transition-all flex items-center justify-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+        </svg>
+        Ajouter un nouveau module
+      </button>
+    </div>
+
+    {{-- Sources & Références Section --}}
+    <div class="bg-white rounded-3xl shadow-xl border border-slate-100 p-8 space-y-6" x-data="{
+        sources: {{ JSON.stringify(course.content?.sources || []) }},
+        addSource() {
+            this.sources.push('');
+        },
+        removeSource(index) {
+            this.sources.splice(index, 1);
+        }
+    }">
+      <h2 class="text-xl font-bold text-slate-800 border-b border-slate-100 pb-4 flex items-center justify-between">
+        <span class="flex items-center gap-2">
+          <span>📚</span>
+          Sources & Références
+        </span>
+      </h2>
+      <p class="text-sm text-slate-500">
+        Ajoutez les sources et références utilisées pour créer ce cours (optionnel). Ces sources seront affichées en bas de la page du cours.
+      </p>
+
+      <div class="space-y-3">
+        <template x-for="(source, sIndex) in sources" :key="sIndex">
+          <div class="flex gap-3 items-start">
+            <div class="flex-1">
+              <input type="text" :name="`sources[${sIndex}]`" x-model="sources[sIndex]"
+                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all outline-none"
+                placeholder="URL ou nom de la source (ex: https://developer.mozilla.org ou 'Documentation Python officielle')" />
+            </div>
+            <button type="button" @click="removeSource(sIndex)"
+              class="px-4 py-3 bg-red-50 text-red-600 font-bold rounded-xl hover:bg-red-100 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+              </svg>
+            </button>
+          </div>
+        </template>
+
+        <button type="button" @click="addSource()"
+          class="w-full py-3 border-2 border-dashed border-slate-300 rounded-xl text-slate-500 font-bold hover:border-primary-400 hover:text-primary-600 transition-colors flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+          </svg>
+          Ajouter une source
         </button>
       </div>
-    </form>
-    
-    <div class="mt-8 bg-amber-50 rounded-2xl p-6 border border-amber-100">
-        <h3 class="font-bold text-amber-800 mb-2 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            Modification avancée
-        </h3>
-        <p class="text-amber-700 text-sm">
-            Pour modifier le contenu des leçons, les quiz ou la structure du cours, cette fonctionnalité sera disponible prochainement. 
-            Vous pouvez actuellement régénérer le cours si le contenu ne vous convient pas (attention, cela écrasera tout).
-        </p>
     </div>
+
+    <div class="pt-6 flex justify-end gap-4 sticky bottom-6 z-20">
+      <div class="bg-white/80 backdrop-blur-md p-2 rounded-2xl shadow-2xl border border-slate-200 flex gap-4">
+        <a href="{{ route('courses.show', { slug: course.slug }) }}"
+          class="px-6 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-colors">
+          Annuler
+        </a>
+        <button type="submit"
+          class="px-8 py-3 bg-primary-600 text-white font-bold rounded-xl hover:bg-primary-700 shadow-lg shadow-primary-200 hover:scale-105 transition-all">
+          Enregistrer Tout
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <div class="mt-8 bg-blue-50 rounded-2xl p-6 border border-blue-100">
+    <h3 class="font-bold text-blue-800 mb-2 flex items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+      </svg>
+      Éditeur Manuel (BÊTA)
+    </h3>
+    <p class="text-blue-700 text-sm">
+      Vous pouvez maintenant modifier librement tous les aspects de votre cours : modules, leçons, exercices, quiz et ressources.
+      Cette fonctionnalité est en version bêta. N'hésitez pas à nous faire part de vos retours pour l'améliorer !
+    </p>
   </div>
+</div>
 @end

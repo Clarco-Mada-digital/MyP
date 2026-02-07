@@ -110,6 +110,10 @@ router.group(() => {
   // Redirects for legacy routes
   router.get('/social', ({ response }) => response.redirect().toPath('/community'))
   router.get('/shared/discover', ({ response }) => response.redirect().toPath('/community'))
+
+  // Manual course creation
+  router.get('/courses/create', [CoursesController, 'create']).as('courses.create')
+  router.post('/courses/store', [CoursesController, 'store']).as('courses.store')
 }).use(middleware.auth())
 
 router.group(() => {

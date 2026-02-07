@@ -518,6 +518,19 @@
               class="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-indigo-50 p-2 z-20 divide-y divide-slate-100">
 
               <div class="pb-2">
+                @if(auth.user && auth.user.id === course.userId)
+                <a href="{{ route('courses.edit', { slug: course.slug }) }}" 
+                   class="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-50 flex items-center gap-3 transition-colors text-slate-600 font-medium">
+                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                   </svg>
+                   <span class="flex items-center gap-2">
+                     Modifier
+                     <span class="bg-amber-100 text-amber-600 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide">Bêta</span>
+                   </span>
+                </a>
+                @end
+
                 <button
                   @click="navigator.clipboard.writeText(window.location.href); open = false; alert('Lien copié !')"
                   class="w-full text-left px-4 py-3 rounded-xl hover:bg-slate-50 flex items-center gap-3 transition-colors text-slate-600 font-medium">
@@ -633,7 +646,8 @@
               <div class="whitespace-pre-wrap">{{ lesson.content }}</div>
             </div>
 
-            {{-- Browser TTS Player --}}
+            {{-- Browser TTS Player (Only if no custom audio/video exists) --}}
+            @if(!lesson.content.includes('::: audio') && !lesson.content.includes('::: video') && !lesson.audio_url && !lesson.video_url)
             <div
               class="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100/50 flex flex-wrap items-center gap-4 mt-6">
               <div x-data="{ playing: false, rate: 1, lessonId: 'lesson-{{ index }}-{{ lessonIndex }}' }"
@@ -677,6 +691,7 @@
                 </div>
               </div>
             </div>
+            @end
 
             @if(lesson.audio_url)
             <div class="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-4">
@@ -826,6 +841,39 @@
               </button>
             </div>
 
+          </div>
+          @end
+
+          {{-- RESOURCES SECTION --}}
+          @if(module.resources && module.resources.length > 0)
+          <div class="mt-12 bg-teal-50 rounded-[2.5rem] p-8 md:p-12 border border-teal-100">
+            <h4 class="text-2xl font-black text-teal-900 flex items-center gap-3 mb-6">
+              <span class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm">�</span>
+              Ressources Utiles
+            </h4>
+            <p class="text-sm text-teal-700 mb-6">Liens et ressources recommandés pour approfondir ce module.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              @each(resource in module.resources)
+              <a href="{{ resource.url }}" target="_blank" rel="noopener noreferrer"
+                class="flex items-center gap-4 bg-white p-5 rounded-2xl shadow-sm border border-teal-100 hover:shadow-lg hover:border-teal-300 transition-all group">
+                <div class="w-10 h-10 rounded-xl bg-teal-100 flex items-center justify-center text-teal-600 flex-shrink-0 group-hover:scale-110 transition-transform">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                    <polyline points="15 3 21 3 21 9" />
+                    <line x1="10" y1="14" x2="21" y2="3" />
+                  </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="font-bold text-slate-800 group-hover:text-teal-700 transition-colors">{{ resource.title }}</p>
+                  <p class="text-xs text-slate-400 truncate mt-1">{{ resource.url }}</p>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-teal-400 group-hover:translate-x-1 transition-transform" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </a>
+              @end
+            </div>
           </div>
           @end
           @end
@@ -1360,8 +1408,35 @@
 
   function renderMarkdown() {
     document.querySelectorAll('.markdown-body').forEach(el => {
-      const content = el.dataset.content;
+      let content = el.dataset.content;
       if (content) {
+        // Pre-process custom blocks for Video and Audio
+        // ::: video https://... :::
+        content = content.replace(/:::\s*video\s+(.*?)\s*:::/g, (match, url) => {
+           return `<div class="my-6 rounded-2xl overflow-hidden shadow-lg aspect-video bg-black">
+              <video controls class="w-full h-full">
+                <source src="${url.trim()}" type="video/mp4">
+                Votre navigateur ne supporte pas la lecture de vidéos.
+              </video>
+           </div>`;
+        });
+        
+        // ::: audio https://... :::
+        content = content.replace(/:::\s*audio\s+(.*?)\s*:::/g, (match, url) => {
+           return `<div class="my-6 bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-4 shadow-sm">
+              <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" /></svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Audio Player</span>
+                <audio controls class="w-full h-8">
+                  <source src="${url.trim()}" type="audio/mpeg">
+                  Votre navigateur ne supporte pas l'audio.
+                </audio>
+              </div>
+           </div>`;
+        });
+      
         el.innerHTML = marked.parse(content);
       }
     });

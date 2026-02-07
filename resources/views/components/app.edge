@@ -20,9 +20,9 @@
       rel="stylesheet"
     />
 
-    @if(process.env.NODE_ENV === 'production')
+    @if(app.nodeEnv === 'production')
       {{-- En production, utiliser le CSS buildé --}}
-      <link rel="stylesheet" href="{{ asset('assets/app.css') }}">
+      <link rel="stylesheet" href="{{ asset('resources/css/app.css') }}">
     @else
       {{-- En développement, utiliser le CDN --}}
       <script src="https://cdn.tailwindcss.com"></script>
@@ -55,7 +55,7 @@
         });
       }
     </script>
-    @if(process.env.NODE_ENV !== 'production')
+    @if(app.nodeEnv !== 'production')
     <script>
       tailwind.config = {
         theme: {

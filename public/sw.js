@@ -32,6 +32,12 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return
 
   const url = new URL(event.request.url)
+  
+  // Ignore chrome-extension:// and other non-http(s) requests
+  if (!url.protocol.startsWith('http')) {
+    return
+  }
+  
   const isPrivate = PRIVATE_PATHS.some((path) => url.pathname.startsWith(path))
 
   // Strategy: Network Only for private paths
@@ -67,7 +73,10 @@ self.addEventListener('fetch', (event) => {
         (res) =>
           res ||
           fetch(event.request).then((response) => {
-            if (!response || response.status !== 200 || response.type !== 'basic') return response
+            // Only cache valid responses
+            if (!response || response.status !== 200 || response.type !== 'basic' || !url.protocol.startsWith('http')) {
+              return response
+            }
             const responseToCache = response.clone()
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache))
             return response

@@ -643,16 +643,37 @@ export default class CoursesController {
       return response.redirect().back()
     }
 
-    // Créer la demande de suppression
-    await CourseDeletionRequest.create({
-      courseId: course.id,
-      userId: user.id,
-      reason: request.input('reason') || null
-    })
+    // Vérifier le statut du cours
+    if (course.status === 'error') {
+      // Si le cours est en erreur, le supprimer directement sans demande d'admin
+      await course.delete()
+      session.flash('notification', {
+        type: 'success',
+        message: "✅ Cours supprimé automatiquement car il était en erreur."
+      })
+      return response.redirect().back()
+    }
 
+    // Si le cours est 'ready', créer une demande de suppression pour l'admin
+    if (course.status === 'ready') {
+      await CourseDeletionRequest.create({
+        courseId: course.id,
+        userId: user.id,
+        reason: request.input('reason') || null
+      })
+
+      session.flash('notification', {
+        type: 'success',
+        message: "✅ Votre demande de suppression a été envoyée à l'administrateur. Elle sera traitée prochainement."
+      })
+      return response.redirect().back()
+    }
+
+    // Pour les autres statuts, supprimer directement
+    await course.delete()
     session.flash('notification', {
       type: 'success',
-      message: "✅ Votre demande de suppression a été envoyée à l'administrateur. Elle sera traitée prochainement."
+      message: "✅ Cours supprimé avec succès."
     })
     return response.redirect().back()
   }

@@ -13,6 +13,8 @@ import ApplicationSetting from '#models/application_setting'
 import GeminiService from '#services/gemini_service'
 import OpenRouterService from '#services/openrouter_service'
 import CoursesController from '#controllers/courses_controller'
+import BackupService from '#services/backup_service'
+import DatabaseBackup from '#models/database_backup'
 
 export default class AdminController {
   async index({ view, auth, response }: HttpContext) {
@@ -496,5 +498,146 @@ export default class AdminController {
       })
       return response.redirect().back()
     }
+  }
+
+  /**
+   * Show backup management page
+   */
+  async backupManagement({ view, auth, response }: HttpContext) {
+    if (!auth.user?.isAdmin) {
+      return response.unauthorized('Accès réservé aux administrateurs')
+    }
+
+    const backups = await BackupService.getBackups()
+    const tables = await BackupService.getDatabaseTables()
+
+    return view.render('pages/admin/backup', { 
+      backups, 
+      tables,
+      isMySQL: Env.get('DB_CONNECTION') === 'mysql'
+    })
+  }
+
+  /**
+   * Create a manual backup
+   */
+  async createBackup({ response, auth, session }: HttpContext) {
+    if (!auth.user?.isAdmin) {
+      return response.unauthorized('Accès réservé aux administrateurs')
+    }
+
+    try {
+      await BackupService.createBackup('manual')
+      session.flash('notification', {
+        type: 'success',
+        message: '✅ Sauvegarde créée avec succès !'
+      })
+    } catch (error) {
+      console.error('Backup error:', error)
+      session.flash('notification', {
+        type: 'error',
+        message: `❌ Erreur lors de la sauvegarde: ${error instanceof Error ? error.message : 'Erreur inconnue'}`
+      })
+    }
+
+    return response.redirect().back()
+  }
+
+  /**
+   * Restore from backup
+   */
+  async restoreFromBackup({ params, response, auth, session }: HttpContext) {
+    if (!auth.user?.isAdmin) {
+      return response.unauthorized('Accès réservé aux administrateurs')
+    }
+
+    try {
+      const backup = await DatabaseBackup.findOrFail(params.id)
+      await BackupService.restoreBackup(backup.filepath)
+      
+      session.flash('notification', {
+        type: 'success',
+        message: '✅ Base de données restaurée avec succès !'
+      })
+    } catch (error) {
+      console.error('Restore error:', error)
+      session.flash('notification', {
+        type: 'error',
+        message: `❌ Erreur lors de la restauration: ${error instanceof Error ? error.message : 'Erreur inconnue'}`
+      })
+    }
+
+    return response.redirect().back()
+  }
+
+  /**
+   * Download backup file
+   */
+  async downloadBackupFile({ params, response, auth }: HttpContext) {
+    if (!auth.user?.isAdmin) {
+      return response.unauthorized('Accès réservé aux administrateurs')
+    }
+
+    try {
+      const { filepath, filename } = await BackupService.downloadBackup(params.id)
+      return response.attachment(filepath, filename)
+    } catch (error) {
+      return response.badRequest(error instanceof Error ? error.message : 'Erreur inconnue')
+    }
+  }
+
+  /**
+   * Delete a backup
+   */
+  async deleteBackup({ params, response, auth, session }: HttpContext) {
+    if (!auth.user?.isAdmin) {
+      return response.unauthorized('Accès réservé aux administrateurs')
+    }
+
+    try {
+      await BackupService.deleteBackup(params.id)
+      session.flash('notification', {
+        type: 'success',
+        message: '✅ Sauvegarde supprimée avec succès !'
+      })
+    } catch (error) {
+      console.error('Delete backup error:', error)
+      session.flash('notification', {
+        type: 'error',
+        message: `❌ Erreur lors de la suppression: ${error instanceof Error ? error.message : 'Erreur inconnue'}`
+      })
+    }
+
+    return response.redirect().back()
+  }
+
+  /**
+   * Configure automatic backup settings
+   */
+  async updateBackupSettings({ request, response, auth, session }: HttpContext) {
+    if (!auth.user?.isAdmin) {
+      return response.unauthorized('Accès réservé aux administrateurs')
+    }
+
+    try {
+      const enabled = request.input('auto_backup_enabled', false)
+      const frequency = request.input('backup_frequency', 'daily')
+      
+      await ApplicationSetting.setValue('auto_backup_enabled', enabled)
+      await ApplicationSetting.setValue('backup_frequency', frequency)
+
+      session.flash('notification', {
+        type: 'success',
+        message: '✅ Paramètres de sauvegarde automatique mis à jour !'
+      })
+    } catch (error) {
+      console.error('Update backup settings error:', error)
+      session.flash('notification', {
+        type: 'error',
+        message: '❌ Erreur lors de la mise à jour des paramètres'
+      })
+    }
+
+    return response.redirect().back()
   }
 }

@@ -1,8 +1,20 @@
-@component('components/app', { title: 'Configuration IA - Admin' })
+@component('components/app', { title: 'Paramètres Admin - MyP' })
 <div class="max-w-7xl mx-auto px-6 py-12">
   <div class="mb-12">
-    <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">Configuration IA Globale</h1>
-    <p class="text-slate-500 font-medium">Choisissez le fournisseur cloud par défaut pour tous les utilisateurs.</p>
+    <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">Paramètres Administrateur</h1>
+    <p class="text-slate-500 font-medium">Gérez les paramètres globaux de la plateforme.</p>
+  </div>
+
+  <!-- Navigation des paramètres -->
+  <div class="mb-8">
+    <div class="flex flex-wrap gap-2 border-b border-slate-200">
+      <a href="/admin/settings" class="pb-3 px-1 border-b-2 border-primary-600 text-primary-600 font-medium">
+        Configuration IA
+      </a>
+      <a href="/admin/backup" class="pb-3 px-1 border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-medium transition-colors">
+        Sauvegarde & Restauration
+      </a>
+    </div>
   </div>
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">

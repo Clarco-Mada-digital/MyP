@@ -64,8 +64,16 @@ router.group(() => {
   router.post('/admin/categories/:id/delete', [CategoriesController, 'destroy']).as('admin.categories.delete')
 
   // Backups
-  router.get('/admin/backup/download', [AdminController, 'downloadBackup']).as('admin.backup.download')
-  router.post('/admin/backup/restore', [AdminController, 'restoreBackup']).as('admin.backup.restore')
+  router.get('/admin/backup', [AdminController, 'backupManagement']).as('admin.backup')
+  router.post('/admin/backup/create', [AdminController, 'createBackup']).as('admin.backup.create')
+  router.post('/admin/backup/:id/restore', [AdminController, 'restoreFromBackup']).as('admin.backup.restore')
+  router.get('/admin/backup/:id/download', [AdminController, 'downloadBackupFile']).as('admin.backup.download')
+  router.post('/admin/backup/:id/delete', [AdminController, 'deleteBackup']).as('admin.backup.delete')
+  router.post('/admin/backup/settings', [AdminController, 'updateBackupSettings']).as('admin.backup.settings')
+  
+  // Legacy backup routes (renamed to avoid conflicts)
+  router.get('/admin/backup/download-legacy', [AdminController, 'downloadBackup']).as('admin.backup.download_legacy')
+  router.post('/admin/backup/restore-legacy', [AdminController, 'restoreBackup']).as('admin.backup.restore_legacy')
 
   // Global AI Settings
   router.get('/admin/settings', [AdminController, 'settings']).as('admin.settings')

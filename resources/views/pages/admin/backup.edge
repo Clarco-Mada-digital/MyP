@@ -1,0 +1,200 @@
+@component('components/app', { title: 'Sauvegarde et Restauration - Admin' })
+<div class="max-w-7xl mx-auto px-6 py-12">
+  <div class="mb-12">
+    <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">Sauvegarde et Restauration</h1>
+    <p class="text-slate-500 font-medium">Gérez les sauvegardes de votre base de données MySQL.</p>
+  </div>
+
+  @if(!isMySQL)
+  <div class="bg-yellow-50 border border-yellow-200 rounded-3xl p-6 mb-8">
+    <div class="flex items-start gap-4">
+      <div class="text-yellow-600 text-2xl">⚠️</div>
+      <div>
+        <h3 class="font-bold text-yellow-800 mb-2">Configuration MySQL requise</h3>
+        <p class="text-yellow-700 text-sm">Les fonctionnalités de sauvegarde automatique ne sont disponibles que pour MySQL. Votre configuration actuelle utilise une autre base de données.</p>
+      </div>
+    </div>
+  </div>
+  @end
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    {{-- Actions rapides --}}
+    <div class="lg:col-span-1">
+      <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm mb-6">
+        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+          <span>⚡</span> Actions Rapides
+        </h3>
+        
+        <form action="/admin/backup/create" method="POST" class="mb-4">
+          {{ csrfField() }}
+          <button type="submit" 
+            class="w-full bg-primary-600 text-white font-bold py-3 px-4 rounded-2xl hover:bg-primary-700 transition-all shadow-lg hover:shadow-xl active:scale-95 flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V2" />
+            </svg>
+            Créer une sauvegarde
+          </button>
+        </form>
+
+        @if(isMySQL)
+        <form action="/admin/backup/settings" method="POST" x-data="{ autoBackup: {{ await ApplicationSetting.getValue('auto_backup_enabled', 'false') === 'true' ? 'true' : 'false' }} }">
+          {{ csrfField() }}
+          <div class="space-y-4">
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" name="auto_backup_enabled" value="true" x-model="autoBackup" 
+                class="w-5 h-5 text-primary-600 rounded-lg focus:ring-primary-500">
+              <span class="text-sm font-medium text-slate-700">Sauvegarde automatique</span>
+            </label>
+            
+            <div x-show="autoBackup" x-transition>
+              <label class="block text-sm font-medium text-slate-700 mb-2">Fréquence</label>
+              <select name="backup_frequency" class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                <option value="daily">Quotidienne</option>
+                <option value="weekly">Hebdomadaire</option>
+                <option value="monthly">Mensuelle</option>
+              </select>
+            </div>
+            
+            <button type="submit" 
+              class="w-full bg-slate-900 text-white font-bold py-2 px-4 rounded-xl hover:bg-slate-800 transition-all text-sm">
+              Enregistrer
+            </button>
+          </div>
+        </form>
+        @end
+      </div>
+
+      {{-- Informations système --}}
+      <div class="bg-slate-50 p-6 rounded-3xl border border-slate-200">
+        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+          <span>📊</span> Informations
+        </h3>
+        <div class="space-y-3 text-sm">
+          <div class="flex justify-between">
+            <span class="text-slate-600">Type de base:</span>
+            <span class="font-medium">{{ isMySQL ? 'MySQL' : 'Autre' }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-600">Tables:</span>
+            <span class="font-medium">{{ tables.length }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-600">Total sauvegardes:</span>
+            <span class="font-medium">{{ backups.length }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {{-- Liste des sauvegardes --}}
+    <div class="lg:col-span-2">
+      <div class="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
+        <h3 class="text-xl font-bold text-slate-900 mb-6 flex items-center gap-3">
+          <span class="p-2 bg-slate-100 rounded-xl text-lg">💾</span> 
+          Sauvegardes disponibles
+        </h3>
+
+        @if(backups.length === 0)
+        <div class="text-center py-12">
+          <div class="text-6xl mb-4">📂</div>
+          <p class="text-slate-500 font-medium mb-2">Aucune sauvegarde disponible</p>
+          <p class="text-slate-400 text-sm">Créez votre première sauvegarde pour commencer.</p>
+        </div>
+        @else
+        <div class="space-y-4">
+          @each(backup in backups)
+          <div class="border border-slate-200 rounded-2xl p-6 hover:shadow-md transition-all">
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex-1">
+                <div class="flex items-center gap-3 mb-2">
+                  <h4 class="font-bold text-slate-900">{{ backup.filename }}</h4>
+                  <span class="px-2 py-1 text-xs font-bold rounded-lg
+                    {{ backup.type === 'manual' ? 'bg-blue-50 text-blue-700' : 'bg-green-50 text-green-700' }}">
+                    {{ backup.type === 'manual' ? 'Manuelle' : 'Automatique' }}
+                  </span>
+                  <span class="px-2 py-1 text-xs font-bold rounded-lg
+                    {{ backup.status === 'completed' ? 'bg-emerald-50 text-emerald-700' : 
+                       backup.status === 'pending' ? 'bg-yellow-50 text-yellow-700' : 
+                       'bg-red-50 text-red-700' }}">
+                    {{ backup.status === 'completed' ? 'Terminée' : 
+                       backup.status === 'pending' ? 'En cours' : 'Échouée' }}
+                  </span>
+                </div>
+                
+                <div class="flex items-center gap-4 text-sm text-slate-500">
+                  <span class="flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {{ backup.createdAt.toFormat('dd/MM/yyyy HH:mm') }}
+                  </span>
+                  @if(backup.size)
+                  <span class="flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    {{ (backup.size / 1024 / 1024).toFixed(2) }} MB
+                  </span>
+                  @end
+                  @if(backup.tables)
+                  <span class="flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    {{ backup.tables.split(',').length }} tables
+                  </span>
+                  @end
+                </div>
+
+                @if(backup.errorMessage)
+                <div class="mt-3 p-3 bg-red-50 border border-red-200 rounded-xl">
+                  <p class="text-red-700 text-sm">{{ backup.errorMessage }}</p>
+                </div>
+                @end
+              </div>
+
+              <div class="flex items-center gap-2 ml-4">
+                @if(backup.status === 'completed')
+                <a href="/admin/backup/{{ backup.id }}/download" 
+                  class="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-all" 
+                  title="Télécharger">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V2" />
+                  </svg>
+                </a>
+                
+                <form action="/admin/backup/{{ backup.id }}/restore" method="POST" 
+                  onsubmit="return confirm('Êtes-vous sûr de vouloir restaurer cette sauvegarde ? Cela remplacera toutes les données actuelles !')">
+                  {{ csrfField() }}
+                  <button type="submit" 
+                    class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all" 
+                    title="Restaurer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  </button>
+                </form>
+                @end
+                
+                <form action="/admin/backup/{{ backup.id }}/delete" method="POST" 
+                  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette sauvegarde ?')">
+                  {{ csrfField() }}
+                  <button type="submit" 
+                    class="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-all" 
+                    title="Supprimer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+          @end
+        </div>
+        @end
+      </div>
+    </div>
+  </div>
+</div>
+@end

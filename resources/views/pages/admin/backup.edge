@@ -72,7 +72,7 @@
         @end
 
         @if(isMySQL)
-        <form action="{{ route('admin.backup.settings') }}" method="POST" x-data="{ autoBackup: {{ await ApplicationSetting.getValue('auto_backup_enabled', 'false') === 'true' ? 'true' : 'false' } }">
+        <form action="{{ route('admin.backup.settings') }}" method="POST" x-data="{ autoBackup: {{ await ApplicationSetting.getValue('auto_backup_enabled', 'false') === 'true' ? 'true' : 'false' }}">
           {{ csrfField() }}
           <div class="space-y-4">
             <label class="flex items-center gap-3 cursor-pointer">

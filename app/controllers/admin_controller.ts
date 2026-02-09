@@ -515,7 +515,8 @@ export default class AdminController {
       backups, 
       tables,
       isMySQL: Env.get('DB_CONNECTION') === 'mysql',
-      ApplicationSetting
+      ApplicationSetting,
+      auth
     })
   }
 

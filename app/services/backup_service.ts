@@ -12,7 +12,7 @@ const execAsync = promisify(exec)
 
 export default class BackupService {
   /**
-   * Crée une sauvegarde complète de la base de données MySQL
+   * Crée une sauvegarde complète de la base de données
    */
   static async createBackup(type: 'manual' | 'automatic' = 'manual'): Promise<DatabaseBackup> {
     const backup = new DatabaseBackup()
@@ -20,8 +20,17 @@ export default class BackupService {
     backup.status = 'pending'
     
     const timestamp = DateTime.now().toFormat('yyyy-MM-dd_HH-mm-ss')
-    backup.filename = `backup_${type}_${timestamp}.sql`
-    backup.filepath = path.join(app.tmpPath('backups'), backup.filename)
+    const dbConnection = Env.get('DB_CONNECTION')
+    
+    if (dbConnection === 'mysql') {
+      backup.filename = `backup_${type}_${timestamp}.sql`
+      backup.filepath = path.join(app.tmpPath('backups'), backup.filename)
+    } else if (dbConnection === 'sqlite') {
+      backup.filename = `backup_${type}_${timestamp}.sqlite3`
+      backup.filepath = path.join(app.tmpPath('backups'), backup.filename)
+    } else {
+      throw new Error(`Type de base de données non supporté: ${dbConnection}`)
+    }
     
     await backup.save()
 
@@ -29,25 +38,28 @@ export default class BackupService {
       // Créer le répertoire de sauvegarde s'il n'existe pas
       await fs.mkdir(path.dirname(backup.filepath), { recursive: true })
 
-      // Vérifier si on utilise MySQL
-      if (Env.get('DB_CONNECTION') !== 'mysql') {
-        throw new Error('La sauvegarde automatique n\'est disponible que pour MySQL')
+      if (dbConnection === 'mysql') {
+        // Sauvegarde MySQL avec mysqldump
+        const mysqldumpCmd = `mysqldump -h ${Env.get('DB_HOST')} -P ${Env.get('DB_PORT')} -u ${Env.get('DB_USER')} -p${Env.get('DB_PASSWORD')} ${Env.get('DB_DATABASE')} > "${backup.filepath}"`
+        await execAsync(mysqldumpCmd)
+        
+        // Obtenir la liste des tables sauvegardées
+        const tables = await this.getDatabaseTables()
+        backup.tables = tables.join(',')
+      } else if (dbConnection === 'sqlite') {
+        // Sauvegarde SQLite : copie simple du fichier
+        const dbPath = app.tmpPath('db.sqlite3')
+        await fs.copyFile(dbPath, backup.filepath)
+        
+        // Obtenir la liste des tables pour SQLite
+        const tables = await this.getDatabaseTables()
+        backup.tables = tables.join(',')
       }
-
-      // Construire la commande mysqldump
-      const mysqldumpCmd = `mysqldump -h ${Env.get('DB_HOST')} -P ${Env.get('DB_PORT')} -u ${Env.get('DB_USER')} -p${Env.get('DB_PASSWORD')} ${Env.get('DB_DATABASE')} > "${backup.filepath}"`
-
-      // Exécuter la sauvegarde
-      await execAsync(mysqldumpCmd)
 
       // Vérifier que le fichier a été créé
       const stats = await fs.stat(backup.filepath)
       backup.size = stats.size
       backup.status = 'completed'
-
-      // Obtenir la liste des tables sauvegardées
-      const tables = await this.getDatabaseTables()
-      backup.tables = tables.join(',')
 
       await backup.save()
 
@@ -71,15 +83,19 @@ export default class BackupService {
    */
   static async restoreBackup(filepath: string): Promise<void> {
     try {
-      if (Env.get('DB_CONNECTION') !== 'mysql') {
-        throw new Error('La restauration n\'est disponible que pour MySQL')
+      const dbConnection = Env.get('DB_CONNECTION')
+      
+      if (dbConnection === 'mysql') {
+        // Restauration MySQL
+        const mysqlCmd = `mysql -h ${Env.get('DB_HOST')} -P ${Env.get('DB_PORT')} -u ${Env.get('DB_USER')} -p${Env.get('DB_PASSWORD')} ${Env.get('DB_DATABASE')} < "${filepath}"`
+        await execAsync(mysqlCmd)
+      } else if (dbConnection === 'sqlite') {
+        // Restauration SQLite : copie du fichier
+        const dbPath = app.tmpPath('db.sqlite3')
+        await fs.copyFile(filepath, dbPath)
+      } else {
+        throw new Error(`Type de base de données non supporté: ${dbConnection}`)
       }
-
-      // Construire la commande mysql
-      const mysqlCmd = `mysql -h ${Env.get('DB_HOST')} -P ${Env.get('DB_PORT')} -u ${Env.get('DB_USER')} -p${Env.get('DB_PASSWORD')} ${Env.get('DB_DATABASE')} < "${filepath}"`
-
-      // Exécuter la restauration
-      await execAsync(mysqlCmd)
 
     } catch (error) {
       throw new Error(`Erreur lors de la restauration: ${error instanceof Error ? error.message : 'Erreur inconnue'}`)
@@ -91,8 +107,17 @@ export default class BackupService {
    */
   static async getDatabaseTables(): Promise<string[]> {
     try {
-      const result = await db.rawQuery('SHOW TABLES')
-      return result.map((row: any) => Object.values(row)[0] as string)
+      const dbConnection = Env.get('DB_CONNECTION')
+      
+      if (dbConnection === 'sqlite') {
+        // Pour SQLite, utiliser une requête différente
+        const result = await db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
+        return result.map((row: any) => row.name as string)
+      } else {
+        // Pour MySQL et autres, utiliser la requête standard
+        const result = await db.rawQuery('SHOW TABLES')
+        return result.map((row: any) => Object.values(row)[0] as string)
+      }
     } catch (error) {
       console.error('Erreur lors de la récupération des tables:', error)
       return []

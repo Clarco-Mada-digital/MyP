@@ -22,28 +22,63 @@
     <div class="lg:col-span-1">
       <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm mb-6">
         <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-          <span>⚡</span> Actions Rapides
+          <span>⚡</span> Actions de Sauvegarde
         </h3>
         
-        <form action="/admin/backup/create" method="POST" class="mb-4">
-          {{ csrfField() }}
-          <button type="submit" 
-            class="w-full bg-primary-600 text-white font-bold py-3 px-4 rounded-2xl hover:bg-primary-700 transition-all shadow-lg hover:shadow-xl active:scale-95 flex items-center justify-center gap-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V2" />
-            </svg>
-            Créer une sauvegarde
-          </button>
-        </form>
+        @if(isMySQL)
+        {{-- MySQL Backup --}}
+        <div class="mb-6 p-4 bg-blue-50 rounded-2xl border border-blue-200">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">🐬</div>
+            <div>
+              <h4 class="font-bold text-blue-900">Base MySQL</h4>
+              <p class="text-xs text-blue-700">Sauvegarde complète avec mysqldump</p>
+            </div>
+          </div>
+          
+          <form action="{{ route('admin.backup.create') }}" method="POST" class="mb-3">
+            {{ csrfField() }}
+            <button type="submit" 
+              class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-2xl hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl active:scale-95 flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V2" />
+              </svg>
+              Créer sauvegarde MySQL
+            </button>
+          </form>
+        </div>
+        @else
+        {{-- SQLite Backup --}}
+        <div class="mb-6 p-4 bg-emerald-50 rounded-2xl border border-emerald-200">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center text-white font-bold">🗄️</div>
+            <div>
+              <h4 class="font-bold text-emerald-900">Base SQLite</h4>
+              <p class="text-xs text-emerald-700">Copie directe du fichier de base</p>
+            </div>
+          </div>
+          
+          <form action="{{ route('admin.backup.create') }}" method="POST" class="mb-3">
+            {{ csrfField() }}
+            <button type="submit" 
+              class="w-full bg-emerald-600 text-white font-bold py-3 px-4 rounded-2xl hover:bg-emerald-700 transition-all shadow-lg hover:shadow-xl active:scale-95 flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V2" />
+              </svg>
+              Créer sauvegarde SQLite
+            </button>
+          </form>
+        </div>
+        @end
 
         @if(isMySQL)
-        <form action="/admin/backup/settings" method="POST" x-data="{ autoBackup: {{ await ApplicationSetting.getValue('auto_backup_enabled', 'false') === 'true' ? 'true' : 'false' }} }">
+        <form action="{{ route('admin.backup.settings') }}" method="POST" x-data="autoBackup: {{ await ApplicationSetting.getValue('auto_backup_enabled', 'false') === 'true' ? 'true' : 'false' }}">
           {{ csrfField() }}
           <div class="space-y-4">
             <label class="flex items-center gap-3 cursor-pointer">
               <input type="checkbox" name="auto_backup_enabled" value="true" x-model="autoBackup" 
                 class="w-5 h-5 text-primary-600 rounded-lg focus:ring-primary-500">
-              <span class="text-sm font-medium text-slate-700">Sauvegarde automatique</span>
+              <span class="text-sm font-medium text-slate-700">Sauvegarde automatique MySQL</span>
             </label>
             
             <div x-show="autoBackup" x-transition>
@@ -67,20 +102,48 @@
       {{-- Informations système --}}
       <div class="bg-slate-50 p-6 rounded-3xl border border-slate-200">
         <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-          <span>📊</span> Informations
+          <span>📊</span> Informations Système
         </h3>
-        <div class="space-y-3 text-sm">
-          <div class="flex justify-between">
-            <span class="text-slate-600">Type de base:</span>
-            <span class="font-medium">{{ isMySQL ? 'MySQL' : 'Autre' }}</span>
+        <div class="space-y-4">
+          @if(isMySQL)
+          <div class="p-3 bg-blue-50 rounded-xl border border-blue-200">
+            <div class="flex items-center gap-2 mb-2">
+              <div class="w-6 h-6 bg-blue-600 rounded-lg flex items-center justify-center text-white text-xs font-bold">🐬</div>
+              <span class="font-bold text-blue-900">Base de données MySQL</span>
+            </div>
+            <div class="text-sm text-blue-700 space-y-1">
+              <p>• Sauvegarde complète avec mysqldump</p>
+              <p>• Support des sauvegardes automatiques</p>
+              <p>• Restauration via fichiers SQL</p>
+            </div>
           </div>
-          <div class="flex justify-between">
-            <span class="text-slate-600">Tables:</span>
-            <span class="font-medium">{{ tables.length }}</span>
+          @else
+          <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200">
+            <div class="flex items-center gap-2 mb-2">
+              <div class="w-6 h-6 bg-emerald-600 rounded-lg flex items-center justify-center text-white text-xs font-bold">🗄️</div>
+              <span class="font-bold text-emerald-900">Base de données SQLite</span>
+            </div>
+            <div class="text-sm text-emerald-700 space-y-1">
+              <p>• Copie directe du fichier .sqlite3</p>
+              <p>• Sauvegardes rapides et légères</p>
+              <p>• Restauration par remplacement de fichier</p>
+            </div>
           </div>
-          <div class="flex justify-between">
-            <span class="text-slate-600">Total sauvegardes:</span>
-            <span class="font-medium">{{ backups.length }}</span>
+          @end
+          
+          <div class="pt-4 border-t border-slate-200 space-y-2">
+            <div class="flex justify-between text-sm">
+              <span class="text-slate-600">Tables dans la base:</span>
+              <span class="font-medium">{{ tables.length }}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-slate-600">Total sauvegardes:</span>
+              <span class="font-medium">{{ backups.length }}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-slate-600">Espace disque utilisé:</span>
+              <span class="font-medium" x-data="totalSize: 0" x-init="totalSize = {{ backups.map(b => b.size || 0).reduce((a, b) => a + b, 0) }}" x-text="(totalSize / 1024 / 1024).toFixed(2) + ' MB'"></span>
+            </div>
           </div>
         </div>
       </div>
@@ -107,6 +170,12 @@
             <div class="flex items-start justify-between mb-4">
               <div class="flex-1">
                 <div class="flex items-center gap-3 mb-2">
+                  @if(isMySQL)
+                  <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 text-xs font-bold mr-2">🐬</div>
+                  @else
+                  <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center text-emerald-600 text-xs font-bold mr-2">🗄️</div>
+                  @end
+                  
                   <h4 class="font-bold text-slate-900">{{ backup.filename }}</h4>
                   <span class="px-2 py-1 text-xs font-bold rounded-lg
                     {{ backup.type === 'manual' ? 'bg-blue-50 text-blue-700' : 'bg-green-50 text-green-700' }}">
@@ -155,19 +224,19 @@
 
               <div class="flex items-center gap-2 ml-4">
                 @if(backup.status === 'completed')
-                <a href="/admin/backup/{{ backup.id }}/download" 
-                  class="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-all" 
+                <a href="{{ route('admin.backup.download', { id: backup.id }) }}" 
+                  class="p-2 {{ isMySQL ? 'text-blue-600 hover:bg-blue-50' : 'text-emerald-600 hover:bg-emerald-50' }} rounded-xl transition-all" 
                   title="Télécharger">
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V2" />
                   </svg>
                 </a>
                 
-                <form action="/admin/backup/{{ backup.id }}/restore" method="POST" 
+                <form action="{{ route('admin.backup.restore', { id: backup.id }) }}" method="POST" 
                   onsubmit="return confirm('Êtes-vous sûr de vouloir restaurer cette sauvegarde ? Cela remplacera toutes les données actuelles !')">
                   {{ csrfField() }}
                   <button type="submit" 
-                    class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all" 
+                    class="p-2 {{ isMySQL ? 'text-emerald-600 hover:bg-emerald-50' : 'text-blue-600 hover:bg-blue-50' }} rounded-xl transition-all" 
                     title="Restaurer">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -176,7 +245,7 @@
                 </form>
                 @end
                 
-                <form action="/admin/backup/{{ backup.id }}/delete" method="POST" 
+                <form action="{{ route('admin.backup.delete', { id: backup.id }) }}" method="POST" 
                   onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette sauvegarde ?')">
                   {{ csrfField() }}
                   <button type="submit" 

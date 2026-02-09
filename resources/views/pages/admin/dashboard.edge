@@ -362,7 +362,7 @@
           
           <div class="space-y-3">
             <a 
-              href="{{ route('admin.backup.download') }}?format=sqlite" 
+              href="{{ route('admin.backup.download_legacy') }}?format=sqlite" 
               download
               class="flex items-center gap-3 bg-slate-800 text-white px-6 py-3 rounded-xl font-bold hover:bg-slate-700 transition-all hover:shadow-lg hover:-translate-y-0.5 group"
             >
@@ -376,7 +376,7 @@
             </a>
 
             <a 
-              href="{{ route('admin.backup.download') }}?format=json" 
+              href="{{ route('admin.backup.download_legacy') }}?format=json" 
               download
               class="flex items-center gap-3 bg-white text-slate-700 border border-slate-200 px-6 py-3 rounded-xl font-bold hover:bg-slate-50 transition-all hover:shadow-md hover:-translate-y-0.5 group"
             >
@@ -390,7 +390,7 @@
             </a>
 
             <a 
-              href="{{ route('admin.backup.download') }}?format=csv" 
+              href="{{ route('admin.backup.download_legacy') }}?format=csv" 
               download
               class="flex items-center gap-3 bg-white text-slate-700 border border-slate-200 px-6 py-3 rounded-xl font-bold hover:bg-slate-50 transition-all hover:shadow-md hover:-translate-y-0.5 group"
             >
@@ -410,7 +410,7 @@
           <h4 class="font-bold text-lg mb-2">Restauration</h4>
           <p class="text-slate-500 text-sm mb-6">Restaurer la base de données à partir d'un fichier de sauvegarde. <span class="text-red-500 font-bold">Attention: Écrase les données actuelles !</span></p>
           
-          <form action="{{ route('admin.backup.restore') }}" method="POST" enctype="multipart/form-data" class="flex flex-col gap-4">
+          <form action="{{ route('admin.backup.restore_legacy') }}" method="POST" enctype="multipart/form-data" class="flex flex-col gap-4">
             {{ csrfField() }}
             <input type="file" name="backup" required accept=".sqlite3,.sqlite,.db" class="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 text-slate-500 text-sm border border-slate-200 rounded-xl p-2 bg-white">
             <button type="submit" onclick="return confirm('⚠️ ÊTES-VOUS SÛR ?\n\nCette action va REMPLACER toute la base de données actuelle par celle du fichier sélectionné.\n\nCette action est irréversible.')" class="inline-flex items-center gap-2 bg-red-100 text-red-700 border border-red-200 px-6 py-3 rounded-xl font-bold hover:bg-red-200 transition-colors w-full justify-center">

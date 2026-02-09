@@ -164,7 +164,7 @@
                class="nav-link hover:text-primary-600 transition-colors {{ request.url().startsWith('/parcours') ? 'text-primary-600 font-bold' : '' }}">
                Parcours
             </a>
-            @if(auth.user)
+            @if(auth && auth.user)
               <a href="/community" 
                  class="nav-link hover:text-primary-600 transition-colors {{ request.url().startsWith('/community') ? 'text-primary-600 font-bold' : '' }}">
                  Communauté

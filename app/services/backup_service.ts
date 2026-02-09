@@ -164,7 +164,38 @@ export default class BackupService {
   static async getMySQLTableStructure(tableName: string): Promise<string> {
     try {
       const result = await db.raw(`SHOW CREATE TABLE \`${tableName}\``) as unknown as any[]
-      return result[0]['Create Table']
+      
+      if (!result || result.length === 0 || !result[0]) {
+        console.error(`Structure de table MySQL non trouvée pour: ${tableName}`)
+        return ''
+      }
+      
+      const firstRow = result[0]
+      
+      // Chercher la propriété contenant le SQL CREATE TABLE
+      let createTableSql = ''
+      
+      // Essayer les noms de propriétés communs
+      if ('Create Table' in firstRow) {
+        createTableSql = firstRow['Create Table']
+      } else if ('Create Table' in firstRow) {
+        createTableSql = firstRow['Create Table']
+      } else {
+        // Chercher dans toutes les propriétés
+        for (const key in firstRow) {
+          if (key.toLowerCase().includes('create') && typeof firstRow[key] === 'string') {
+            createTableSql = firstRow[key]
+            break
+          }
+        }
+      }
+      
+      if (!createTableSql) {
+        console.error(`Propriété 'Create Table' non trouvée dans le résultat pour: ${tableName}`, firstRow)
+        return ''
+      }
+      
+      return createTableSql
     } catch (error) {
       console.error(`Erreur lors de l'obtention de la structure MySQL de ${tableName}:`, error)
       return ''

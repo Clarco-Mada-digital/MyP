@@ -16,7 +16,7 @@ const shieldConfig = defineConfig({
       imgSrc: ["'self'", "data:", "https:"],
       mediaSrc: ["'self'", "https://*", "http://*"],
       connectSrc: ["'self'", "https://generativelanguage.googleapis.com", "https://openrouter.ai/api", "http://localhost:11434"],
-      frameSrc: ["'none'"],
+      frameSrc: ["'self'", "https://www.youtube.com", "https://youtube.com"],
       objectSrc: ["'none'"],
       baseUri: ["'self'"],
       formAction: ["'self'"],

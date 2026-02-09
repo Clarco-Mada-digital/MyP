@@ -184,11 +184,11 @@
             <div class="relative" x-data="{ open: false }" @click.away="open = false">
               <button x-cloak @click="open = !open" class="user-pill hover:bg-slate-200/50 transition-colors focus:outline-none">
                 <div class="flex flex-col text-right">
-                  <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ auth.user.isAdmin ? 'Administrateur' : 'Étudiant' }}</span>
-                  <span class="text-sm font-bold text-slate-900">{{ auth.user.fullName }}</span>
+                  <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ auth.user?.isAdmin ? 'Administrateur' : 'Étudiant' }}</span>
+                  <span class="text-sm font-bold text-slate-900">{{ auth.user?.fullName || 'Utilisateur' }}</span>
                 </div>
                 <div class="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm">
-                  {{ auth.user.fullName.charAt(0).toUpperCase() }}
+                  {{ auth.user?.fullName?.charAt(0)?.toUpperCase() || 'U' }}
                 </div>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180' : ''"><path d="m6 9 6 6 6-6"/></svg>
               </button>
@@ -206,8 +206,8 @@
                 class="absolute right-0 mt-2 w-64 glass rounded-2xl shadow-2xl border border-slate-100/50 py-2 z-[60] overflow-hidden"
               >
                 <div class="px-4 py-3 border-bottom border-slate-50 bg-slate-50/50 mb-1">
-                  <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{{ auth.user.isAdmin ? 'Espace Admin' : 'Mon Compte' }}</p>
-                  <p class="text-sm font-bold text-slate-900 truncate">{{ auth.user.email }}</p>
+                  <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{{ auth.user?.isAdmin ? 'Espace Admin' : 'Mon Compte' }}</p>
+                  <p class="text-sm font-bold text-slate-900 truncate">{{ auth.user?.email || 'email@exemple.com' }}</p>
                 </div>
 
                 <a href="/settings" class="flex items-center gap-3 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-primary-50 hover:text-primary-600 transition-colors">
@@ -220,11 +220,11 @@
                   Guide d'utilisation
                 </a>
 
-                @if(auth.user.isAdmin)
+                @if(auth.user?.isAdmin)
                    <div class="h-px bg-slate-100 my-1"></div>
                    <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition-colors">
                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="M3 9h18"/><path d="M3 15h18"/></svg>
-                     Panel Administration
+                     Admin Dashboard
                    </a>
                    <a href="{{ route('admin.settings') }}" class="flex items-center gap-3 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 transition-colors">
                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.93 4.93l2.83 2.83"/><path d="M16.24 16.24l2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.93 19.07l2.83-2.83"/><path d="M16.24 7.76l2.83-2.83"/></svg>
@@ -277,7 +277,7 @@
             <a href="/mes-cours" class="py-2 hover:text-primary-600 transition-colors">Mes Cours</a>
             <a href="/dashboard" class="py-2 hover:text-primary-600 transition-colors">📊 Dashboard</a>
             <a href="/aide" class="py-2 hover:text-emerald-600 transition-colors">📖 Guide d'utilisation</a>
-            @if(auth.user.isAdmin)
+            @if(auth.user?.isAdmin)
               <a href="{{ route('admin.dashboard') }}" class="py-2 text-rose-600">Admin Dashboard</a>
               <a href="{{ route('admin.settings') }}" class="py-2 text-slate-700">⚙️ Config IA</a>
             @end
@@ -289,11 +289,11 @@
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 font-bold">
-                  {{ auth.user.fullName.substring(0, 1) }}
+                  {{ auth.user?.fullName?.substring(0, 1) || 'U' }}
                 </div>
                 <div>
-                  <div class="text-sm font-bold text-slate-900">{{ auth.user.fullName }}</div>
-                  <div class="text-[10px] text-slate-400 font-bold uppercase">{{ auth.user.isAdmin ? 'Administrateur' : 'Étudiant' }}</div>
+                  <div class="text-sm font-bold text-slate-900">{{ auth.user?.fullName || 'Utilisateur' }}</div>
+                  <div class="text-[10px] text-slate-400 font-bold uppercase">{{ auth.user?.isAdmin ? 'Administrateur' : 'Étudiant' }}</div>
                 </div>
               </div>
               <a href="/settings" class="p-2 text-slate-500">

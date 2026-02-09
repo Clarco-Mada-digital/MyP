@@ -43,9 +43,10 @@ export default class BackupService {
         try {
           const mysqldumpCmd = `mysqldump -h ${Env.get('DB_HOST')} -P ${Env.get('DB_PORT')} -u ${Env.get('DB_USER')} -p${Env.get('DB_PASSWORD')} ${Env.get('DB_DATABASE')} > "${backup.filepath}"`
           await execAsync(mysqldumpCmd)
+          console.log('✅ Sauvegarde MySQL créée avec mysqldump')
         } catch (error) {
           // Si mysqldump n'est pas disponible, utiliser Knex pour générer le dump
-          console.log('mysqldump non disponible, utilisation de Knex pour le dump...')
+          console.log('⚠️ mysqldump non disponible, utilisation de Knex pour le dump...')
           await this.createKnexDump(backup.filepath)
         }
         

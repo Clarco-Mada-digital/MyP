@@ -514,7 +514,8 @@ export default class AdminController {
     return view.render('pages/admin/backup', { 
       backups, 
       tables,
-      isMySQL: Env.get('DB_CONNECTION') === 'mysql'
+      isMySQL: Env.get('DB_CONNECTION') === 'mysql',
+      ApplicationSetting
     })
   }
 

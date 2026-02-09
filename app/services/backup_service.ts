@@ -39,9 +39,15 @@ export default class BackupService {
       await fs.mkdir(path.dirname(backup.filepath), { recursive: true })
 
       if (dbConnection === 'mysql') {
-        // Sauvegarde MySQL avec mysqldump
-        const mysqldumpCmd = `mysqldump -h ${Env.get('DB_HOST')} -P ${Env.get('DB_PORT')} -u ${Env.get('DB_USER')} -p${Env.get('DB_PASSWORD')} ${Env.get('DB_DATABASE')} > "${backup.filepath}"`
-        await execAsync(mysqldumpCmd)
+        // Sauvegarde MySQL : essayer mysqldump d'abord, sinon utiliser Knex
+        try {
+          const mysqldumpCmd = `mysqldump -h ${Env.get('DB_HOST')} -P ${Env.get('DB_PORT')} -u ${Env.get('DB_USER')} -p${Env.get('DB_PASSWORD')} ${Env.get('DB_DATABASE')} > "${backup.filepath}"`
+          await execAsync(mysqldumpCmd)
+        } catch (error) {
+          // Si mysqldump n'est pas disponible, utiliser Knex pour générer le dump
+          console.log('mysqldump non disponible, utilisation de Knex pour le dump...')
+          await this.createKnexDump(backup.filepath)
+        }
         
         // Obtenir la liste des tables sauvegardées
         const tables = await this.getDatabaseTables()
@@ -75,6 +81,87 @@ export default class BackupService {
       backup.errorMessage = error instanceof Error ? error.message : 'Erreur inconnue'
       await backup.save()
       throw error
+    }
+  }
+
+  /**
+   * Crée un dump SQL en utilisant Knex (alternative à mysqldump)
+   */
+  static async createKnexDump(filepath: string): Promise<void> {
+    try {
+      const tables = await this.getDatabaseTables()
+      let sqlDump = ''
+      
+      // En-tête du dump
+      sqlDump += `-- Dump SQL généré le ${DateTime.now().toFormat('yyyy-MM-dd HH:mm:ss')}\n`
+      sqlDump += `-- Base de données: ${Env.get('DB_DATABASE')}\n\n`
+      
+      for (const table of tables) {
+        // Obtenir la structure de la table
+        const createTableSQL = await this.getTableStructure(table)
+        sqlDump += `-- Structure de la table \`${table}\`\n`
+        sqlDump += `DROP TABLE IF EXISTS \`${table}\`;\n`
+        sqlDump += createTableSQL + ';\n\n'
+        
+        // Obtenir les données de la table
+        const insertSQL = await this.getTableData(table)
+        if (insertSQL) {
+          sqlDump += `-- Données de la table \`${table}\`\n`
+          sqlDump += insertSQL + '\n\n'
+        }
+      }
+      
+      // Écrire le dump dans le fichier
+      await fs.writeFile(filepath, sqlDump, 'utf8')
+      
+    } catch (error) {
+      throw new Error(`Erreur lors de la création du dump Knex: ${error instanceof Error ? error.message : 'Erreur inconnue'}`)
+    }
+  }
+
+  /**
+   * Obtient la structure d'une table
+   */
+  static async getTableStructure(tableName: string): Promise<string> {
+    try {
+      const result = await db.raw(`SHOW CREATE TABLE \`${tableName}\``) as unknown as any[]
+      return result[0]['Create Table']
+    } catch (error) {
+      console.error(`Erreur lors de l'obtention de la structure de ${tableName}:`, error)
+      return ''
+    }
+  }
+
+  /**
+   * Obtient les données d'une table au format INSERT
+   */
+  static async getTableData(tableName: string): Promise<string> {
+    try {
+      const rows = await db.from(tableName).select('*')
+      if (rows.length === 0) {
+        return ''
+      }
+      
+      const columns = Object.keys(rows[0])
+      let insertSQL = `INSERT INTO \`${tableName}\` (\`${columns.join('`, `')}\`) VALUES\n`
+      
+      const values = rows.map(row => {
+        const values = columns.map(col => {
+          const value = row[col]
+          if (value === null) return 'NULL'
+          if (typeof value === 'string') return `'${value.replace(/'/g, "\\'")}'`
+          if (typeof value === 'object') return `'${JSON.stringify(value).replace(/'/g, "\\'")}'`
+          return value
+        })
+        return `(${values.join(', ')})`
+      })
+      
+      insertSQL += values.join(',\n') + ';'
+      return insertSQL
+      
+    } catch (error) {
+      console.error(`Erreur lors de l'obtention des données de ${tableName}:`, error)
+      return ''
     }
   }
 

@@ -332,20 +332,11 @@ export default class BackupService {
         AND TABLE_TYPE = 'BASE TABLE'
       `) as unknown as any[]
       
-      console.log('🔍 Résultat brut de la requête MySQL:', JSON.stringify(result, null, 2))
-      
       // Le résultat contient deux tableaux : le premier avec les données, le deuxième avec les métadonnées
       // On ne veut que le premier tableau qui contient les vraies données
       const dataArray = Array.isArray(result[0]) ? result[0] : result
       
-      const tableNames = dataArray.map((row: any) => {
-        console.log('📋 Row traité:', row)
-        console.log('📋 TABLE_NAME:', row.TABLE_NAME)
-        return row.TABLE_NAME as string
-      }).filter(name => name && name !== '')
-      
-      console.log('✅ Noms de tables extraits:', tableNames)
-      return tableNames
+      return dataArray.map((row: any) => row.TABLE_NAME as string).filter(name => name && name !== '')
     } catch (error) {
       console.error('Erreur lors de la récupération des tables MySQL:', error)
       return []

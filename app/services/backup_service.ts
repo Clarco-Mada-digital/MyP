@@ -334,7 +334,11 @@ export default class BackupService {
       
       console.log('🔍 Résultat brut de la requête MySQL:', JSON.stringify(result, null, 2))
       
-      const tableNames = result.map((row: any) => {
+      // Le résultat contient deux tableaux : le premier avec les données, le deuxième avec les métadonnées
+      // On ne veut que le premier tableau qui contient les vraies données
+      const dataArray = Array.isArray(result[0]) ? result[0] : result
+      
+      const tableNames = dataArray.map((row: any) => {
         console.log('📋 Row traité:', row)
         console.log('📋 TABLE_NAME:', row.TABLE_NAME)
         return row.TABLE_NAME as string

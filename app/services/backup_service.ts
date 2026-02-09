@@ -124,10 +124,48 @@ export default class BackupService {
    */
   static async getTableStructure(tableName: string): Promise<string> {
     try {
+      const dbConnection = Env.get('DB_CONNECTION')
+      
+      if (typeof tableName !== 'string') {
+        console.error('Nom de table invalide:', tableName)
+        return ''
+      }
+      
+      if (dbConnection === 'sqlite') {
+        return await this.getSQLiteTableStructure(tableName)
+      } else if (dbConnection === 'mysql') {
+        return await this.getMySQLTableStructure(tableName)
+      } else {
+        throw new Error(`Type de base de données non supporté: ${dbConnection}`)
+      }
+    } catch (error) {
+      console.error(`Erreur lors de l'obtention de la structure de ${tableName}:`, error)
+      return ''
+    }
+  }
+
+  /**
+   * Obtient la structure d'une table SQLite
+   */
+  static async getSQLiteTableStructure(tableName: string): Promise<string> {
+    try {
+      const result = await db.rawQuery(`SELECT sql FROM sqlite_master WHERE type='table' AND name='${tableName}'`)
+      return result.length > 0 ? result[0].sql : ''
+    } catch (error) {
+      console.error(`Erreur lors de l'obtention de la structure SQLite de ${tableName}:`, error)
+      return ''
+    }
+  }
+
+  /**
+   * Obtient la structure d'une table MySQL
+   */
+  static async getMySQLTableStructure(tableName: string): Promise<string> {
+    try {
       const result = await db.raw(`SHOW CREATE TABLE \`${tableName}\``) as unknown as any[]
       return result[0]['Create Table']
     } catch (error) {
-      console.error(`Erreur lors de l'obtention de la structure de ${tableName}:`, error)
+      console.error(`Erreur lors de l'obtention de la structure MySQL de ${tableName}:`, error)
       return ''
     }
   }
@@ -136,6 +174,31 @@ export default class BackupService {
    * Obtient les données d'une table au format INSERT
    */
   static async getTableData(tableName: string): Promise<string> {
+    try {
+      const dbConnection = Env.get('DB_CONNECTION')
+      
+      if (typeof tableName !== 'string') {
+        console.error('Nom de table invalide:', tableName)
+        return ''
+      }
+      
+      if (dbConnection === 'sqlite') {
+        return await this.getSQLiteTableData(tableName)
+      } else if (dbConnection === 'mysql') {
+        return await this.getMySQLTableData(tableName)
+      } else {
+        throw new Error(`Type de base de données non supporté: ${dbConnection}`)
+      }
+    } catch (error) {
+      console.error(`Erreur lors de l'obtention des données de ${tableName}:`, error)
+      return ''
+    }
+  }
+
+  /**
+   * Obtient les données d'une table SQLite au format INSERT
+   */
+  static async getSQLiteTableData(tableName: string): Promise<string> {
     try {
       const rows = await db.from(tableName).select('*')
       if (rows.length === 0) {
@@ -149,7 +212,40 @@ export default class BackupService {
         const values = columns.map(col => {
           const value = row[col]
           if (value === null) return 'NULL'
-          if (typeof value === 'string') return `'${value.replace(/'/g, "\\'")}'`
+          if (typeof value === 'string') return `'${value.replace(/'/g, "''")}'` // SQLite utilise '' pour échapper
+          if (typeof value === 'object') return `'${JSON.stringify(value).replace(/'/g, "''")}'`
+          return value
+        })
+        return `(${values.join(', ')})`
+      })
+      
+      insertSQL += values.join(',\n') + ';'
+      return insertSQL
+      
+    } catch (error) {
+      console.error(`Erreur lors de l'obtention des données SQLite de ${tableName}:`, error)
+      return ''
+    }
+  }
+
+  /**
+   * Obtient les données d'une table MySQL au format INSERT
+   */
+  static async getMySQLTableData(tableName: string): Promise<string> {
+    try {
+      const rows = await db.from(tableName).select('*')
+      if (rows.length === 0) {
+        return ''
+      }
+      
+      const columns = Object.keys(rows[0])
+      let insertSQL = `INSERT INTO \`${tableName}\` (\`${columns.join('`, `')}\`) VALUES\n`
+      
+      const values = rows.map(row => {
+        const values = columns.map(col => {
+          const value = row[col]
+          if (value === null) return 'NULL'
+          if (typeof value === 'string') return `'${value.replace(/'/g, "\\'")}'` // MySQL utilise \' pour échapper
           if (typeof value === 'object') return `'${JSON.stringify(value).replace(/'/g, "\\'")}'`
           return value
         })
@@ -160,7 +256,7 @@ export default class BackupService {
       return insertSQL
       
     } catch (error) {
-      console.error(`Erreur lors de l'obtention des données de ${tableName}:`, error)
+      console.error(`Erreur lors de l'obtention des données MySQL de ${tableName}:`, error)
       return ''
     }
   }
@@ -197,16 +293,44 @@ export default class BackupService {
       const dbConnection = Env.get('DB_CONNECTION')
       
       if (dbConnection === 'sqlite') {
-        // Pour SQLite, utiliser une requête différente
-        const result = await db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
-        return result.map((row: any) => row.name as string)
+        return await this.getSQLiteTables()
+      } else if (dbConnection === 'mysql') {
+        return await this.getMySQLTables()
       } else {
-        // Pour MySQL et autres, utiliser la requête standard
-        const result = await db.rawQuery('SHOW TABLES')
-        return result.map((row: any) => Object.values(row)[0] as string)
+        throw new Error(`Type de base de données non supporté: ${dbConnection}`)
       }
     } catch (error) {
       console.error('Erreur lors de la récupération des tables:', error)
+      return []
+    }
+  }
+
+  /**
+   * Obtient les tables pour SQLite
+   */
+  static async getSQLiteTables(): Promise<string[]> {
+    try {
+      const result = await db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")
+      return result.map((row: any) => row.name as string)
+    } catch (error) {
+      console.error('Erreur lors de la récupération des tables SQLite:', error)
+      return []
+    }
+  }
+
+  /**
+   * Obtient les tables pour MySQL
+   */
+  static async getMySQLTables(): Promise<string[]> {
+    try {
+      const result = await db.rawQuery('SHOW TABLES') as unknown as any[]
+      return result.map((row: any) => {
+        // Pour MySQL, le nom de la table est dans la première propriété
+        const tableName = Object.values(row)[0] as string
+        return tableName
+      })
+    } catch (error) {
+      console.error('Erreur lors de la récupération des tables MySQL:', error)
       return []
     }
   }

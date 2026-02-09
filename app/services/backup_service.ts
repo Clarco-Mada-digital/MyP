@@ -323,12 +323,15 @@ export default class BackupService {
    */
   static async getMySQLTables(): Promise<string[]> {
     try {
-      const result = await db.rawQuery('SHOW TABLES') as unknown as any[]
-      return result.map((row: any) => {
-        // Pour MySQL, le nom de la table est dans la première propriété
-        const tableName = Object.values(row)[0] as string
-        return tableName
-      })
+      // Utiliser INFORMATION_SCHEMA pour une approche plus standard
+      const result = await db.rawQuery(`
+        SELECT TABLE_NAME 
+        FROM INFORMATION_SCHEMA.TABLES 
+        WHERE TABLE_SCHEMA = '${Env.get('DB_DATABASE')}'
+        AND TABLE_TYPE = 'BASE TABLE'
+      `) as unknown as any[]
+      
+      return result.map((row: any) => row.TABLE_NAME as string)
     } catch (error) {
       console.error('Erreur lors de la récupération des tables MySQL:', error)
       return []

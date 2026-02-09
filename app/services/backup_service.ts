@@ -332,7 +332,16 @@ export default class BackupService {
         AND TABLE_TYPE = 'BASE TABLE'
       `) as unknown as any[]
       
-      return result.map((row: any) => row.TABLE_NAME as string)
+      console.log('🔍 Résultat brut de la requête MySQL:', JSON.stringify(result, null, 2))
+      
+      const tableNames = result.map((row: any) => {
+        console.log('📋 Row traité:', row)
+        console.log('📋 TABLE_NAME:', row.TABLE_NAME)
+        return row.TABLE_NAME as string
+      }).filter(name => name && name !== '')
+      
+      console.log('✅ Noms de tables extraits:', tableNames)
+      return tableNames
     } catch (error) {
       console.error('Erreur lors de la récupération des tables MySQL:', error)
       return []

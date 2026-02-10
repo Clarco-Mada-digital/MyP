@@ -21,7 +21,10 @@ const CategoriesController = () => import('#controllers/categories_controller')
 const CommunityController = () => import('#controllers/community_controller')
 const LearningPathsController = () => import('#controllers/learning_paths_controller')
 
-router.get('/', [HomeController, 'index'])
+// router.get('/', [HomeController, 'index'])
+router.get('/', () => {
+  return 'HOME OK'
+})
 
 router.group(() => {
   router.get('/register', [AuthController, 'registerPage']).use(middleware.guest())
